@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/player.css">
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/buttons.css">
 </head>
 <body>
 <div class="app">
@@ -24,14 +25,14 @@
 <section id="home" class="screen active">
  <div class="hello"><div><p>Your local collection</p><h1>Listen your way</h1></div><div class="orn">✦</div></div>
  <div class="section"><div class="head"><h2>Recently Played</h2><button class="see" onclick="showRecent()">See all →</button></div><div id="homeRecent" class="row"></div></div>
- <div class="section"><div class="hero"><div><div class="eyebrow">Your listening space</div><h2 id="homeHeroTitle">Start with your music</h2><p id="homeHeroText">Import audio files to build a private library on this device.</p><div class="hero-controls"><button class="bigplay" onclick="show('yourmusic')">＋</button><button class="action" onclick="document.getElementById('audioImport').click()">Import music</button></div></div></div></div>
+ <div class="section"><div class="hero"><div><div class="eyebrow">Your listening space</div><h2 id="homeHeroTitle">Start with your music</h2><p id="homeHeroText">Import audio files to build a private library on this device.</p><div class="hero-controls"><button class="bigplay" onclick="show('yourmusic')" aria-label="Open your music">＋</button><button class="action" onclick="document.getElementById('audioImport').click()">Import music</button></div></div></div></div>
  <div class="section"><div class="head"><h2>Made for you</h2><span class="library-count">Based on your library</span></div><div id="homePicks" class="row"></div></div>
  <div class="section"><div class="stats"><div class="label">Your listening time</div><div id="homeListeningTime" class="time">0m</div><div class="period">this week</div><div id="homeWeekBars" class="week-bars"></div></div></div>
 </section>
 <section id="search" class="screen">
  <div class="head"><h2>Search your music</h2></div>
  <div class="searchbox">⌕<input id="searchInput" type="search" oninput="doSearch()" placeholder="Songs, artists, playlists, or categories"></div>
- <div class="chips"><button class="chip active" data-search-filter="all" onclick="setSearchFilter('all',this)">All</button><button class="chip" data-search-filter="songs" onclick="setSearchFilter('songs',this)">Songs</button><button class="chip" data-search-filter="artists" onclick="setSearchFilter('artists',this)">Artists</button><button class="chip" data-search-filter="playlists" onclick="setSearchFilter('playlists',this)">Playlists</button><button class="chip" data-search-filter="categories" onclick="setSearchFilter('categories',this)">Categories</button></div>
+ <div class="chips"><button class="chip active" data-search-filter="all" aria-pressed="true">All</button><button class="chip" data-search-filter="songs" aria-pressed="false">Songs</button><button class="chip" data-search-filter="artists" aria-pressed="false">Artists</button><button class="chip" data-search-filter="playlists" aria-pressed="false">Playlists</button><button class="chip" data-search-filter="categories" aria-pressed="false">Categories</button></div>
  <div id="searchResults"></div>
 </section>
 <section id="library" class="screen">
@@ -49,10 +50,10 @@
  <div class="import-bar"><button class="import-btn" onclick="document.getElementById('audioImport').click()">＋ Import music</button><input id="audioImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" multiple hidden onchange="importAudioFiles(this.files)"><span class="import-note">Audio stays in this browser on this device.</span></div>
  <div class="head"><h2 style="font-size:20px">Browse your music</h2><span id="trackCount" class="library-count">0 tracks</span></div>
  <div id="libraryTabs" class="library-tabs">
-  <button class="active" data-library-filter="all" onclick="setLibraryFilter('all',this)">All tracks</button>
-  <button data-library-filter="liked" onclick="setLibraryFilter('liked',this)">Liked</button>
-  <button data-library-filter="recent" onclick="setLibraryFilter('recent',this)">Recently played</button>
-  <button data-library-filter="unorganized" onclick="setLibraryFilter('unorganized',this)">Unorganized</button>
+  <button class="active" data-library-filter="all" aria-pressed="true">All tracks</button>
+  <button data-library-filter="liked" aria-pressed="false">Liked</button>
+  <button data-library-filter="recent" aria-pressed="false">Recently played</button>
+  <button data-library-filter="unorganized" aria-pressed="false">Unorganized</button>
  </div>
  <div id="categoryList" class="category-list"></div>
  <div id="localTrackList" class="track-list"></div>
@@ -66,15 +67,15 @@
  <div class="head"><h2>Your Playlists</h2><button class="see" onclick="newPlaylist()">＋ New playlist</button></div>
  <div id="playlistGrid" class="playlist-grid"></div>
  <div class="section"><div class="head"><h2 style="font-size:20px">Create a playlist</h2></div><div class="add-panel"><label for="playlistName" style="font-size:12px;color:var(--muted)">Playlist name</label><input class="form-input" id="playlistName" placeholder="e.g. Sunday Morning" maxlength="60"><button class="action save" style="width:100%" onclick="createPlaylist()">Create Playlist</button></div></div>
- <div id="playlistDetail" class="playlist-detail" hidden><div class="head"><div><h2 id="playlistDetailTitle"></h2><span id="playlistDetailCount" class="library-count"></span></div><button class="see" onclick="closePlaylistDetail()">Close</button></div><div class="detail-actions"><button class="action save" onclick="playSelectedPlaylist()">▶ Play all</button><button class="action" onclick="renameSelectedPlaylist()">Rename</button><button class="action" onclick="deleteSelectedPlaylist()">Delete</button></div><div id="playlistTracks" class="track-list"></div></div>
+ <div id="playlistDetail" class="playlist-detail" hidden><div class="head"><div><h2 id="playlistDetailTitle"></h2><span id="playlistDetailCount" class="library-count"></span></div><button class="see" onclick="closePlaylistDetail()">Close</button></div><div class="detail-actions"><button class="action save" onclick="playSelectedPlaylist()">▶ Play all</button><button class="action" onclick="renameSelectedPlaylist()">Rename</button><button class="action danger" onclick="deleteSelectedPlaylist()">Delete</button></div><div id="playlistTracks" class="track-list"></div></div>
 </section>
 <section id="now" class="screen now">
- <div class="nowtop"><button class="round" aria-label="Close player" onclick="show('home')">⌄</button><button class="round" aria-label="Track actions" onclick="openCurrentMenu()">•••</button></div>
+ <div class="nowtop"><button class="round" aria-label="Close player" onclick="show('home')">⌄</button><button id="currentTrackMenuButton" class="round" aria-label="Track actions" onclick="openCurrentMenu()" disabled>•••</button></div>
  <div id="nowArt" class="bigart a1" data-cover="♫"></div><h1 id="nowTitle">Nothing playing</h1><div class="artist" id="nowArtist">Choose a track from your local library</div>
- <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track"><div class="times"><span id="elapsedTime">0:00</span><span id="totalTime">0:00</span></div></div>
- <div class="controls"><button id="shuffleButton" class="ctrl" onclick="toggleShuffle()" aria-label="Toggle shuffle">⤨</button><button class="ctrl" onclick="previousTrack()" aria-label="Previous track">◀</button><button class="ctrl main" id="nowPlayButton" onclick="toggle()">▶</button><button class="ctrl" onclick="nextTrack()" aria-label="Next track">▶</button><button id="repeatButton" class="ctrl" onclick="toggleRepeat()" aria-label="Change repeat mode">↻</button></div>
+ <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track" disabled><div class="times"><span id="elapsedTime">0:00</span><span id="totalTime">0:00</span></div></div>
+ <div class="controls"><button id="shuffleButton" class="ctrl" onclick="toggleShuffle()" aria-label="Shuffle off" aria-pressed="false">⤨</button><button id="previousButton" class="ctrl" onclick="previousTrack()" aria-label="Previous track" disabled>◀</button><button class="ctrl main" id="nowPlayButton" onclick="toggle()" aria-label="Play playback">▶</button><button id="nextButton" class="ctrl" onclick="nextTrack()" aria-label="Next track" disabled>▶</button><button id="repeatButton" class="ctrl" onclick="toggleRepeat()" aria-label="Repeat off. Change repeat mode" aria-pressed="false">↻</button></div>
  <div class="player-status" id="playerStatus">Import audio files to begin listening</div>
- <div class="tools"><button onclick="toggleLyrics()"><span>▤<small>Lyrics</small></span></button><button onclick="openCurrentMenu()"><span>•••<small>Track menu</small></span></button><button onclick="openQueue()"><span>☷<small>Queue</small></span></button><button onclick="openSleepTimer()"><span>◷<small>Sleep timer</small></span></button></div>
+ <div class="tools"><button id="lyricsButton" onclick="toggleLyrics()" aria-label="Lyrics" disabled><span>▤<small>Lyrics</small></span></button><button id="currentTrackActionsButton" onclick="openCurrentMenu()" aria-label="Track menu" disabled><span>•••<small>Track menu</small></span></button><button onclick="openQueue()" aria-label="Open playback queue"><span>☷<small>Queue</small></span></button><button id="sleepTimerButton" onclick="openSleepTimer()" aria-label="Sleep timer" disabled><span>◷<small>Sleep timer</small></span></button></div>
  <div class="lyrics" id="lyricsPanel" hidden><h3>LYRICS</h3><p id="lyricsText">Lyrics you add for a track appear here.</p></div>
 </section>
 <section id="profile" class="screen">
@@ -85,12 +86,12 @@
 </section>
 <section id="settings" class="screen">
  <div class="head"><h2>Settings</h2></div>
- <div class="settings-group"><h3>Appearance</h3><p>Choose how Auralis looks on this device.</p><div class="settings-choice"><button data-theme="dark" onclick="setTheme('dark')">Dark</button><button data-theme="light" onclick="setTheme('light')">Light</button></div></div>
- <div class="settings-group"><h3>Accent color</h3><p>Personalize the player and highlights.</p><div class="accent-options"><button aria-label="Gold accent" data-accent="#f4d447" onclick="setAccent('#f4d447')"></button><button aria-label="Blue accent" data-accent="#79a9ff" onclick="setAccent('#79a9ff')"></button><button aria-label="Green accent" data-accent="#65d6aa" onclick="setAccent('#65d6aa')"></button><button aria-label="Rose accent" data-accent="#ff8fa3" onclick="setAccent('#ff8fa3')"></button><input id="customAccent" type="color" value="#f4d447" aria-label="Choose custom accent color" onchange="setAccent(this.value)"></div></div>
+ <div class="settings-group"><h3>Appearance</h3><p>Choose how Auralis looks on this device.</p><div class="settings-choice"><button data-theme="dark" aria-pressed="true" onclick="setTheme('dark')">Dark</button><button data-theme="light" aria-pressed="false" onclick="setTheme('light')">Light</button></div></div>
+ <div class="settings-group"><h3>Accent color</h3><p>Personalize the player and highlights.</p><div class="accent-options"><button aria-label="Gold accent" data-accent="#f4d447" aria-pressed="true" onclick="setAccent('#f4d447')"></button><button aria-label="Blue accent" data-accent="#79a9ff" aria-pressed="false" onclick="setAccent('#79a9ff')"></button><button aria-label="Green accent" data-accent="#65d6aa" aria-pressed="false" onclick="setAccent('#65d6aa')"></button><button aria-label="Rose accent" data-accent="#ff8fa3" aria-pressed="false" onclick="setAccent('#ff8fa3')"></button><input id="customAccent" type="color" value="#f4d447" aria-label="Choose custom accent color" onchange="setAccent(this.value)"></div></div>
  <div class="settings-group"><h3>Local music library</h3><p>Your imported audio and playlists are stored in this browser. Clearing browser site data can remove those files.</p><button class="action" onclick="show('yourmusic')">Manage your music</button></div>
 </section>
-<div class="mini" id="mini" hidden><div class="minicover a1" id="miniCover"></div><div class="miniinfo" onclick="show('now')"><b id="miniTitle">Nothing playing</b><span id="miniArtist">Choose a track</span></div><div class="mini-actions"><button id="miniLike" class="round" aria-label="Like track" onclick="toggleCurrentLike()">♡</button><button class="mini-play" id="mp" onclick="toggle()" aria-label="Play or pause">▶</button></div></div>
-<nav class="nav" aria-label="Main navigation"><button id="navhome" class="active" onclick="show('home')"><span>⌂</span>Home</button><button id="navsearch" onclick="show('search')"><span>⌕</span>Search</button><button id="navlibrary" onclick="show('library')"><span>▥</span>Library</button><button id="navmusic" onclick="show('yourmusic')"><span>♫</span>Your Music</button></nav>
+<div class="mini" id="mini" hidden><div class="minicover a1" id="miniCover"></div><button type="button" class="miniinfo" onclick="show('now')" aria-label="Open now playing"><b id="miniTitle">Nothing playing</b><span id="miniArtist">Choose a track</span></button><div class="mini-actions"><button id="miniLike" class="round" aria-label="Like track" aria-pressed="false" onclick="toggleCurrentLike()">♡</button><button class="mini-play" id="mp" onclick="toggle()" aria-label="Play or pause">▶</button></div></div>
+<nav class="nav" aria-label="Main navigation"><button id="navhome" class="active" aria-current="page" onclick="show('home')"><span>⌂</span>Home</button><button id="navsearch" onclick="show('search')"><span>⌕</span>Search</button><button id="navlibrary" onclick="show('library')"><span>▥</span>Library</button><button id="navmusic" onclick="show('yourmusic')"><span>♫</span>Your Music</button></nav>
 <div class="queue-panel" id="queuePanel"><div class="queue-inner"><div class="queue-head"><h3>Up Next</h3><button class="close" onclick="closeQueue()" aria-label="Close queue">×</button></div><div id="queueList" class="queue-list"></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <audio id="localAudio" preload="metadata"></audio>

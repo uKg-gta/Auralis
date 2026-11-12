@@ -35,7 +35,7 @@ html[data-theme="light"] .logo small,html[data-theme="light"] .song span,html[da
 .library-tabs button,.category-list button,.accent-options button{border:1px solid #38362d;border-radius:999px;padding:9px 13px;color:#c8c2b1;font-size:12px}
 .library-tabs button.active,.category-list button.active{background:var(--yellow);border-color:var(--yellow);color:#090909}
 .category-list button .count{opacity:.72;margin-left:5px}
-.playlist-card{cursor:pointer}
+
 .playlist-card:hover{border-color:var(--yellow)}
 .playlist-cover{position:relative}
 .playlist-cover button{position:absolute;right:12px;top:12px;color:var(--yellow);font-size:22px}
