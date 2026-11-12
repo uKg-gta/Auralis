@@ -27,3 +27,11 @@ html[data-theme="light"] button.danger:hover:not(:disabled){background:#ffe2e0;c
 .playlist-meta>span{flex:1;min-width:0}
 .playlist-open{flex:none;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:10px;color:var(--yellow)}
 html[data-theme="light"] .playlist-open{border-color:#d9d1bf}
+
+.volume-control{width:min(300px,82vw);display:flex;align-items:center;gap:12px;margin:2px auto 4px}
+.volume-mute{width:44px;height:44px;min-width:44px;border:1px solid var(--line);border-radius:12px;color:var(--muted);display:grid;place-items:center;font-size:17px}
+.volume-mute[aria-pressed="true"]{border-color:var(--yellow);color:var(--yellow)}
+.volume-control input{flex:1;min-width:0;accent-color:var(--yellow);touch-action:pan-x}
+.volume-control output{min-width:3.2em;text-align:right;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+html[data-theme="light"] .volume-mute{border-color:#d9d1bf;color:#494438}
+html[data-theme="light"] .volume-mute[aria-pressed="true"]{border-color:var(--yellow);color:var(--yellow)}

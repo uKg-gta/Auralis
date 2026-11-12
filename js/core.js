@@ -2,7 +2,7 @@ export const state={
  db:null,tracks:[],playlists:[],categories:[],history:[],
  currentTrackId:null,queueIds:[],queueIndex:-1,shuffle:false,repeatMode:'off',
  libraryFilter:'all',searchFilter:'all',selectedPlaylistId:null,dialogTrackId:null,
- prefs:{theme:'dark',accent:'#f4d447'},objectUrl:null,sleepTimer:null,
+ prefs:{theme:'dark',accent:'#f4d447',volume:0.8,lastVolume:0.8},objectUrl:null,sleepTimer:null,
  sessionId:null,sessionRecord:null,lastPosition:0,pendingSeconds:0,lastPersist:0,
  audio:document.getElementById('localAudio'),refreshAll:function(){},renderSearch:function(){},renderCurrent:function(){}
 };
