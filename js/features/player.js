@@ -150,8 +150,8 @@ export function moveQueueTo(trackId,targetIndex){
 }
 export function removeFromQueue(trackId){if(trackId===state.currentTrackId){toast('The playing song stays in the queue');return}state.queueIds=state.queueIds.filter(item=>item!==trackId);state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.queueBaseIds=state.queueIds.slice();renderQueue()}
 export function clearQueue(){const current=state.currentTrackId;state.queueIds=current?[current]:[];state.queueBaseIds=state.queueIds.slice();state.queueIndex=current?0:-1;renderQueue();toast('Queue cleared')}
-export function openQueue(){renderQueue();const panel=$('queuePanel');if(!panel.open)panel.showModal()}
-export function closeQueue(){const panel=$('queuePanel');if(panel.open)panel.close()}
+export function openQueue(){renderQueue();const panel=$('queuePanel');panel.style.display='';if(!panel.open)panel.showModal()}
+export function closeQueue(){const panel=$('queuePanel');if(panel.open)panel.close();panel.style.display='none'}
 export function openSleepTimer(){window.showDialog('Sleep timer','<div class="sleep-timer-intro">'+icon('timer')+' Stop playback after a set time</div><div class="dialog-options"><button data-timer="15">'+icon('timer')+' 15 minutes</button><button data-timer="30">'+icon('timer')+' 30 minutes</button><button data-timer="45">'+icon('timer')+' 45 minutes</button><button data-timer="60">'+icon('timer')+' 60 minutes</button><button data-timer="0">'+icon('close')+' Cancel sleep timer</button></div>')}
 export function selectSleepTimer(minutes){
  clearTimeout(state.sleepTimer);state.sleepTimer=null;window.closeAction();if(!minutes){updateControls();toast('Sleep timer cancelled');return}
