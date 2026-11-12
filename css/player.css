@@ -76,7 +76,10 @@ html[data-theme="light"] .mini{background:rgba(247,247,250,.93)}
 .dialog-options button.danger{color:var(--danger)}
 .dialog-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 .dialog-field{margin:5px 0 10px}
-.queue-sheet{display:flex;flex-direction:column}
+.queue-sheet[open]{display:flex;flex-direction:column}
+.queue-head-actions{display:flex;align-items:center;gap:4px}
+.queue-done{align-self:center;min-width:min(240px,100%);margin-top:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--text)}
+.queue-done:hover{background:var(--surface-3)}
 .queue-list{max-height:55dvh;overflow:auto;overscroll-behavior:contain}
 .queue-group-title{margin:15px 0 5px;color:var(--muted);font-size:14px;font-weight:700}
 .queue-item{display:flex;align-items:center;gap:8px;min-height:62px;border-bottom:1px solid var(--line)}

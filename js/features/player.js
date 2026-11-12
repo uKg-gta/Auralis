@@ -171,7 +171,7 @@ export function initPlayer(){
  $('nowLikeButton').addEventListener('click',()=>{if(state.currentTrackId)window.toggleLike(state.currentTrackId)});$('nowMoreButton').addEventListener('click',()=>{if(state.currentTrackId)window.trackMenu(state.currentTrackId)});
  $('lyricsButton').addEventListener('click',toggleLyrics);$('queueButton').addEventListener('click',openQueue);$('playerQueueOpen').addEventListener('click',openQueue);$('sleepTimerButton').addEventListener('click',openSleepTimer);
  $('playerClose').addEventListener('click',()=>window.closePlayer());$('lyricsClose').addEventListener('click',()=>{$('lyricsPanel').hidden=true;$('now').classList.remove('lyrics-open');$('lyricsButton').focus()});
- $('queueClose').addEventListener('click',closeQueue);$('queueClear').addEventListener('click',clearQueue);
+ $('queueClose').addEventListener('click',closeQueue);$('queueHeaderClose').addEventListener('click',closeQueue);$('queueClear').addEventListener('click',clearQueue);
  $('now').addEventListener('cancel',event=>{event.preventDefault();window.closePlayer()});$('queuePanel').addEventListener('cancel',event=>{event.preventDefault();closeQueue()});
  $('queuePanel').addEventListener('click',event=>{if(event.target=== $('queuePanel'))closeQueue()});
  let dragId=null;
