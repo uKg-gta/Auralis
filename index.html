@@ -92,6 +92,22 @@ html,body{max-width:100%;overflow-x:hidden}*{box-sizing:border-box}button,a,[rol
 @media(max-width:390px){.app,.container,main,.content,.page{padding-left:12px!important;padding-right:12px!important}.grid,.card-grid,.album-grid,.playlist-grid{gap:9px!important}.horizontal-scroll>*,.carousel>*,.row-scroll>*{flex-basis:138px}.now-playing .artwork,.player-screen .artwork,#nowPlaying .artwork,.now-playing .album-art,.player-screen .album-art{width:min(88vw,340px)!important}}
 @media(max-width:767px) and (orientation:landscape){.now-playing,.player-screen,#nowPlaying{display:grid!important;grid-template-columns:minmax(0,45%) minmax(0,55%)!important;align-items:center!important;gap:20px!important}.now-playing .artwork,.player-screen .artwork,#nowPlaying .artwork,.now-playing .album-art,.player-screen .album-art{width:min(42vw,420px)!important;margin:auto!important}}
 </style>
+<style>
+/* AURALIS_LOCAL_PLAYER_V5 */
+.import-bar{display:flex;gap:10px;align-items:center;margin:18px 0;flex-wrap:wrap}
+.import-btn{background:var(--yellow);color:#111;border-radius:999px;padding:12px 18px;font-weight:700;font-size:13px}
+.import-note{font-size:11px;color:var(--muted)}
+.track-list{display:grid;gap:8px;margin-top:14px}
+.track-item{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--line);border-radius:13px;background:var(--panel)}
+.track-item .meta{min-width:0;flex:1}.track-item b,.track-item span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track-item span{font-size:11px;color:var(--muted);margin-top:4px}
+.track-play{width:36px;height:36px;border-radius:50%;background:#222;flex:none}
+.now .seek input{width:100%;accent-color:var(--yellow);margin:8px 0}
+.now .times{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.player-status{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;min-height:16px}
+#localAudio{display:none}
+@media(max-width:600px){.import-bar{align-items:flex-start}.import-note{width:100%}.track-item{padding:8px}}
+</style>
 </head>
 <body><div id="auralis-v4-badge" aria-hidden="true" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:2000;padding:4px 9px;border-radius:999px;background:rgba(244,200,75,.12);color:rgba(255,230,160,.72);font:600 9px/1.2 system-ui;letter-spacing:.12em;text-transform:uppercase;pointer-events:none;opacity:.75">Auralis V4</div>
 <div class="app">
@@ -152,6 +168,8 @@ html,body{max-width:100%;overflow-x:hidden}*{box-sizing:border-box}button,a,[rol
 <section id="yourmusic" class="screen">
  <div class="head"><h2>Your Music</h2><button class="round">⚙</button></div>
  <div class="chips"><button class="chip active">Categories</button><button class="chip">Unorganized</button><button class="chip">Playlists</button></div>
+ <div class="import-bar"><button class="import-btn" onclick="document.getElementById('audioImport').click()">＋ Import music</button><input id="audioImport" type="file" accept="audio/*" multiple hidden onchange="importAudioFiles(this.files)"><span class="import-note">Choose audio files stored on this device. Your music stays in this browser.</span></div>
+ <div id="localTrackList" class="track-list"><p class="import-note">No imported music yet. Add audio files to start your library.</p></div>
  <div class="cat"><div class="catart">☾</div><div class="catinfo"><b>Late Night</b><span>84 songs</span></div><span class="chev">›</span></div>
  <div class="cat"><div class="catart">♥</div><div class="catinfo"><b>Emotional</b><span>62 songs</span></div><span class="chev">›</span></div>
  <div class="cat"><div class="catart">♡</div><div class="catinfo"><b>Romantic</b><span>47 songs</span></div><span class="chev">›</span></div>
@@ -173,8 +191,8 @@ html,body{max-width:100%;overflow-x:hidden}*{box-sizing:border-box}button,a,[rol
 <section id="now" class="screen now">
  <div class="nowtop"><button class="round" onclick="show('home')">⌄</button><button class="round">•••</button></div>
  <div class="bigart"></div><h1 id="nowTitle">Sajni</h1><div class="artist" id="nowArtist">Arijit Singh</div>
- <div class="seek"><div class="track"><i></i></div><div class="times"><span>1:42</span><span>4:18</span></div></div>
- <div class="controls"><button class="ctrl">↶</button><button class="ctrl">◀</button><button class="ctrl main" onclick="toggle()">Ⅱ</button><button class="ctrl">▶</button><button class="ctrl">↷</button></div>
+ <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track"><div class="times"><span id="elapsedTime">0:00</span><span id="totalTime">0:00</span></div></div>
+ <div class="controls"><button class="ctrl" onclick="previousTrack()" aria-label="Previous track">↶</button><button class="ctrl" onclick="previousTrack()" aria-label="Previous track">◀</button><button class="ctrl main" id="nowPlayButton" onclick="toggle()">▶</button><button class="ctrl" onclick="nextTrack()" aria-label="Next track">▶</button><button class="ctrl" onclick="nextTrack()" aria-label="Next track">↷</button></div><div class="player-status" id="playerStatus">Import audio files to begin listening</div>
  <div class="tools"><button onclick="toast('Lyrics panel ready')"><span>▤<small>Lyrics</small></span></button><button onclick="show('playlists')"><span>♧<small>Add to</small></span></button><button onclick="openQueue()"><span>☷<small>Queue</small></span></button><button onclick="toast('Sleep timer set for 30 minutes')"><span>◷<small>Timer</small></span></button></div>
  <div class="lyrics"><h3>LYRICS</h3><p>Kaise mujhe tum mil gayi<br>Kismat pe aaye na yakeen<br>Itna hua karam...</p></div>
 </section>
@@ -188,7 +206,7 @@ html,body{max-width:100%;overflow-x:hidden}*{box-sizing:border-box}button,a,[rol
   <div class="queue-list" id="queueList"></div>
  </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"></div><audio id="localAudio" preload="metadata"></audio>
 </div>
 
 <div class="overlay" id="searchOverlay"><div class="overlayin"><button class="close" onclick="closeSearch()">×</button><h2 style="font:500 27px Georgia,serif;margin-top:45px">What do you want to listen to?</h2><div class="searchbox"><input id="overlayInput" placeholder="Songs, artists, albums, playlists..." oninput="overlaySearch()"></div><div id="overlayResults"></div></div></div>
@@ -236,6 +254,73 @@ function toast(msg){
  clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove('show'),1800);
 }
 
+</script>
+
+<script>
+/* AURALIS_LOCAL_PLAYER_V5 — real local playback + IndexedDB library */
+(function(){
+ const audio=document.getElementById('localAudio');
+ const dbName='auralis-local-library-v1';
+ let db=null, tracks=[], currentIndex=-1, objectUrl=null;
+ const $=id=>document.getElementById(id);
+ const fmt=n=>{if(!Number.isFinite(n)||n<0)return '0:00';return Math.floor(n/60)+':'+String(Math.floor(n%60)).padStart(2,'0')};
+ function status(t){$('playerStatus').textContent=t}
+ function openDB(){
+  return new Promise((resolve,reject)=>{
+   if(!window.indexedDB){reject(new Error('This browser does not support local music storage.'));return}
+   const req=indexedDB.open(dbName,1);
+   req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains('tracks'))d.createObjectStore('tracks',{keyPath:'id'})};
+   req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error);
+  });
+ }
+ function store(mode,fn){return new Promise((resolve,reject)=>{const tx=db.transaction('tracks',mode);const req=fn(tx.objectStore('tracks'));if(req){req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)}else{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)}})}
+ function loadTracks(){return store('readonly',os=>os.getAll()).then(rows=>{tracks=rows.sort((a,b)=>a.added-b.added);renderTracks()})}
+ function safeName(file){return file.name.replace(/\.[^.]+$/,'')}
+ function parseName(file){const n=safeName(file);const p=n.split(' - ');return p.length>1?{title:p.slice(1).join(' - '),artist:p[0]}:{title:n,artist:'Unknown artist'}}
+ window.importAudioFiles=async function(files){
+  if(!files||!files.length)return;
+  try{
+   await openDB();let added=0;
+   for(const file of Array.from(files)){
+    if(!file.type.startsWith('audio/')&&!/\.(mp3|m4a|aac|wav|ogg|flac|opus)$/i.test(file.name))continue;
+    const meta=parseName(file);
+    await store('readwrite',os=>os.put({id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),title:meta.title,artist:meta.artist,name:file.name,type:file.type,blob:file,added:Date.now()+added}));
+    added++;
+   }
+   await loadTracks();status(added+' track(s) added to your library');toast(added+' track(s) imported');
+  }catch(e){status('Could not save music: '+e.message);toast('Import failed. Check browser storage permissions.')}
+  $('audioImport').value='';
+ };
+ function renderTracks(){
+  const box=$('localTrackList');if(!box)return;
+  if(!tracks.length){box.innerHTML='<p class="import-note">No imported music yet. Add audio files to start your library.</p>';return}
+  box.innerHTML=tracks.map((t,i)=>'<div class="track-item"><div class="thumb art a'+(i%5+1)+'"></div><div class="meta"><b>'+escapeHTML(t.title)+'</b><span>'+escapeHTML(t.artist)+'</span></div><button class="track-play" onclick="playLocal('+i+')" aria-label="Play '+escapeHTML(t.title)+'">▶</button></div>').join('');
+ }
+ function escapeHTML(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ window.playLocal=async function(i){
+  if(i<0||i>=tracks.length)return;
+  currentIndex=i;const t=tracks[i];
+  if(objectUrl)URL.revokeObjectURL(objectUrl);
+  objectUrl=URL.createObjectURL(t.blob);audio.src=objectUrl;
+  $('nowTitle').textContent=t.title;$('miniTitle').textContent=t.title;
+  $('nowArtist').textContent=t.artist;$('miniArtist').textContent=t.artist;
+  $('mini').style.display='flex';show('now');
+  try{await audio.play();status('Playing from your device')}catch(e){status('Press play to start this track')}
+  syncButtons();
+ };
+ window.toggle=function(){if(!audio.src){status('Import a track first');return}if(audio.paused)audio.play().then(()=>status('Playing')).catch(()=>status('Playback could not start'));else audio.pause();syncButtons()};
+ window.nextTrack=function(){if(!tracks.length)return;playLocal((currentIndex+1+tracks.length)%tracks.length)};
+ window.previousTrack=function(){if(!tracks.length)return;if(audio.currentTime>3){audio.currentTime=0;return}playLocal((currentIndex-1+tracks.length)%tracks.length)};
+ function syncButtons(){const playing=!audio.paused;$('mp').textContent=playing?'Ⅱ':'▶';if($('nowPlayButton'))$('nowPlayButton').textContent=playing?'Ⅱ':'▶'}
+ audio.addEventListener('play',syncButtons);audio.addEventListener('pause',syncButtons);
+ audio.addEventListener('timeupdate',()=>{const d=audio.duration||0;$('seekBar').value=d?Math.round(audio.currentTime/d*1000):0;$('elapsedTime').textContent=fmt(audio.currentTime);$('totalTime').textContent=fmt(d)});
+ audio.addEventListener('ended',()=>window.nextTrack());
+ audio.addEventListener('error',()=>status('This audio format could not be played by your browser'));
+ $('seekBar').addEventListener('input',e=>{if(audio.duration)audio.currentTime=(Number(e.target.value)/1000)*audio.duration});
+ $('mini').addEventListener('click',e=>{if(e.target.closest('button'))return;show('now')});
+ openDB().then(loadTracks).catch(e=>status(e.message));
+ window.addEventListener('beforeunload',()=>{if(objectUrl)URL.revokeObjectURL(objectUrl)});
+})();
 </script>
 </body>
 </html>
