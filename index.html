@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Auralis — Full Prototype</title>
+<title>Auralis — Your Local Music</title>
 <style>
 :root{--bg:#050505;--panel:#0d0d0c;--panel2:#13130f;--line:#29281f;--text:#f8f4e7;--muted:#aaa594;--yellow:#f4d447;--cream:#e9dfbf;--shadow:0 20px 60px #000}
 *{box-sizing:border-box}html,body{margin:0;background:#000;color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -139,216 +139,331 @@ html{scroll-behavior:smooth}body{background:#070706;color:var(--text);letter-spa
 
 </style>
 </head>
-<body><div class="app">
+<style id="auralis-core-ui">
+.hidden,[hidden]{display:none!important}
+:root{--yellow:#f4d447}
+html[data-theme="light"],html[data-theme="light"] body{background:#f2efe8;color:#211f18}
+html[data-theme="light"] .app{background:radial-gradient(circle at 80% 0,rgba(186,143,33,.1),transparent 25rem),#f7f4ed;color:#211f18}
+html[data-theme="light"] .top,html[data-theme="light"] .nav{background:rgba(247,244,237,.96);border-color:#ddd7c8}
+html[data-theme="light"] .panel,html[data-theme="light"] .add-panel,html[data-theme="light"] .stats,html[data-theme="light"] .organize-card,html[data-theme="light"] .cat,html[data-theme="light"] .track-item,html[data-theme="light"] .playlist-card,html[data-theme="light"] .lyrics{background:#fffdf7;border-color:#e4ddce}
+html[data-theme="light"] .searchbox,html[data-theme="light"] .form-input{background:#fffdf7;border-color:#ddd7c8;color:#211f18}
+html[data-theme="light"] .mini{background:rgba(255,253,247,.97);border-color:#ddd7c8}
+html[data-theme="light"] .settings-group,html[data-theme="light"] .profile-hero{background:#fffdf7;border-color:#e4ddce}
+html[data-theme="light"] .queue-item{border-color:#e7e0d1}
+html[data-theme="light"] .dialog-options button,html[data-theme="light"] .dialog-field{background:#fff;border-color:#ddd7c8;color:#211f18}
+html[data-theme="light"] .queue-panel,html[data-theme="light"] dialog{background:#fffdf7;color:#211f18}
+html[data-theme="light"] .chip,html[data-theme="light"] .tag{color:#4b4638;border-color:#d9d1bf}
+html[data-theme="light"] .browse,html[data-theme="light"] .mix{background:linear-gradient(135deg,#e9e0cd,#fffdf7)}
+html[data-theme="light"] .ctrl{color:#494438}
+html[data-theme="light"] .controls .ctrl.main{color:#080808}
+html[data-theme="light"] .logo small,html[data-theme="light"] .song span,html[data-theme="light"] .listinfo span,html[data-theme="light"] .catinfo span,html[data-theme="light"] .artist,html[data-theme="light"] .period,html[data-theme="light"] .import-note{color:#746e60}
+.header-profile{display:flex;align-items:center}
+.screen{min-height:calc(100vh - 165px)}
+.home-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.home-actions .action{flex:0 0 auto}
+.empty-state{border:1px dashed #494638;border-radius:16px;padding:22px;color:var(--muted);font-size:13px;line-height:1.55}
+.track-item{padding:9px 10px}
+.track-item .meta{flex:1;min-width:0}
+.track-item .meta b{font-size:13px}
+.track-item .track-buttons{display:flex;align-items:center;gap:5px}
+.track-item button,.queue-item button{min-width:36px;min-height:36px;border-radius:50%;display:grid;place-items:center;color:#d9d2c0}
+.track-item button:hover,.queue-item button:hover{background:#222117;color:var(--yellow)}
+.track-item .track-play{background:var(--yellow);color:#070707}
+.row.song-row{gap:12px}
+.library-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.library-shortcuts .panel{margin:0;cursor:pointer}
+.library-tabs,.category-list,.accent-options{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+.library-tabs button,.category-list button,.accent-options button{border:1px solid #38362d;border-radius:999px;padding:9px 13px;color:#c8c2b1;font-size:12px}
+.library-tabs button.active,.category-list button.active{background:var(--yellow);border-color:var(--yellow);color:#090909}
+.category-list button .count{opacity:.72;margin-left:5px}
+.playlist-card{cursor:pointer}
+.playlist-card:hover{border-color:var(--yellow)}
+.playlist-cover{position:relative}
+.playlist-cover button{position:absolute;right:12px;top:12px;color:var(--yellow);font-size:22px}
+.playlist-detail{margin-top:22px}
+.detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.detail-actions .action{flex:0 0 auto}
+.detail-track{display:flex;align-items:center;gap:7px}
+.detail-track .track-item{flex:1}
+.player-status{min-height:18px;color:var(--muted);font-size:12px}
+.now .bigart{display:grid;place-items:end start;padding:24px}
+.bigart:after{content:attr(data-cover);position:static;font:500 clamp(20px,5vw,34px) Georgia,serif;letter-spacing:.12em;color:#fff0d2;text-shadow:0 2px 18px #000}
+.controls .ctrl{min-width:38px;min-height:44px}
+.controls .ctrl.active{color:var(--yellow)}
+.tools button{cursor:pointer}
+.tools button span{width:100%}
+.tools button:hover span,.tools button.active span{border-color:#5b512b;color:var(--yellow)}
+.mini[hidden]{display:none}
+.mini-actions .round.liked{color:#ff7c93}
+.lyrics{white-space:pre-wrap;line-height:1.8}
+.library-count{color:var(--muted);font-size:12px}
+.profile-hero{display:flex;align-items:center;gap:16px;padding:22px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(135deg,#21190f,#0b0b09);margin-bottom:18px}
+.profile-avatar{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#3e2b1e,#ba8b50 55%,#101010);color:#080808;font-size:25px;font-weight:800}
+.profile-hero h2{font:500 25px Georgia,serif;margin:0 0 5px}
+.profile-hero p{margin:0;color:var(--muted);font-size:12px}
+.settings-group{border:1px solid var(--line);border-radius:18px;padding:17px;background:#0c0c0b;margin:12px 0}
+.settings-group h3{margin:0 0 5px;font:500 18px Georgia,serif}
+.settings-group p{color:var(--muted);font-size:12px;margin:0 0 12px}
+.settings-choice{display:flex;gap:9px;flex-wrap:wrap}
+.settings-choice button{border:1px solid #454135;border-radius:12px;padding:10px 13px;font-size:12px}
+.settings-choice button.active{border-color:var(--yellow);color:var(--yellow)}
+.accent-options button{width:38px;height:38px;padding:0;border:2px solid transparent}
+.accent-options button.active{outline:2px solid var(--text);outline-offset:2px}
+.accent-options button[data-accent="#f4d447"]{background:#f4d447}
+.accent-options button[data-accent="#79a9ff"]{background:#79a9ff}
+.accent-options button[data-accent="#65d6aa"]{background:#65d6aa}
+.accent-options button[data-accent="#ff8fa3"]{background:#ff8fa3}
+.week-bars{display:flex;align-items:flex-end;gap:12px;height:118px;margin:14px 0 4px}
+.week-bar{flex:1;min-width:18px;text-align:center;font-size:9px;color:var(--muted)}
+.week-bar i{display:block;min-height:3px;max-width:18px;margin:0 auto 6px;background:var(--yellow);border-radius:8px 8px 2px 2px}
+dialog{width:min(480px,calc(100vw - 28px));max-height:min(80vh,680px);padding:0;border:1px solid #474335;border-radius:20px;background:#11110f;color:var(--text);box-shadow:0 30px 100px #000}
+dialog::backdrop{background:rgba(0,0,0,.76);backdrop-filter:blur(5px)}
+.dialog-inner{padding:20px}
+.dialog-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.dialog-top h3{font:500 21px Georgia,serif;margin:0}
+.dialog-top button{font-size:26px;color:var(--yellow)}
+.dialog-options{display:grid;gap:8px;max-height:55vh;overflow:auto}
+.dialog-options button{width:100%;text-align:left;border:1px solid var(--line);border-radius:12px;padding:12px;background:#0a0a09}
+.dialog-options button:hover{border-color:var(--yellow)}
+.dialog-field{width:100%;border:1px solid #37352d;background:#0a0a09;border-radius:12px;padding:12px;color:var(--text);margin:5px 0 12px}
+.dialog-footer{display:flex;gap:9px;margin-top:12px}
+.dialog-footer button{flex:1}
+.queue-list{overflow:auto}
+.queue-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1d1c18}
+.queue-item.current .qinfo b{color:var(--yellow)}
+.queue-item .qinfo{flex:1;min-width:0}
+.queue-item .qinfo b,.queue-item .qinfo span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.queue-item .qinfo b{font-size:13px}.queue-item .qinfo span{font-size:11px;color:var(--muted);margin-top:3px}
+.toast{z-index:120}
+@media(min-width:900px){
+ body{padding-bottom:0}
+ .app{margin-left:220px;margin-right:auto;max-width:1180px}
+ .nav{left:0;top:78px;bottom:0;transform:none;width:205px;height:auto;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:5px;padding:22px 14px;background:rgba(5,5,5,.97);border-top:0;border-right:1px solid #211f19}
+ .nav button{height:48px;flex-direction:row;justify-content:flex-start;gap:14px;padding:0 14px;border-radius:12px;font-size:13px}
+ .nav button span:first-child{font-size:20px}
+ .mini{left:calc(50% + 110px);transform:translateX(-50%);bottom:18px;width:min(1050px,calc(100% - 250px))}
+ .app{padding-bottom:110px}
+ .library-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:767px){
+ .screen{min-height:calc(100vh - 145px)}
+ .home-actions .action{font-size:12px}
+ .library-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tools{gap:7px}
+ .tools span{min-height:60px}
+}
+@media(max-width:420px){
+ .library-shortcuts{grid-template-columns:1fr}
+ .controls{gap:12px}
+ .controls .ctrl.main{width:56px;height:56px}
+}
+</style><body>
+<div class="app">
 <header class="top">
- <div><button class="round avatar">U</button></div>
+ <div class="header-profile"><button class="round avatar" aria-label="Open profile" onclick="show('profile')">A</button></div>
  <div class="logo">AURALIS<small>YOUR SOUND. YOUR SPACE.</small></div>
- <div class="topright"><button class="round" onclick="openSearch()">⌕</button><button class="round">⚙</button></div>
+ <div class="topright"><button class="round" aria-label="Search your music" onclick="openSearch()">⌕</button><button class="round" aria-label="Settings" onclick="show('settings')">⚙</button></div>
 </header>
-
+<main>
 <section id="home" class="screen active">
- <div class="hello"><div><p>Good evening,</p><h1>Umang</h1></div><div class="orn">✦</div></div>
- <div class="section"><div class="head"><h2>Recently Played</h2><button class="see">See all →</button></div>
-  <div class="row">
-   <div class="song" onclick="play('Sajni','Arijit Singh')"><div class="art a1"><button class="play">▶</button></div><b>Sajni</b><span>Arijit Singh</span></div>
-   <div class="song" onclick="play('Iktara','Amit Trivedi')"><div class="art a2"><button class="play">▶</button></div><b>Iktara</b><span>Amit Trivedi</span></div>
-   <div class="song" onclick="play('Die For You','The Weeknd')"><div class="art a4"><button class="play">▶</button></div><b>Die For You</b><span>The Weeknd</span></div>
-   <div class="song" onclick="play('Do I Wanna Know?','Arctic Monkeys')"><div class="art a3"><button class="play">▶</button></div><b>Do I Wanna Know?</b><span>Arctic Monkeys</span></div>
-   <div class="song" onclick="play('Yeh Raatein Yeh Mausam','KK')"><div class="art a5"><button class="play">▶</button></div><b>Yeh Raatein...</b><span>KK</span></div>
-  </div>
- </div>
- <div class="section"><div class="hero"><div><div class="eyebrow">Continue listening</div><h2>Choo Lo</h2><p>The Local Train</p><div class="hero-controls"><button class="bigplay" onclick="play('Choo Lo','The Local Train')">▶</button><div class="line"><i></i></div></div></div></div></div>
- <div class="section"><div class="stats"><div class="label">Your listening time</div><div class="time">18h 24m</div><div class="period">this week</div><div class="bars"><div class="bw"><i class="bar" style="height:45%"></i>Mon</div><div class="bw"><i class="bar" style="height:28%"></i>Tue</div><div class="bw"><i class="bar" style="height:38%"></i>Wed</div><div class="bw"><i class="bar" style="height:24%"></i>Thu</div><div class="bw"><i class="bar" style="height:61%"></i>Fri</div><div class="bw"><i class="bar" style="height:77%"></i>Sat</div><div class="bw"><i class="bar" style="height:46%"></i>Sun</div></div></div></div>
- <div class="section"><div class="head"><h2>Made For You</h2><button class="see">See all →</button></div><div class="row"><div class="mix"><h3>Daily Mix</h3><p>A mix of your favourites.</p><button onclick="play('Daily Mix','Auralis')">▶</button></div><div class="mix"><h3>Chill Mix</h3><p>Calm. Focus. Breathe.</p><button onclick="play('Chill Mix','Auralis')">▶</button></div><div class="mix"><h3>Late Night Mix</h3><p>For your 2 AM thoughts.</p><button onclick="play('Late Night Mix','Auralis')">▶</button></div></div></div>
+ <div class="hello"><div><p>Your local collection</p><h1>Listen your way</h1></div><div class="orn">✦</div></div>
+ <div class="section"><div class="head"><h2>Recently Played</h2><button class="see" onclick="showRecent()">See all →</button></div><div id="homeRecent" class="row"></div></div>
+ <div class="section"><div class="hero"><div><div class="eyebrow">Your listening space</div><h2 id="homeHeroTitle">Start with your music</h2><p id="homeHeroText">Import audio files to build a private library on this device.</p><div class="hero-controls"><button class="bigplay" onclick="show('yourmusic')">＋</button><button class="action" onclick="document.getElementById('audioImport').click()">Import music</button></div></div></div></div>
+ <div class="section"><div class="head"><h2>Made for you</h2><span class="library-count">Based on your library</span></div><div id="homePicks" class="row"></div></div>
+ <div class="section"><div class="stats"><div class="label">Your listening time</div><div id="homeListeningTime" class="time">0m</div><div class="period">this week</div><div id="homeWeekBars" class="week-bars"></div></div></div>
 </section>
-
 <section id="search" class="screen">
- <div class="head"><h2>Search</h2></div>
- <div class="searchbox">⌕<input id="searchInput" oninput="doSearch()" placeholder="What do you want to listen to?"></div>
- <div class="chips"><button class="chip active">All</button><button class="chip">Songs</button><button class="chip">Artists</button><button class="chip">Albums</button><button class="chip">Playlists</button></div>
- <div id="searchResults"><div class="head"><h2 style="font-size:19px">Browse</h2></div><div class="grid"><div class="browse"><b>Moods</b></div><div class="browse"><b>Genres</b></div><div class="browse"><b>Artists</b></div><div class="browse"><b>New Releases</b></div><div class="browse"><b>Top Picks</b></div><div class="browse"><b>Cinematic</b></div></div></div>
+ <div class="head"><h2>Search your music</h2></div>
+ <div class="searchbox">⌕<input id="searchInput" type="search" oninput="doSearch()" placeholder="Songs, artists, playlists, or categories"></div>
+ <div class="chips"><button class="chip active" data-search-filter="all" onclick="setSearchFilter('all',this)">All</button><button class="chip" data-search-filter="songs" onclick="setSearchFilter('songs',this)">Songs</button><button class="chip" data-search-filter="artists" onclick="setSearchFilter('artists',this)">Artists</button><button class="chip" data-search-filter="playlists" onclick="setSearchFilter('playlists',this)">Playlists</button><button class="chip" data-search-filter="categories" onclick="setSearchFilter('categories',this)">Categories</button></div>
+ <div id="searchResults"></div>
 </section>
-
 <section id="library" class="screen">
- <div class="head"><h2>Your Library</h2><button class="see">⇅</button></div>
- <div class="panel"><div class="listrow"><div class="catart">♡</div><div class="listinfo"><b>Liked Songs</b><span>900 songs</span></div><span class="chev">›</span></div></div>
- <div class="panel"><div class="listrow"><div class="catart">◷</div><div class="listinfo"><b>Recently Played</b><span>48 songs</span></div><span class="chev">›</span></div></div>
- <div class="panel" onclick="show('playlists')" style="cursor:pointer"><div class="listrow"><div class="catart">♫</div><div class="listinfo"><b>Playlists</b><span>12 playlists</span></div><span class="chev">›</span></div></div>
- <div class="panel"><div class="listrow"><div class="catart">◉</div><div class="listinfo"><b>Albums</b><span>214 albums</span></div><span class="chev">›</span></div></div>
- <div class="panel"><div class="listrow"><div class="catart">♙</div><div class="listinfo"><b>Artists</b><span>167 artists</span></div><span class="chev">›</span></div></div>
- <div class="panel"><div class="listrow"><div class="catart">↓</div><div class="listinfo"><b>Downloads</b><span>32 songs</span></div><span class="chev">›</span></div></div>
- <div class="section"><div class="head"><h2 style="font-size:20px">Recently Played</h2><button class="see">See all →</button></div><div id="liblist"></div></div>
-</section>
-
-
-<section id="playlists" class="screen">
- <div class="head"><h2>Playlists</h2><button class="see" onclick="newPlaylist()">＋ New</button></div>
- <div class="playlist-grid">
-  <article class="playlist-card" onclick="toast('Playing Late Night')"><div class="playlist-cover"><div><b>Late Night</b><p>84 songs</p></div></div><div class="playlist-meta">Play all →</div></article>
-  <article class="playlist-card" onclick="toast('Playing Favourites')"><div class="playlist-cover"><div><b>Favourites</b><p>126 songs</p></div></div><div class="playlist-meta">Play all →</div></article>
-  <article class="playlist-card" onclick="toast('Playing Chill')"><div class="playlist-cover"><div><b>Chill</b><p>71 songs</p></div></div><div class="playlist-meta">Play all →</div></article>
-  <article class="playlist-card" onclick="toast('Playing Road Trips')"><div class="playlist-cover"><div><b>Road Trips</b><p>42 songs</p></div></div><div class="playlist-meta">Play all →</div></article>
+ <div class="head"><h2>Your Library</h2><span id="librarySummary" class="library-count"></span></div>
+ <div class="library-shortcuts">
+  <button class="panel" onclick="showLiked()"><div class="listrow"><div class="catart">♡</div><div class="listinfo"><b>Liked Songs</b><span id="likedCount">0 tracks</span></div><span class="chev">›</span></div></button>
+  <button class="panel" onclick="showRecent()"><div class="listrow"><div class="catart">◷</div><div class="listinfo"><b>Recently Played</b><span id="recentCount">0 tracks</span></div><span class="chev">›</span></div></button>
+  <button class="panel" onclick="show('playlists')"><div class="listrow"><div class="catart">♫</div><div class="listinfo"><b>Playlists</b><span id="playlistCount">0 playlists</span></div><span class="chev">›</span></div></button>
+  <button class="panel" onclick="showArtists()"><div class="listrow"><div class="catart">♙</div><div class="listinfo"><b>Artists</b><span id="artistCount">0 artists</span></div><span class="chev">›</span></div></button>
  </div>
- <div class="section"><div class="head"><h2 style="font-size:20px">Create a playlist</h2></div>
-  <div class="add-panel"><label style="font-size:12px;color:var(--muted)">Playlist name</label><input class="form-input" id="playlistName" placeholder="e.g. Sunday Morning"><button class="action save" style="width:100%" onclick="createPlaylist()">Create Playlist</button></div>
- </div>
+ <div class="section"><div class="head"><h2 style="font-size:20px">Your tracks</h2><button class="see" onclick="show('yourmusic')">Manage →</button></div><div id="libraryTracks" class="track-list"></div></div>
 </section>
-
 <section id="yourmusic" class="screen">
- <div class="head"><h2>Your Music</h2><button class="round">⚙</button></div>
- <div class="chips"><button class="chip active">Categories</button><button class="chip">Unorganized</button><button class="chip">Playlists</button></div>
- <div class="import-bar"><button class="import-btn" onclick="document.getElementById('audioImport').click()">＋ Import music</button><input id="audioImport" type="file" accept="audio/*" multiple hidden onchange="importAudioFiles(this.files)"><span class="import-note">Choose audio files stored on this device. Your music stays in this browser.</span></div>
- <div id="localTrackList" class="track-list"><p class="import-note">No imported music yet. Add audio files to start your library.</p></div>
- <div class="cat"><div class="catart">☾</div><div class="catinfo"><b>Late Night</b><span>84 songs</span></div><span class="chev">›</span></div>
- <div class="cat"><div class="catart">♥</div><div class="catinfo"><b>Emotional</b><span>62 songs</span></div><span class="chev">›</span></div>
- <div class="cat"><div class="catart">♡</div><div class="catinfo"><b>Romantic</b><span>47 songs</span></div><span class="chev">›</span></div>
- <div class="cat"><div class="catart">♨</div><div class="catinfo"><b>Hype</b><span>39 songs</span></div><span class="chev">›</span></div>
- <div class="cat"><div class="catart">☕</div><div class="catinfo"><b>Chill</b><span>71 songs</span></div><span class="chev">›</span></div>
- <div class="cat"><div class="catart">⌁</div><div class="catinfo"><b>Travel</b><span>28 songs</span></div><span class="chev">›</span></div>
- <div class="cat"><div class="catart">♬</div><div class="catinfo"><b>Gym</b><span>35 songs</span></div><span class="chev">›</span></div>
- <button class="action save" style="width:100%;margin-top:4px">＋ Create Category</button>
- <div class="section"><button class="panel" style="width:100%;text-align:left" onclick="show('organize')"><div class="listrow"><div class="catart">!</div><div class="listinfo"><b>Unorganized</b><span>347 songs waiting to be sorted</span></div><span class="chev">›</span></div></button></div>
-</section>
-
-<section id="organize" class="screen">
- <div class="head"><button class="see" onclick="show('yourmusic')">← Your Music</button><h2 style="font-size:19px">Organize Songs</h2><span style="font-size:11px;color:var(--muted)">12 / 347</span></div>
- <div class="organize-card"><div class="org-top"><div class="orgart"></div><div class="orgtitle"><h2>Sajni</h2><p>Arijit Singh</p><p style="margin-top:9px;color:var(--cream)">Add this song to categories.</p></div></div>
- <div class="taggrid"><button class="tag selected">☾ Late Night</button><button class="tag selected">♥ Emotional</button><button class="tag">♡ Romantic</button><button class="tag">☕ Chill</button><button class="tag">♫ Hindi</button><button class="tag">⌁ Indie</button></div>
- <div class="org-actions"><button class="action">Skip</button><button class="action save" onclick="show('yourmusic')">Save</button></div></div>
-</section>
-
-<section id="now" class="screen now">
- <div class="nowtop"><button class="round" onclick="show('home')">⌄</button><button class="round">•••</button></div>
- <div class="bigart"></div><h1 id="nowTitle">Sajni</h1><div class="artist" id="nowArtist">Arijit Singh</div>
- <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track"><div class="times"><span id="elapsedTime">0:00</span><span id="totalTime">0:00</span></div></div>
- <div class="controls"><button class="ctrl" onclick="previousTrack()" aria-label="Previous track">↶</button><button class="ctrl" onclick="previousTrack()" aria-label="Previous track">◀</button><button class="ctrl main" id="nowPlayButton" onclick="toggle()">▶</button><button class="ctrl" onclick="nextTrack()" aria-label="Next track">▶</button><button class="ctrl" onclick="nextTrack()" aria-label="Next track">↷</button></div><div class="player-status" id="playerStatus">Import audio files to begin listening</div>
- <div class="tools"><button onclick="toast('Lyrics panel ready')"><span>▤<small>Lyrics</small></span></button><button onclick="show('playlists')"><span>♧<small>Add to</small></span></button><button onclick="openQueue()"><span>☷<small>Queue</small></span></button><button onclick="toast('Sleep timer set for 30 minutes')"><span>◷<small>Timer</small></span></button></div>
- <div class="lyrics"><h3>LYRICS</h3><p>Kaise mujhe tum mil gayi<br>Kismat pe aaye na yakeen<br>Itna hua karam...</p></div>
-</section>
-
-<div class="mini" id="mini"><div class="minicover"></div><div class="miniinfo"><b id="miniTitle">Sajni</b><span id="miniArtist">Arijit Singh</span></div><div class="mini-actions"><button class="round">♡</button><button class="mini-play" id="mp" onclick="toggle()">Ⅱ</button></div></div>
-<nav class="nav"><button id="navhome" class="active" onclick="show('home')"><span>⌂</span>Home</button><button id="navsearch" onclick="show('search')"><span>⌕</span>Search</button><button id="navlibrary" onclick="show('library')"><span>▥</span>Library</button><button id="navmusic" onclick="show('yourmusic')"><span>♫</span>Your Music</button></nav>
-
-<div class="queue-panel" id="queuePanel">
- <div class="queue-inner">
-  <div class="queue-head"><h3>Up Next</h3><button class="close" onclick="closeQueue()">×</button></div>
-  <div class="queue-list" id="queueList"></div>
+ <div class="head"><h2>Your Music</h2><button class="round" aria-label="Settings" onclick="show('settings')">⚙</button></div>
+ <div class="import-bar"><button class="import-btn" onclick="document.getElementById('audioImport').click()">＋ Import music</button><input id="audioImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" multiple hidden onchange="importAudioFiles(this.files)"><span class="import-note">Audio stays in this browser on this device.</span></div>
+ <div class="head"><h2 style="font-size:20px">Browse your music</h2><span id="trackCount" class="library-count">0 tracks</span></div>
+ <div id="libraryTabs" class="library-tabs">
+  <button class="active" data-library-filter="all" onclick="setLibraryFilter('all',this)">All tracks</button>
+  <button data-library-filter="liked" onclick="setLibraryFilter('liked',this)">Liked</button>
+  <button data-library-filter="recent" onclick="setLibraryFilter('recent',this)">Recently played</button>
+  <button data-library-filter="unorganized" onclick="setLibraryFilter('unorganized',this)">Unorganized</button>
  </div>
+ <div id="categoryList" class="category-list"></div>
+ <div id="localTrackList" class="track-list"></div>
+ <div class="section"><button class="action save" style="width:100%" onclick="createCategory()">＋ Create Category</button></div>
+</section>
+<section id="organize" class="screen">
+ <div class="head"><button class="see" onclick="show('yourmusic')">← Your Music</button><h2 style="font-size:19px">Unorganized tracks</h2><span id="unorganizedCount" class="library-count"></span></div>
+ <div id="organizeList" class="track-list"></div>
+</section>
+<section id="playlists" class="screen">
+ <div class="head"><h2>Your Playlists</h2><button class="see" onclick="newPlaylist()">＋ New playlist</button></div>
+ <div id="playlistGrid" class="playlist-grid"></div>
+ <div class="section"><div class="head"><h2 style="font-size:20px">Create a playlist</h2></div><div class="add-panel"><label for="playlistName" style="font-size:12px;color:var(--muted)">Playlist name</label><input class="form-input" id="playlistName" placeholder="e.g. Sunday Morning" maxlength="60"><button class="action save" style="width:100%" onclick="createPlaylist()">Create Playlist</button></div></div>
+ <div id="playlistDetail" class="playlist-detail" hidden><div class="head"><div><h2 id="playlistDetailTitle"></h2><span id="playlistDetailCount" class="library-count"></span></div><button class="see" onclick="closePlaylistDetail()">Close</button></div><div class="detail-actions"><button class="action save" onclick="playSelectedPlaylist()">▶ Play all</button><button class="action" onclick="renameSelectedPlaylist()">Rename</button><button class="action" onclick="deleteSelectedPlaylist()">Delete</button></div><div id="playlistTracks" class="track-list"></div></div>
+</section>
+<section id="now" class="screen now">
+ <div class="nowtop"><button class="round" aria-label="Close player" onclick="show('home')">⌄</button><button class="round" aria-label="Track actions" onclick="openCurrentMenu()">•••</button></div>
+ <div id="nowArt" class="bigart a1" data-cover="♫"></div><h1 id="nowTitle">Nothing playing</h1><div class="artist" id="nowArtist">Choose a track from your local library</div>
+ <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track"><div class="times"><span id="elapsedTime">0:00</span><span id="totalTime">0:00</span></div></div>
+ <div class="controls"><button id="shuffleButton" class="ctrl" onclick="toggleShuffle()" aria-label="Toggle shuffle">⤨</button><button class="ctrl" onclick="previousTrack()" aria-label="Previous track">◀</button><button class="ctrl main" id="nowPlayButton" onclick="toggle()">▶</button><button class="ctrl" onclick="nextTrack()" aria-label="Next track">▶</button><button id="repeatButton" class="ctrl" onclick="toggleRepeat()" aria-label="Change repeat mode">↻</button></div>
+ <div class="player-status" id="playerStatus">Import audio files to begin listening</div>
+ <div class="tools"><button onclick="toggleLyrics()"><span>▤<small>Lyrics</small></span></button><button onclick="openCurrentMenu()"><span>•••<small>Track menu</small></span></button><button onclick="openQueue()"><span>☷<small>Queue</small></span></button><button onclick="openSleepTimer()"><span>◷<small>Sleep timer</small></span></button></div>
+ <div class="lyrics" id="lyricsPanel" hidden><h3>LYRICS</h3><p id="lyricsText">Lyrics you add for a track appear here.</p></div>
+</section>
+<section id="profile" class="screen">
+ <div class="profile-hero"><div class="profile-avatar">A</div><div><h2>Your listening profile</h2><p>Private listening stats from this device</p></div></div>
+ <div class="stats"><div class="label">Total listening time</div><div id="profileListeningTime" class="time">0m</div><div id="profileTrackCount" class="period">No tracks played yet</div><div id="profileWeekBars" class="week-bars"></div></div>
+ <div class="section"><div class="head"><h2 style="font-size:20px">Favorite artists</h2></div><div id="favoriteArtists"></div></div>
+ <div class="section"><div class="head"><h2 style="font-size:20px">Most played</h2></div><div id="mostPlayed"></div></div>
+</section>
+<section id="settings" class="screen">
+ <div class="head"><h2>Settings</h2></div>
+ <div class="settings-group"><h3>Appearance</h3><p>Choose how Auralis looks on this device.</p><div class="settings-choice"><button data-theme="dark" onclick="setTheme('dark')">Dark</button><button data-theme="light" onclick="setTheme('light')">Light</button></div></div>
+ <div class="settings-group"><h3>Accent color</h3><p>Personalize the player and highlights.</p><div class="accent-options"><button aria-label="Gold accent" data-accent="#f4d447" onclick="setAccent('#f4d447')"></button><button aria-label="Blue accent" data-accent="#79a9ff" onclick="setAccent('#79a9ff')"></button><button aria-label="Green accent" data-accent="#65d6aa" onclick="setAccent('#65d6aa')"></button><button aria-label="Rose accent" data-accent="#ff8fa3" onclick="setAccent('#ff8fa3')"></button><input id="customAccent" type="color" value="#f4d447" aria-label="Choose custom accent color" onchange="setAccent(this.value)"></div></div>
+ <div class="settings-group"><h3>Local music library</h3><p>Your imported audio and playlists are stored in this browser. Clearing browser site data can remove those files.</p><button class="action" onclick="show('yourmusic')">Manage your music</button></div>
+</section>
+<div class="mini" id="mini" hidden><div class="minicover a1" id="miniCover"></div><div class="miniinfo" onclick="show('now')"><b id="miniTitle">Nothing playing</b><span id="miniArtist">Choose a track</span></div><div class="mini-actions"><button id="miniLike" class="round" aria-label="Like track" onclick="toggleCurrentLike()">♡</button><button class="mini-play" id="mp" onclick="toggle()" aria-label="Play or pause">▶</button></div></div>
+<nav class="nav" aria-label="Main navigation"><button id="navhome" class="active" onclick="show('home')"><span>⌂</span>Home</button><button id="navsearch" onclick="show('search')"><span>⌕</span>Search</button><button id="navlibrary" onclick="show('library')"><span>▥</span>Library</button><button id="navmusic" onclick="show('yourmusic')"><span>♫</span>Your Music</button></nav>
+<div class="queue-panel" id="queuePanel"><div class="queue-inner"><div class="queue-head"><h3>Up Next</h3><button class="close" onclick="closeQueue()" aria-label="Close queue">×</button></div><div id="queueList" class="queue-list"></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<audio id="localAudio" preload="metadata"></audio>
+</main>
 </div>
-<div class="toast" id="toast"></div><audio id="localAudio" preload="metadata"></audio>
-</div>
-
-<div class="overlay" id="searchOverlay"><div class="overlayin"><button class="close" onclick="closeSearch()">×</button><h2 style="font:500 27px Georgia,serif;margin-top:45px">What do you want to listen to?</h2><div class="searchbox"><input id="overlayInput" placeholder="Songs, artists, albums, playlists..." oninput="overlaySearch()"></div><div id="overlayResults"></div></div></div>
-
+<dialog id="actionDialog"><div id="dialogContent" class="dialog-inner"></div></dialog>
 <script>
-const songs=[['Sajni','Arijit Singh','a1'],['Iktara','Amit Trivedi','a2'],['Die For You','The Weeknd','a4'],['Do I Wanna Know?','Arctic Monkeys','a3'],['Yeh Raatein Yeh Mausam','KK','a5'],['Choo Lo','The Local Train','a3'],['Until I Found You','Stephen Sanchez','a1'],['Starboy','The Weeknd','a4']];
-let isPlaying=true;
-function show(id){
- document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
- document.getElementById(id).classList.add('active');
- const map={home:'navhome',search:'navsearch',library:'navlibrary',yourmusic:'navmusic',organize:'navmusic',playlists:'navlibrary',now:null};
- document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
- if(map[id])document.getElementById(map[id]).classList.add('active');
- window.scrollTo(0,0);
-}
-function play(title,artist){document.getElementById('miniTitle').textContent=title;document.getElementById('miniArtist').textContent=artist;document.getElementById('nowTitle').textContent=title;document.getElementById('nowArtist').textContent=artist;isPlaying=true;document.getElementById('mp').textContent='Ⅱ';show('now')}
-function toggle(){isPlaying=!isPlaying;document.getElementById('mp').textContent=isPlaying?'Ⅱ':'▶'}
-function openSearch(){document.getElementById('searchOverlay').classList.add('open');setTimeout(()=>document.getElementById('overlayInput').focus(),80)}
-function closeSearch(){document.getElementById('searchOverlay').classList.remove('open')}
-function renderResults(q,box){const f=songs.filter(s=>(s[0]+' '+s[1]).toLowerCase().includes(q));box.innerHTML=f.length?f.map(s=>`<div class="panel" onclick="play('${s[0].replaceAll("'","\\'")}','${s[1].replaceAll("'","\\'")}');closeSearch()"><div class="listrow"><div class="thumb art ${s[2]}"></div><div class="listinfo"><b>${s[0]}</b><span>${s[1]}</span></div><span class="chev">▶</span></div></div>`).join(''):'<p style="color:var(--muted)">No music found.</p>'}
-function overlaySearch(){const q=document.getElementById('overlayInput').value.toLowerCase().trim();const box=document.getElementById('overlayResults');if(!q){box.innerHTML='<p style="color:var(--muted)">Recent searches will appear here.</p>';return}renderResults(q,box)}
-function doSearch(){const q=document.getElementById('searchInput').value.toLowerCase().trim();const box=document.getElementById('searchResults');if(!q){box.innerHTML='<div class="head"><h2 style="font-size:19px">Browse</h2></div><div class="grid"><div class="browse"><b>Moods</b></div><div class="browse"><b>Genres</b></div><div class="browse"><b>Artists</b></div><div class="browse"><b>New Releases</b></div><div class="browse"><b>Top Picks</b></div><div class="browse"><b>Cinematic</b></div></div>';return}renderResults(q,box)}
-document.getElementById('liblist').innerHTML=songs.slice(0,4).map(s=>`<div class="panel"><div class="listrow"><div class="thumb art ${s[2]}"></div><div class="listinfo"><b>${s[0]}</b><span>${s[1]}</span></div><button class="chev" onclick="play('${s[0]}','${s[1]}')">▶</button></div></div>`).join('');
-
-const playerQueue=[
- ['Sajni','Arijit Singh','a1'],['Iktara','Amit Trivedi','a2'],['Die For You','The Weeknd','a4'],
- ['Do I Wanna Know?','Arctic Monkeys','a3'],['Choo Lo','The Local Train','a3'],['Until I Found You','Stephen Sanchez','a1']
-];
-let queueIndex=0;
-function openQueue(){
- const q=document.getElementById('queueList');
- q.innerHTML=playerQueue.map((s,i)=>`<div class="qrow" onclick="play('${s[0].replaceAll("'","\\'")}','${s[1].replaceAll("'","\\'")}');closeQueue()"><div class="qthumb art ${s[2]}"></div><div class="qinfo"><b>${i===queueIndex?'Playing · ':''}${s[0]}</b><span>${s[1]}</span></div><span class="chev">▶</span></div>`).join('');
- document.getElementById('queuePanel').classList.add('open');
-}
-function closeQueue(){document.getElementById('queuePanel').classList.remove('open')}
-function newPlaylist(){document.getElementById('playlistName').focus()}
-function createPlaylist(){
- const n=document.getElementById('playlistName').value.trim();
- if(!n){toast('Give your playlist a name');return}
- toast('Playlist “'+n+'” created');
- document.getElementById('playlistName').value='';
-}
-function toast(msg){
- const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
- clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove('show'),1800);
-}
-
-</script>
-
-<script>
-/* AURALIS_LOCAL_PLAYER_V5 — real local playback + IndexedDB library */
 (function(){
- const audio=document.getElementById('localAudio');
- const dbName='auralis-local-library-v1';
- let db=null, tracks=[], currentIndex=-1, objectUrl=null;
- const $=id=>document.getElementById(id);
- const fmt=n=>{if(!Number.isFinite(n)||n<0)return '0:00';return Math.floor(n/60)+':'+String(Math.floor(n%60)).padStart(2,'0')};
- function status(t){$('playerStatus').textContent=t}
- function openDB(){
-  return new Promise((resolve,reject)=>{
-   if(!window.indexedDB){reject(new Error('This browser does not support local music storage.'));return}
-   const req=indexedDB.open(dbName,1);
-   req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains('tracks'))d.createObjectStore('tracks',{keyPath:'id'})};
-   req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error);
-  });
- }
- function store(mode,fn){return new Promise((resolve,reject)=>{const tx=db.transaction('tracks',mode);const req=fn(tx.objectStore('tracks'));if(req){req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)}else{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)}})}
- function loadTracks(){return store('readonly',os=>os.getAll()).then(rows=>{tracks=rows.sort((a,b)=>a.added-b.added);renderTracks()})}
- function safeName(file){return file.name.replace(/\.[^.]+$/,'')}
- function parseName(file){const n=safeName(file);const p=n.split(' - ');return p.length>1?{title:p.slice(1).join(' - '),artist:p[0]}:{title:n,artist:'Unknown artist'}}
- window.importAudioFiles=async function(files){
-  if(!files||!files.length)return;
-  try{
-   await openDB();let added=0;
-   for(const file of Array.from(files)){
-    if(!file.type.startsWith('audio/')&&!/\.(mp3|m4a|aac|wav|ogg|flac|opus)$/i.test(file.name))continue;
-    const meta=parseName(file);
-    await store('readwrite',os=>os.put({id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),title:meta.title,artist:meta.artist,name:file.name,type:file.type,blob:file,added:Date.now()+added}));
-    added++;
-   }
-   await loadTracks();status(added+' track(s) added to your library');toast(added+' track(s) imported');
-  }catch(e){status('Could not save music: '+e.message);toast('Import failed. Check browser storage permissions.')}
-  $('audioImport').value='';
- };
- function renderTracks(){
-  const box=$('localTrackList');if(!box)return;
-  if(!tracks.length){box.innerHTML='<p class="import-note">No imported music yet. Add audio files to start your library.</p>';return}
-  box.innerHTML=tracks.map((t,i)=>'<div class="track-item"><div class="thumb art a'+(i%5+1)+'"></div><div class="meta"><b>'+escapeHTML(t.title)+'</b><span>'+escapeHTML(t.artist)+'</span></div><button class="track-play" onclick="playLocal('+i+')" aria-label="Play '+escapeHTML(t.title)+'">▶</button></div>').join('');
- }
- function escapeHTML(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
- window.playLocal=async function(i){
-  if(i<0||i>=tracks.length)return;
-  currentIndex=i;const t=tracks[i];
-  if(objectUrl)URL.revokeObjectURL(objectUrl);
-  objectUrl=URL.createObjectURL(t.blob);audio.src=objectUrl;
-  $('nowTitle').textContent=t.title;$('miniTitle').textContent=t.title;
-  $('nowArtist').textContent=t.artist;$('miniArtist').textContent=t.artist;
-  $('mini').style.display='flex';show('now');
-  try{await audio.play();status('Playing from your device')}catch(e){status('Press play to start this track')}
-  syncButtons();
- };
- window.toggle=function(){if(!audio.src){status('Import a track first');return}if(audio.paused)audio.play().then(()=>status('Playing')).catch(()=>status('Playback could not start'));else audio.pause();syncButtons()};
- window.nextTrack=function(){if(!tracks.length)return;playLocal((currentIndex+1+tracks.length)%tracks.length)};
- window.previousTrack=function(){if(!tracks.length)return;if(audio.currentTime>3){audio.currentTime=0;return}playLocal((currentIndex-1+tracks.length)%tracks.length)};
- function syncButtons(){const playing=!audio.paused;$('mp').textContent=playing?'Ⅱ':'▶';if($('nowPlayButton'))$('nowPlayButton').textContent=playing?'Ⅱ':'▶'}
- audio.addEventListener('play',syncButtons);audio.addEventListener('pause',syncButtons);
- audio.addEventListener('timeupdate',()=>{const d=audio.duration||0;$('seekBar').value=d?Math.round(audio.currentTime/d*1000):0;$('elapsedTime').textContent=fmt(audio.currentTime);$('totalTime').textContent=fmt(d)});
- audio.addEventListener('ended',()=>window.nextTrack());
- audio.addEventListener('error',()=>status('This audio format could not be played by your browser'));
- $('seekBar').addEventListener('input',e=>{if(audio.duration)audio.currentTime=(Number(e.target.value)/1000)*audio.duration});
- $('mini').addEventListener('click',e=>{if(e.target.closest('button'))return;show('now')});
- openDB().then(loadTracks).catch(e=>status(e.message));
- window.addEventListener('beforeunload',()=>{if(objectUrl)URL.revokeObjectURL(objectUrl)});
+'use strict';
+const DB_NAME='auralis-local-library-v1';
+const DB_VERSION=2;
+const $=function(id){return document.getElementById(id)};
+const audio=$('localAudio');
+let db=null,tracks=[],playlists=[],categories=[],history=[];
+let currentTrackId=null,queueIds=[],queueIndex=-1,shuffle=false,repeatMode='off';
+let libraryFilter='all',searchFilter='all',selectedPlaylistId=null,dialogTrackId=null;
+let prefs={theme:'dark',accent:'#f4d447'};
+let objectUrl=null,sleepTimer=null,sessionId=null,sessionRecord=null,lastPosition=0,pendingSeconds=0,lastPersist=0;
+const artNames=['a1','a2','a3','a4','a5'];
+function id(){return window.crypto&&crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2)}
+function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmt(seconds){seconds=Math.max(0,Math.floor(Number(seconds)||0));const hours=Math.floor(seconds/3600),mins=Math.floor((seconds%3600)/60),secs=seconds%60;return hours?hours+'h '+String(mins).padStart(2,'0')+'m':mins?mins+'m '+String(secs).padStart(2,'0')+'s':seconds+'s'}
+function clock(seconds){seconds=Math.max(0,Math.floor(Number(seconds)||0));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')}
+function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(window.__auralisToast);window.__auralisToast=setTimeout(function(){el.classList.remove('show')},2200)}
+function status(message){$('playerStatus').textContent=message}
+function openDB(){return new Promise(function(resolve,reject){if(!window.indexedDB){reject(new Error('This browser does not support local music storage.'));return}const request=indexedDB.open(DB_NAME,DB_VERSION);request.onupgradeneeded=function(){const database=request.result;if(!database.objectStoreNames.contains('tracks'))database.createObjectStore('tracks',{keyPath:'id'});if(!database.objectStoreNames.contains('playlists'))database.createObjectStore('playlists',{keyPath:'id'});if(!database.objectStoreNames.contains('categories'))database.createObjectStore('categories',{keyPath:'id'});if(!database.objectStoreNames.contains('settings'))database.createObjectStore('settings',{keyPath:'key'});if(!database.objectStoreNames.contains('history'))database.createObjectStore('history',{keyPath:'id',autoIncrement:true})};request.onsuccess=function(){db=request.result;db.onversionchange=function(){db.close();status('The music library was updated in another tab. Reload this page to continue.')};resolve(db)};request.onblocked=function(){status('Close other Auralis tabs to finish a safe library upgrade.')};request.onerror=function(){reject(request.error||new Error('Could not open the local music library.'))}})}
+function request(storeName,mode,action){return new Promise(function(resolve,reject){if(!db){reject(new Error('The local library is not ready.'));return}let tx,result,req;try{tx=db.transaction(storeName,mode);req=action(tx.objectStore(storeName))}catch(error){reject(error);return}if(req){req.onsuccess=function(){result=req.result};req.onerror=function(){reject(req.error||tx.error)}}tx.oncomplete=function(){resolve(result)};tx.onerror=function(){reject(tx.error||new Error('The library could not save this change.'))};tx.onabort=function(){reject(tx.error||new Error('The library change was cancelled.'))}})}
+function all(name){return request(name,'readonly',function(store){return store.getAll()})}
+function put(name,value){return request(name,'readwrite',function(store){return store.put(value)})}
+function add(name,value){return request(name,'readwrite',function(store){return store.add(value)})}
+function remove(name,key){return request(name,'readwrite',function(store){return store.delete(key)})}
+function byId(trackId){return tracks.find(function(track){return track.id===trackId})||null}
+function sortTracks(list){return list.slice().sort(function(a,b){return (a.added||0)-(b.added||0)})}
+function uniqueRecent(){const seen=new Set(),result=[];history.slice().sort(function(a,b){return (b.startedAt||0)-(a.startedAt||0)}).forEach(function(item){if(seen.has(item.trackId))return;const track=byId(item.trackId);if(track){seen.add(item.trackId);result.push(track)}});return result}
+async function loadState(){await openDB();const values=await Promise.all([all('tracks'),all('playlists'),all('categories'),all('settings'),all('history')]);tracks=sortTracks(values[0]||[]);playlists=(values[1]||[]).sort(function(a,b){return (a.createdAt||0)-(b.createdAt||0)});categories=values[2]||[];history=(values[4]||[]).sort(function(a,b){return (b.startedAt||0)-(a.startedAt||0)});const setting=(values[3]||[]).find(function(item){return item.key==='preferences'});if(setting&&setting.value)prefs=Object.assign(prefs,setting.value);applyPreferences();renderAll()}
+function applyPreferences(){$('html');document.documentElement.dataset.theme=prefs.theme==='light'?'light':'dark';document.documentElement.style.setProperty('--yellow',prefs.accent||'#f4d447');document.querySelectorAll('[data-theme]').forEach(function(button){button.classList.toggle('active',button.dataset.theme===prefs.theme)});document.querySelectorAll('[data-accent]').forEach(function(button){button.classList.toggle('active',button.dataset.accent===prefs.accent)});if($('customAccent'))$('customAccent').value=prefs.accent||'#f4d447'}
+async function savePreferences(){try{await put('settings',{key:'preferences',value:prefs})}catch(error){toast('Could not save this preference')}}
+window.setTheme=function(theme){prefs.theme=theme==='light'?'light':'dark';applyPreferences();savePreferences()};
+window.setAccent=function(color){if(!/^#[0-9a-f]{6}$/i.test(color))return;prefs.accent=color;applyPreferences();savePreferences()};
+function show(screenId){document.querySelectorAll('.screen').forEach(function(section){section.classList.toggle('active',section.id===screenId)});const navMap={home:'navhome',search:'navsearch',library:'navlibrary',yourmusic:'navmusic',organize:'navmusic',playlists:'navlibrary',now:null,profile:null,settings:null};document.querySelectorAll('.nav button').forEach(function(button){button.classList.remove('active')});if(navMap[screenId])$(navMap[screenId]).classList.add('active');window.scrollTo(0,0)}
+window.show=show;
+window.openSearch=function(){show('search');setTimeout(function(){$('searchInput').focus()},40)};
+window.closeSearch=function(){show('home')};
+window.openCurrentMenu=function(){if(currentTrackId)window.trackMenu(currentTrackId)};
+window.toggleCurrentLike=function(){if(currentTrackId)window.toggleLike(currentTrackId)};
+function getCurrent(){return byId(currentTrackId)}
+function artClass(track){let hash=0;const text=String(track&&track.title||'');for(let i=0;i<text.length;i++)hash=(hash+text.charCodeAt(i))%artNames.length;return artNames[hash]}
+function trackRow(track,options){options=options||{};const art=artClass(track),liked=!!track.liked;let extra='';if(options.playlist){extra='<button data-move-playlist="'+esc(track.id)+'" data-dir="-1" aria-label="Move track up">↑</button><button data-move-playlist="'+esc(track.id)+'" data-dir="1" aria-label="Move track down">↓</button><button data-remove-playlist="'+esc(track.id)+'" aria-label="Remove from playlist">×</button>'}return '<div class="track-item"><div class="thumb art '+art+'"></div><div class="meta"><b>'+esc(track.title||track.name||'Unknown track')+'</b><span>'+esc(track.artist||'Unknown artist')+'</span></div><div class="track-buttons"><button class="track-play" data-play-track="'+esc(track.id)+'" aria-label="Play '+esc(track.title||track.name)+'">▶</button><button class="'+(liked?'liked':'')+'" data-toggle-like="'+esc(track.id)+'" aria-label="'+(liked?'Unlike':'Like')+' track">'+(liked?'♥':'♡')+'</button><button data-track-menu="'+esc(track.id)+'" aria-label="Track actions">•••</button>'+extra+'</div></div>'}
+function playlistTrackIds(playlist){return (playlist.trackIds||[]).filter(function(trackId){return !!byId(trackId)})}
+function renderHome(){const recent=uniqueRecent().slice(0,6);$('homeRecent').innerHTML=recent.length?recent.map(function(track){return '<div class="song" data-play-track="'+esc(track.id)+'"><div class="art '+artClass(track)+'"><button class="play" data-play-track="'+esc(track.id)+'">▶</button></div><b>'+esc(track.title||track.name)+'</b><span>'+esc(track.artist||'Unknown artist')+'</span></div>'}).join(''):'<div class="empty-state">Your recently played tracks will show up here after you start listening.</div>';const liked=tracks.filter(function(track){return !!track.liked}),recentAdded=tracks.slice().reverse();const picks=[];if(liked.length)picks.push({title:'Liked Songs',text:liked.length+' tracks you saved',kind:'liked'});if(recentAdded.length)picks.push({title:'Recently Added',text:recentAdded.length+' tracks in your collection',kind:'added'});if(playlists.length)picks.push({title:'Your Playlists',text:playlists.length+' playlists ready to play',kind:'playlists'});$('homePicks').innerHTML=picks.length?picks.map(function(item){return '<div class="mix"><h3>'+esc(item.title)+'</h3><p>'+esc(item.text)+'</p><button data-smart="'+item.kind+'" aria-label="Play '+esc(item.title)+'">▶</button></div>'}).join(''):'<div class="empty-state">Your recommendations will use tracks you import, like, and play. Nothing is streamed from a demo catalogue.</div>';const week=weeklySeconds();$('homeListeningTime').textContent=fmt(week.total);$('homeWeekBars').innerHTML=week.days.map(function(day){return '<div class="week-bar"><i style="height:'+day.height+'px"></i>'+day.label+'</div>'}).join('');if(tracks.length){$('homeHeroTitle').textContent='Your collection is ready';$('homeHeroText').textContent=tracks.length+' local '+(tracks.length===1?'track':'tracks')+' available on this device.'}}
+function renderLibrary(){const liked=tracks.filter(function(track){return !!track.liked}),recent=uniqueRecent(),artists=new Set(tracks.map(function(track){return track.artist||'Unknown artist'}));$('likedCount').textContent=liked.length+' '+(liked.length===1?'track':'tracks');$('recentCount').textContent=recent.length+' '+(recent.length===1?'track':'tracks');$('playlistCount').textContent=playlists.length+' '+(playlists.length===1?'playlist':'playlists');$('artistCount').textContent=artists.size+' '+(artists.size===1?'artist':'artists');$('librarySummary').textContent=tracks.length+' local '+(tracks.length===1?'track':'tracks');$('libraryTracks').innerHTML=tracks.length?sortTracks(tracks).slice().reverse().map(function(track){return trackRow(track)}).join(''):'<div class="empty-state">Import audio files from Your Music to start your library.</div>'}
+function filteredTracks(){if(libraryFilter==='liked')return tracks.filter(function(track){return !!track.liked}).slice().reverse();if(libraryFilter==='recent')return uniqueRecent();if(libraryFilter==='unorganized')return tracks.filter(function(track){return !(track.categories||[]).length});if(libraryFilter.indexOf('category:')===0){const categoryId=libraryFilter.slice(9);return tracks.filter(function(track){return (track.categories||[]).includes(categoryId)})}return tracks.slice().reverse()}
+function renderCategories(){const counts={};tracks.forEach(function(track){(track.categories||[]).forEach(function(categoryId){counts[categoryId]=(counts[categoryId]||0)+1})});const buttons=categories.map(function(category){return '<button class="'+(libraryFilter==='category:'+category.id?'active':'')+'" data-library-filter="category:'+esc(category.id)+'" onclick="setLibraryFilter(\'category:'+esc(category.id)+'\',this)">'+esc(category.name)+' <span class="count">'+(counts[category.id]||0)+'</span></button>'}).join('');$('categoryList').innerHTML=buttons}
+function renderYourMusic(){renderCategories();$('trackCount').textContent=tracks.length+' '+(tracks.length===1?'track':'tracks');const list=filteredTracks();$('localTrackList').innerHTML=list.length?list.map(function(track){return trackRow(track)}).join(''):'<div class="empty-state">'+(tracks.length?'No tracks in this view yet.':'No imported music yet. Choose audio files stored on this device to start listening.')+'</div>';document.querySelectorAll('[data-library-filter]').forEach(function(button){button.classList.toggle('active',button.dataset.libraryFilter===libraryFilter)});$('unorganizedCount').textContent=tracks.filter(function(track){return !(track.categories||[]).length}).length+' tracks';$('organizeList').innerHTML=tracks.filter(function(track){return !(track.categories||[]).length}).map(function(track){return trackRow(track)}).join('')||'<div class="empty-state">All your tracks have a category, or your library is empty. Use the track menu to add a category.</div>'}
+function renderPlaylists(){const box=$('playlistGrid');const automatic='<article class="playlist-card" data-smart="liked"><div class="playlist-cover"><div><b>Liked Songs</b><p>'+tracks.filter(function(track){return !!track.liked}).length+' tracks</p></div><button aria-label="Play Liked Songs">▶</button></div><div class="playlist-meta">Automatic playlist · tracks you save</div></article><article class="playlist-card" data-smart="recent"><div class="playlist-cover"><div><b>Recently Played</b><p>'+uniqueRecent().length+' tracks</p></div><button aria-label="Play Recently Played">▶</button></div><div class="playlist-meta">Automatic playlist · your listening history</div></article><article class="playlist-card" data-smart="added"><div class="playlist-cover"><div><b>Recently Added</b><p>'+tracks.length+' tracks</p></div><button aria-label="Play Recently Added">▶</button></div><div class="playlist-meta">Automatic playlist · newest imports</div></article>';const saved=playlists.map(function(playlist){const count=playlistTrackIds(playlist).length;return '<article class="playlist-card" data-open-playlist="'+esc(playlist.id)+'"><div class="playlist-cover"><div><b>'+esc(playlist.name)+'</b><p>'+count+' '+(count===1?'track':'tracks')+'</p></div><button data-play-playlist="'+esc(playlist.id)+'" aria-label="Play '+esc(playlist.name)+'">▶</button></div><div class="playlist-meta">'+esc(playlist.description||'Created on this device')+'</div></article>'}).join('');box.innerHTML=automatic+saved;if(selectedPlaylistId)renderPlaylistDetail()}function renderPlaylistDetail(){const playlist=playlists.find(function(item){return item.id===selectedPlaylistId});if(!playlist){$('playlistDetail').hidden=true;selectedPlaylistId=null;return}const ids=playlistTrackIds(playlist),rows=ids.map(function(trackId){const track=byId(trackId);return track?'<div class="detail-track">'+trackRow(track,{playlist:true})+'</div>':''}).join('');$('playlistDetail').hidden=false;$('playlistDetailTitle').textContent=playlist.name;$('playlistDetailCount').textContent=ids.length+' '+(ids.length===1?'track':'tracks');$('playlistTracks').innerHTML=rows||'<div class="empty-state">This playlist is empty. Add tracks from a track menu.</div>'}
+function weeklySeconds(){const today=new Date();today.setHours(0,0,0,0);const days=[];let total=0;for(let offset=6;offset>=0;offset--){const date=new Date(today);date.setDate(today.getDate()-offset);const next=new Date(date);next.setDate(date.getDate()+1);let seconds=0;history.forEach(function(item){if((item.startedAt||0)>=date.getTime()&&(item.startedAt||0)<next.getTime())seconds+=Number(item.seconds)||0});if(offset===0&&sessionRecord)seconds+=Number(sessionRecord.seconds||0)+pendingSeconds;days.push({label:date.toLocaleDateString(undefined,{weekday:'short'}),seconds:seconds,height:Math.min(82,Math.max(3,Math.round(seconds/60)))});total+=seconds}return {days:days,total:total}}
+function renderProfile(){const allSeconds=history.reduce(function(sum,item){return sum+(Number(item.seconds)||0)},0)+(sessionRecord?Number(sessionRecord.seconds||0)+pendingSeconds:0),week=weeklySeconds();$('profileListeningTime').textContent=fmt(allSeconds);$('profileTrackCount').textContent=history.length?history.length+' listening '+(history.length===1?'session':'sessions')+' recorded on this device':'Play a local track to begin your listening history.';$('profileWeekBars').innerHTML=week.days.map(function(day){return '<div class="week-bar"><i style="height:'+day.height+'px"></i>'+day.label+'</div>'}).join('');const artists={};history.forEach(function(item){const key=item.artist||'Unknown artist';artists[key]=(artists[key]||0)+(Number(item.seconds)||0)});const top=Object.keys(artists).sort(function(a,b){return artists[b]-artists[a]}).slice(0,5);$('favoriteArtists').innerHTML=top.length?top.map(function(name){return '<div class="panel"><div class="listrow"><div class="catart">♙</div><div class="listinfo"><b>'+esc(name)+'</b><span>'+fmt(artists[name])+' listened</span></div></div></div>'}).join(''):'<div class="empty-state">Artists you listen to will appear here.</div>';const plays={};history.forEach(function(item){plays[item.trackId]=(plays[item.trackId]||0)+1});const most=Object.keys(plays).sort(function(a,b){return plays[b]-plays[a]}).slice(0,5).map(byId).filter(Boolean);$('mostPlayed').innerHTML=most.length?most.map(function(track){return trackRow(track)}).join(''):'<div class="empty-state">Your most played tracks will appear here.</div>'}
+function renderSearch(){const query=$('searchInput').value.trim().toLowerCase(),box=$('searchResults');if(!query){if(searchFilter==='songs'){box.innerHTML=tracks.length?tracks.slice().reverse().map(function(track){return trackRow(track)}).join(''):'<div class="empty-state">Import local audio to search songs.</div>';return}if(searchFilter==='artists'){const names=Array.from(new Set(tracks.map(function(track){return track.artist||'Unknown artist'})));box.innerHTML=names.length?names.map(function(name){const ids=tracks.filter(function(track){return (track.artist||'Unknown artist')===name}).map(function(track){return track.id});return '<button class="panel" data-play-collection="'+esc(ids.join(','))+'"><div class="listrow"><div class="catart">♙</div><div class="listinfo"><b>'+esc(name)+'</b><span>'+ids.length+' local tracks</span></div><span class="chev">▶</span></div></button>'}).join(''):'<div class="empty-state">Artists from your local music will appear here.</div>';return}if(searchFilter==='playlists'){box.innerHTML=playlists.length?playlists.map(function(playlist){return '<button class="panel" data-open-playlist="'+esc(playlist.id)+'"><div class="listrow"><div class="catart">♫</div><div class="listinfo"><b>'+esc(playlist.name)+'</b><span>'+playlistTrackIds(playlist).length+' tracks</span></div><span class="chev">›</span></div></button>'}).join(''):'<div class="empty-state">Create a playlist to see it here.</div>';return}if(searchFilter==='categories'){box.innerHTML=categories.length?categories.map(function(category){const ids=tracks.filter(function(track){return (track.categories||[]).includes(category.id)}).map(function(track){return track.id});return '<button class="panel" data-play-collection="'+esc(ids.join(','))+'"><div class="listrow"><div class="catart">◈</div><div class="listinfo"><b>'+esc(category.name)+'</b><span>'+ids.length+' local tracks</span></div><span class="chev">▶</span></div></button>'}).join(''):'<div class="empty-state">Create categories in Your Music to browse them here.</div>';return}box.innerHTML='<div class="head"><h2 style="font-size:19px">Browse your collection</h2></div><div class="grid"><button class="browse" onclick="showLiked()"><b>Liked Songs</b></button><button class="browse" onclick="showRecent()"><b>Recently Played</b></button><button class="browse" onclick="show(\'playlists\')"><b>Playlists</b></button><button class="browse" onclick="show(\'yourmusic\')"><b>Categories</b></button></div>';return}let html='';const matches=tracks.filter(function(track){return ((track.title||track.name||'')+' '+(track.artist||'')).toLowerCase().includes(query)});if(searchFilter==='songs'){html=matches.length?matches.map(function(track){return trackRow(track)}).join(''):'<div class="empty-state">No matching local tracks.</div>'}else if(searchFilter==='all'&&matches.length){html+='<div class="head"><h2 style="font-size:19px">Songs</h2></div>'+matches.map(function(track){return trackRow(track)}).join('')}if(searchFilter==='all'||searchFilter==='artists'){const names=Array.from(new Set(tracks.map(function(track){return track.artist||'Unknown artist'}))).filter(function(name){return name.toLowerCase().includes(query)});if(names.length)html+='<div class="head"><h2 style="font-size:19px">Artists</h2></div>'+names.map(function(name){const ids=tracks.filter(function(track){return (track.artist||'Unknown artist')===name}).map(function(track){return track.id});return '<button class="panel" data-play-collection="'+esc(ids.join(','))+'"><div class="listrow"><div class="catart">♙</div><div class="listinfo"><b>'+esc(name)+'</b><span>'+ids.length+' local tracks</span></div><span class="chev">▶</span></div></button>'}).join('');else if(searchFilter==='artists')html+='<div class="empty-state">No matching artists.</div>'}if(searchFilter==='all'||searchFilter==='playlists'){const found=playlists.filter(function(playlist){return playlist.name.toLowerCase().includes(query)});if(found.length)html+='<div class="head"><h2 style="font-size:19px">Playlists</h2></div>'+found.map(function(playlist){return '<button class="panel" data-open-playlist="'+esc(playlist.id)+'"><div class="listrow"><div class="catart">♫</div><div class="listinfo"><b>'+esc(playlist.name)+'</b><span>'+playlistTrackIds(playlist).length+' tracks</span></div><span class="chev">›</span></div></button>'}).join('');else if(searchFilter==='playlists')html+='<div class="empty-state">No matching playlists.</div>'}if(searchFilter==='all'||searchFilter==='categories'){const foundCategories=categories.filter(function(category){return category.name.toLowerCase().includes(query)});if(foundCategories.length)html+='<div class="head"><h2 style="font-size:19px">Categories</h2></div>'+foundCategories.map(function(category){const ids=tracks.filter(function(track){return (track.categories||[]).includes(category.id)}).map(function(track){return track.id});return '<button class="panel" data-play-collection="'+esc(ids.join(','))+'"><div class="listrow"><div class="catart">◈</div><div class="listinfo"><b>'+esc(category.name)+'</b><span>'+ids.length+' local tracks</span></div><span class="chev">▶</span></div></button>'}).join('');else if(searchFilter==='categories')html+='<div class="empty-state">No matching categories.</div>'}box.innerHTML=html||'<div class="empty-state">No matching music in this local library.</div>'}function renderAll(){renderHome();renderLibrary();renderYourMusic();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
+function renderCurrent(){const track=getCurrent();$('mini').hidden=!track;if(!track)return;$('nowTitle').textContent=track.title||track.name||'Unknown track';$('nowArtist').textContent=track.artist||'Unknown artist';$('miniTitle').textContent=track.title||track.name||'Unknown track';$('miniArtist').textContent=track.artist||'Unknown artist';const art=artClass(track);$('nowArt').className='bigart '+art;$('nowArt').dataset.cover=(track.title||'♫').slice(0,24).toUpperCase();$('miniCover').className='minicover '+art;$('miniLike').classList.toggle('liked',!!track.liked);$('miniLike').textContent=track.liked?'♥':'♡';$('lyricsText').textContent=track.lyrics||'No lyrics saved for this track. Use the track menu to add your own lyrics.';updateControls()}
+function updateControls(){const playing=!!audio.src&&!audio.paused;$('mp').textContent=playing?'Ⅱ':'▶';$('nowPlayButton').textContent=playing?'Ⅱ':'▶';$('shuffleButton').classList.toggle('active',shuffle);$('repeatButton').classList.toggle('active',repeatMode!=='off');$('repeatButton').title='Repeat '+repeatMode}
+function startSession(track){flushSession();sessionRecord={trackId:track.id,title:track.title||track.name,artist:track.artist||'Unknown artist',startedAt:Date.now(),seconds:0};sessionId=null;add('history',sessionRecord).then(function(key){sessionId=key;sessionRecord.id=key;history.unshift(sessionRecord);renderProfile();renderHome();renderLibrary()}).catch(function(){})}
+function flushSession(){if(!sessionRecord||sessionId==null)return;sessionRecord.seconds=(Number(sessionRecord.seconds)||0)+pendingSeconds;pendingSeconds=0;lastPersist=Date.now();const snapshot=Object.assign({},sessionRecord);put('history',snapshot).then(function(){const index=history.findIndex(function(item){return item.id===snapshot.id});if(index>=0)history[index]=snapshot;renderProfile();renderHome()}).catch(function(){})}
+function onTimeUpdate(){const duration=audio.duration||0;$('seekBar').value=duration?Math.round(audio.currentTime/duration*1000):0;$('elapsedTime').textContent=clock(audio.currentTime);$('totalTime').textContent=clock(duration);if(!audio.paused&&sessionId!=null){const position=audio.currentTime,delta=Math.max(0,Math.min(5,position-lastPosition));if(delta>0)pendingSeconds+=delta;lastPosition=position;if(pendingSeconds>=8||Date.now()-lastPersist>12000)flushSession()}}
+async function playTrack(trackId,collection){const track=byId(trackId);if(!track){toast('That track is no longer in your library');return}if(Array.isArray(collection)){queueIds=collection.filter(function(item){return !!byId(item)});queueIndex=queueIds.indexOf(trackId)}else{queueIds=tracks.map(function(item){return item.id});queueIndex=queueIds.indexOf(trackId)}if(queueIndex<0){queueIds.unshift(trackId);queueIndex=0}if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=URL.createObjectURL(track.blob);audio.src=objectUrl;currentTrackId=trackId;renderCurrent();show('now');startSession(track);lastPosition=0;try{await audio.play();status('Playing from your device')}catch(error){status('Press play to start this track')}updateControls();renderQueue()}
+window.playLocal=function(index){const track=tracks[index];if(track)playTrack(track.id)};
+window.play=function(title,artist){const track=tracks.find(function(item){return item.title===title&&item.artist===artist});if(track)playTrack(track.id);else toast('Import audio files to play music from this device')};
+window.toggle=function(){if(!currentTrackId){toast('Import audio files to start listening');show('yourmusic');return}if(audio.paused){audio.play().then(function(){status('Playing from your device')}).catch(function(){status('Playback could not start; try another audio format')})}else{audio.pause();flushSession()}updateControls()};
+window.previousTrack=function(){if(!currentTrackId)return;if(audio.currentTime>3){audio.currentTime=0;return}if(queueIndex>0)queueIndex--;else if(repeatMode==='all'&&queueIds.length)queueIndex=queueIds.length-1;else{audio.currentTime=0;return}playTrack(queueIds[queueIndex],queueIds)};
+window.nextTrack=function(){if(repeatMode==='one'&&currentTrackId){audio.currentTime=0;audio.play().catch(function(){});return}if(!queueIds.length){queueIds=tracks.map(function(track){return track.id});queueIndex=queueIds.indexOf(currentTrackId)}if(shuffle&&queueIds.length>1){let next=Math.floor(Math.random()*queueIds.length);if(next===queueIndex)next=(next+1)%queueIds.length;queueIndex=next}else if(queueIndex<queueIds.length-1)queueIndex++;else if(repeatMode==='all')queueIndex=0;else{audio.pause();status('End of queue');return}playTrack(queueIds[queueIndex],queueIds)};
+window.toggleShuffle=function(){shuffle=!shuffle;updateControls();toast(shuffle?'Shuffle on':'Shuffle off')};
+window.toggleRepeat=function(){repeatMode=repeatMode==='off'?'all':repeatMode==='all'?'one':'off';updateControls();toast('Repeat '+repeatMode)};
+window.showLiked=function(){libraryFilter='liked';show('yourmusic');renderYourMusic()};
+window.showRecent=function(){libraryFilter='recent';show('yourmusic');renderYourMusic()};
+window.showArtists=function(){show('search');searchFilter='artists';document.querySelectorAll('[data-search-filter]').forEach(function(button){button.classList.toggle('active',button.dataset.searchFilter==='artists')});$('searchInput').value='';renderSearch()};
+window.setLibraryFilter=function(filter,button){libraryFilter=filter;document.querySelectorAll('[data-library-filter]').forEach(function(item){item.classList.toggle('active',item===button||item.dataset.libraryFilter===filter)});renderYourMusic()};
+window.setSearchFilter=function(filter){searchFilter=filter;document.querySelectorAll('[data-search-filter]').forEach(function(button){button.classList.toggle('active',button.dataset.searchFilter===filter)});renderSearch()};
+window.doSearch=renderSearch;
+window.show=function(id){show(id)};
+window.playCollection=function(ids){playCollection(ids)};
+function playCollection(ids){const valid=ids.filter(function(trackId){return !!byId(trackId)});if(!valid.length){toast('No local tracks in this collection yet');return}playTrack(valid[0],valid)}
+window.createPlaylist=async function(){const field=$('playlistName'),name=field.value.trim();if(!name){toast('Give your playlist a name');field.focus();return}const playlist={id:id(),name:name,trackIds:[],createdAt:Date.now()};try{await put('playlists',playlist);playlists.push(playlist);field.value='';renderPlaylists();renderLibrary();toast('Playlist created');openPlaylist(playlist.id)}catch(error){toast('Could not save this playlist')}};
+window.newPlaylist=function(){$('playlistName').focus();$('playlistName').scrollIntoView({behavior:'smooth',block:'center'})};
+function openPlaylist(playlistId){selectedPlaylistId=playlistId;show('playlists');renderPlaylistDetail();$('playlistDetail').scrollIntoView({behavior:'smooth',block:'start'})}
+window.openPlaylist=openPlaylist;
+window.closePlaylistDetail=function(){$('playlistDetail').hidden=true;selectedPlaylistId=null};
+window.playSelectedPlaylist=function(){const playlist=playlists.find(function(item){return item.id===selectedPlaylistId});if(playlist)playCollection(playlistTrackIds(playlist))};
+window.renameSelectedPlaylist=function(){const playlist=playlists.find(function(item){return item.id===selectedPlaylistId});if(!playlist)return;openDialog('Rename playlist','<label for="renamePlaylist" class="library-count">Playlist name</label><input id="renamePlaylist" class="dialog-field" maxlength="60" value="'+esc(playlist.name)+'"><div class="dialog-footer"><button class="action" onclick="closeAction()">Cancel</button><button class="action save" data-action="save-rename">Save</button></div>')};
+window.deleteSelectedPlaylist=function(){const playlist=playlists.find(function(item){return item.id===selectedPlaylistId});if(!playlist)return;if(!confirm('Delete playlist “'+playlist.name+'”? Your imported tracks will stay in your library.'))return;remove('playlists',playlist.id).then(function(){playlists=playlists.filter(function(item){return item.id!==playlist.id});selectedPlaylistId=null;renderPlaylists();renderLibrary();toast('Playlist deleted')}).catch(function(){toast('Could not delete this playlist')})};
+window.createCategory=async function(){const name=prompt('Name this category');if(!name||!name.trim())return;const category={id:id(),name:name.trim().slice(0,40),createdAt:Date.now()};try{await put('categories',category);categories.push(category);renderCategories();toast('Category created')}catch(error){toast('Could not save this category')}};
+window.openQueue=function(){renderQueue();$('queuePanel').classList.add('open')};
+window.closeQueue=function(){$('queuePanel').classList.remove('open')};
+function renderQueue(){if(!$('queueList'))return;const ids=queueIds.length?queueIds:(currentTrackId?tracks.map(function(track){return track.id}):[]);$('queueList').innerHTML=ids.length?ids.map(function(trackId,index){const track=byId(trackId);if(!track)return '';return '<div class="queue-item '+(track.id===currentTrackId?'current':'')+'"><div class="qthumb art '+artClass(track)+'"></div><div class="qinfo"><b>'+(track.id===currentTrackId?'Playing · ':'')+esc(track.title||track.name)+'</b><span>'+esc(track.artist||'Unknown artist')+'</span></div><button data-queue-play="'+esc(track.id)+'" aria-label="Play '+esc(track.title)+'">▶</button><button data-queue-move="'+esc(track.id)+'" data-dir="-1" aria-label="Move up">↑</button><button data-queue-move="'+esc(track.id)+'" data-dir="1" aria-label="Move down">↓</button><button data-queue-remove="'+esc(track.id)+'" aria-label="Remove from queue">×</button></div>'}).join(''):'<div class="empty-state">Your queue is empty. Play a local track to start one.</div>'}
+function openDialog(title,content){$('dialogContent').innerHTML='<div class="dialog-top"><h3>'+esc(title)+'</h3><button onclick="closeAction()" aria-label="Close dialog">×</button></div>'+content;const dialog=$('actionDialog');if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','')}
+window.closeAction=function(){const dialog=$('actionDialog');if(dialog.close)dialog.close();else dialog.removeAttribute('open')};
+window.trackMenu=function(trackId){const track=byId(trackId);if(!track)return;dialogTrackId=trackId;openDialog(track.title||'Track actions','<div class="dialog-options"><button data-action="toggle-like">'+(track.liked?'♥ Remove from Liked Songs':'♡ Add to Liked Songs')+'</button><button data-action="play-next">Play next</button><button data-action="add-playlist">Add to playlist</button><button data-action="categories">Organize into categories</button><button data-action="edit-track">Edit title and artist</button><button data-action="edit-lyrics">Add or edit lyrics</button><button data-action="remove-track" style="color:#ff9e9e">Remove from this device</button></div>')};
+window.toggleLike=async function(trackId){const track=byId(trackId);if(!track)return;track.liked=!track.liked;try{await put('tracks',track);renderAll();toast(track.liked?'Added to Liked Songs':'Removed from Liked Songs')}catch(error){track.liked=!track.liked;toast('Could not update Liked Songs')}};
+function openAddPlaylist(){const track=byId(dialogTrackId);if(!track)return;const options=playlists.length?playlists.map(function(playlist){return '<button data-pick-playlist="'+esc(playlist.id)+'">'+esc(playlist.name)+' · '+playlistTrackIds(playlist).length+' tracks</button>'}).join(''):'<div class="empty-state">Create a playlist first, then add this track.</div>';openDialog('Add to playlist','<div class="dialog-options">'+options+'</div><div style="margin-top:12px"><input id="dialogPlaylistName" class="dialog-field" maxlength="60" placeholder="New playlist name"><button class="action save" style="width:100%" data-action="create-dialog-playlist">Create and add track</button></div>')}
+function openCategories(){const track=byId(dialogTrackId);if(!track)return;const options=categories.length?categories.map(function(category){const included=(track.categories||[]).includes(category.id);return '<button data-toggle-category="'+esc(category.id)+'">'+(included?'✓ ':'＋ ')+esc(category.name)+'</button>'}).join(''):'<div class="empty-state">Create a category in Your Music first.</div>';openDialog('Organize track','<div class="dialog-options">'+options+'</div><button class="action" style="width:100%;margin-top:12px" onclick="closeAction();createCategory()">＋ Create category</button>')}
+function moveQueue(trackId,direction){const index=queueIds.indexOf(trackId);if(index<0)return;const target=Math.max(0,Math.min(queueIds.length-1,index+direction));if(target===index)return;const item=queueIds.splice(index,1)[0];queueIds.splice(target,0,item);queueIndex=queueIds.indexOf(currentTrackId);renderQueue()}
+function removeFromPlaylist(trackId){const playlist=playlists.find(function(item){return item.id===selectedPlaylistId});if(!playlist)return;playlist.trackIds=(playlist.trackIds||[]).filter(function(id){return id!==trackId});put('playlists',playlist).then(function(){renderPlaylistDetail();renderPlaylists()}).catch(function(){toast('Could not update playlist')})}
+function moveInPlaylist(trackId,direction){const playlist=playlists.find(function(item){return item.id===selectedPlaylistId});if(!playlist)return;const list=playlist.trackIds||[],index=list.indexOf(trackId),target=Math.max(0,Math.min(list.length-1,index+direction));if(index<0||index===target)return;const moved=list.splice(index,1)[0];list.splice(target,0,moved);playlist.trackIds=list;put('playlists',playlist).then(function(){renderPlaylistDetail()}).catch(function(){toast('Could not reorder playlist')})}
+async function saveTrackMetadata(){const track=byId(dialogTrackId);if(!track)return;track.title=$('editTitle').value.trim()||'Untitled track';track.artist=$('editArtist').value.trim()||'Unknown artist';try{await put('tracks',track);renderAll();renderCurrent();toast('Track details saved');closeAction()}catch(error){toast('Could not save track details')}}
+async function saveLyrics(){const track=byId(dialogTrackId);if(!track)return;track.lyrics=$('editLyrics').value;try{await put('tracks',track);renderCurrent();toast('Lyrics saved on this device');closeAction()}catch(error){toast('Could not save lyrics')}}
+async function removeTrack(trackId){const track=byId(trackId);if(!track||!confirm('Remove “'+(track.title||track.name)+'” from this device? This deletes its imported audio from this browser.'))return;try{await remove('tracks',trackId);tracks=tracks.filter(function(item){return item.id!==trackId});playlists.forEach(function(playlist){playlist.trackIds=(playlist.trackIds||[]).filter(function(item){return item!==trackId})});await Promise.all(playlists.map(function(playlist){return put('playlists',playlist)}));if(currentTrackId===trackId){audio.pause();flushSession();audio.removeAttribute('src');audio.load();if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;currentTrackId=null;sessionId=null;sessionRecord=null;$('mini').hidden=true}queueIds=queueIds.filter(function(item){return item!==trackId});queueIndex=queueIds.indexOf(currentTrackId);renderAll();closeAction();toast('Track removed from this device')}catch(error){toast('Could not remove this track')}}
+function createFromDialog(){const field=$('dialogPlaylistName'),name=field.value.trim();if(!name){field.focus();return}const playlist={id:id(),name:name,trackIds:[dialogTrackId],createdAt:Date.now()};put('playlists',playlist).then(function(){playlists.push(playlist);renderAll();closeAction();toast('Playlist created and track added')}).catch(function(){toast('Could not create playlist')})}
+function toggleTrackCategory(categoryId){const track=byId(dialogTrackId),category=categories.find(function(item){return item.id===categoryId});if(!track||!category)return;const list=track.categories||[];track.categories=list.includes(categoryId)?list.filter(function(value){return value!==categoryId}):list.concat(categoryId);put('tracks',track).then(function(){renderAll();openCategories()}).catch(function(){toast('Could not update category')})}
+function choosePlaylist(playlistId){const playlist=playlists.find(function(item){return item.id===playlistId});if(!playlist)return;playlist.trackIds=playlist.trackIds||[];if(!playlist.trackIds.includes(dialogTrackId))playlist.trackIds.push(dialogTrackId);put('playlists',playlist).then(function(){renderAll();closeAction();toast('Added to '+playlist.name)}).catch(function(){toast('Could not add track')})}
+function handleDialogClick(event){const button=event.target.closest('[data-action],[data-pick-playlist],[data-toggle-category]');if(!button)return;if(button.dataset.pickPlaylist){choosePlaylist(button.dataset.pickPlaylist);return}if(button.dataset.toggleCategory){toggleTrackCategory(button.dataset.toggleCategory);return}const action=button.dataset.action;if(action==='toggle-like')toggleLike(dialogTrackId).then(closeAction);else if(action==='play-next'){playNext(dialogTrackId);closeAction()}else if(action==='add-playlist')openAddPlaylist();else if(action==='categories')openCategories();else if(action==='edit-track'){const track=byId(dialogTrackId);openDialog('Edit track details','<label class="library-count" for="editTitle">Title</label><input id="editTitle" class="dialog-field" maxlength="120" value="'+esc(track.title||track.name)+'"><label class="library-count" for="editArtist">Artist</label><input id="editArtist" class="dialog-field" maxlength="120" value="'+esc(track.artist||'')+'"><div class="dialog-footer"><button class="action" onclick="closeAction()">Cancel</button><button class="action save" data-action="save-metadata">Save</button></div>')}else if(action==='save-metadata')saveTrackMetadata();else if(action==='edit-lyrics'){const track=byId(dialogTrackId);openDialog('Lyrics for '+(track.title||'track'),'<textarea id="editLyrics" class="dialog-field" rows="10" placeholder="Add lyrics for this track">'+esc(track.lyrics||'')+'</textarea><div class="dialog-footer"><button class="action" onclick="closeAction()">Cancel</button><button class="action save" data-action="save-lyrics">Save lyrics</button></div>')}else if(action==='save-lyrics')saveLyrics();else if(action==='remove-track')removeTrack(dialogTrackId);else if(action==='create-dialog-playlist')createFromDialog();else if(action==='save-rename'){const playlist=playlists.find(function(item){return item.id===selectedPlaylistId});if(playlist){playlist.name=$('renamePlaylist').value.trim()||playlist.name;put('playlists',playlist).then(function(){renderAll();closeAction()})}}}
+function playNext(trackId){queueIds=queueIds.length?queueIds.slice():tracks.map(function(track){return track.id});const currentIndex=queueIds.indexOf(currentTrackId);queueIds=queueIds.filter(function(item,index){return item!==trackId||index<=currentIndex});const place=currentIndex>=0?currentIndex+1:0;queueIds.splice(place,0,trackId);if(!currentTrackId){queueIndex=queueIds.indexOf(trackId);playTrack(trackId,queueIds)}else{queueIndex=queueIds.indexOf(currentTrackId)}renderQueue();toast('Added to play next')}
+window.trackMenu=window.trackMenu;
+window.openSleepTimer=function(){openDialog('Sleep timer','<div class="dialog-options"><button data-timer="15">Stop playback in 15 minutes</button><button data-timer="30">Stop playback in 30 minutes</button><button data-timer="45">Stop playback in 45 minutes</button><button data-timer="60">Stop playback in 60 minutes</button><button data-timer="0">Cancel sleep timer</button></div>')};
+async function selectTimer(minutes){clearTimeout(sleepTimer);sleepTimer=null;closeAction();if(!minutes){toast('Sleep timer cancelled');return}sleepTimer=setTimeout(function(){audio.pause();flushSession();status('Sleep timer stopped playback');toast('Sleep timer finished')},minutes*60000);toast('Playback will stop in '+minutes+' minutes')}
+window.toggleLyrics=function(){const panel=$('lyricsPanel');panel.hidden=!panel.hidden;if(!panel.hidden)panel.scrollIntoView({behavior:'smooth',block:'nearest'})};
+function setSearchInput(query){$('searchInput').value=query;renderSearch()}
+document.addEventListener('click',function(event){const target=event.target.closest('[data-play-track],[data-track-menu],[data-toggle-like],[data-open-playlist],[data-play-playlist],[data-smart],[data-play-collection],[data-move-playlist],[data-remove-playlist],[data-queue-play],[data-queue-move],[data-queue-remove],[data-timer]');if(!target)return;if(target.dataset.playTrack){playTrack(target.dataset.playTrack);return}if(target.dataset.trackMenu){window.trackMenu(target.dataset.trackMenu);return}if(target.dataset.toggleLike){window.toggleLike(target.dataset.toggleLike);return}if(target.dataset.playPlaylist){const playlist=playlists.find(function(item){return item.id===target.dataset.playPlaylist});if(playlist)playCollection(playlistTrackIds(playlist));event.stopPropagation();return}if(target.dataset.openPlaylist){openPlaylist(target.dataset.openPlaylist);return}if(target.dataset.smart){const kind=target.dataset.smart;playCollection(kind==='liked'?tracks.filter(function(track){return track.liked}).map(function(track){return track.id}):kind==='added'?tracks.slice().reverse().map(function(track){return track.id}):playlistTrackIds(playlists[0]||{}));return}if(target.dataset.playCollection){playCollection(target.dataset.playCollection.split(','));return}if(target.dataset.movePlaylist){const playlist=playlists.find(function(item){return item.id===selectedPlaylistId});if(playlist)moveInPlaylist(target.dataset.movePlaylist,Number(target.dataset.dir));return}if(target.dataset.removePlaylist){removeFromPlaylist(target.dataset.removePlaylist);return}if(target.dataset.queuePlay){playTrack(target.dataset.queuePlay,queueIds);return}if(target.dataset.queueMove){moveQueue(target.dataset.queueMove,Number(target.dataset.dir));return}if(target.dataset.queueRemove){if(target.dataset.queueRemove===currentTrackId){toast('The playing track stays in the queue');return}queueIds=queueIds.filter(function(item){return item!==target.dataset.queueRemove});queueIndex=queueIds.indexOf(currentTrackId);renderQueue();return}if(target.dataset.timer!=null)selectTimer(Number(target.dataset.timer))});
+$('actionDialog').addEventListener('click',handleDialogClick);
+$('seekBar').addEventListener('input',function(event){if(audio.duration)audio.currentTime=(Number(event.target.value)/1000)*audio.duration});
+$('mini').addEventListener('click',function(event){if(!event.target.closest('button'))show('now')});
+$('localAudio').addEventListener('play',function(){lastPosition=audio.currentTime;updateControls();status('Playing from your device')});
+$('localAudio').addEventListener('pause',function(){flushSession();updateControls()});
+$('localAudio').addEventListener('timeupdate',onTimeUpdate);
+$('localAudio').addEventListener('ended',function(){flushSession();window.nextTrack()});
+$('localAudio').addEventListener('error',function(){status('This audio format could not be played by your browser')});
+$('queuePanel').addEventListener('click',function(event){if(event.target===$('queuePanel'))closeQueue()});
+function safeName(file){return file.name.replace(/\.[^.]+$/,'')}
+function parseName(file){const parts=safeName(file).split(' - ');return parts.length>1?{title:parts.slice(1).join(' - '),artist:parts[0]}:{title:safeName(file),artist:'Unknown artist'}}
+window.importAudioFiles=async function(files){if(!files||!files.length)return;let addedCount=0,skipped=0;try{const known=new Set(tracks.map(function(track){return track.signature}).filter(Boolean));for(const file of Array.from(files)){if(!file.type.startsWith('audio/')&&!/\.(mp3|m4a|aac|wav|ogg|flac|opus)$/i.test(file.name)){skipped++;continue}const signature=file.name+'|'+file.size+'|'+file.lastModified;if(known.has(signature)){skipped++;continue}const meta=parseName(file),track={id:id(),title:meta.title,artist:meta.artist,name:file.name,type:file.type,blob:file,added:Date.now()+addedCount,signature:signature,size:file.size,lastModified:file.lastModified,categories:[],liked:false,lyrics:''};await put('tracks',track);tracks.push(track);known.add(signature);addedCount++}tracks=sortTracks(tracks);renderAll();status(addedCount+' track(s) added to your library');toast(addedCount?addedCount+' track(s) imported':skipped?'These tracks are already in your library':'No supported audio files were selected')}catch(error){status('Could not save music: '+error.message);toast('Import failed. Check available browser storage')}finally{$('audioImport').value=''}};
+window.addEventListener('beforeunload',function(){flushSession();if(objectUrl)URL.revokeObjectURL(objectUrl)});
+openDB().then(loadState).catch(function(error){status(error.message);$('homePicks').innerHTML='<div class="empty-state">Local music storage is unavailable in this browser. You can still explore the interface.</div>'});
 })();
 </script>
 </body>
