@@ -57,10 +57,13 @@ async function fetchTracks(path,params,signal){
   timeoutId=setTimeout(()=>{const error=new Error('Audius is taking too long to respond');error.name='TimeoutError';reject(error);requestController.abort()},REQUEST_TIMEOUT_MS)
  });
  try{
-  const response=await Promise.race([fetch(buildUrl(path,params),{headers:{Accept:'application/json'},signal:requestController.signal}),aborted]);
-  if(!response.ok)throw new Error('Audius returned '+response.status);
-  const payload=await response.json();if(payload.error)throw new Error(String(payload.error));
-  return Array.isArray(payload.data)?payload.data:[]
+  const request=(async()=>{
+   const response=await fetch(buildUrl(path,params),{headers:{Accept:'application/json'},signal:requestController.signal});
+   if(!response.ok)throw new Error('Audius returned '+response.status);
+   const payload=await response.json();if(payload.error)throw new Error(String(payload.error));
+   return Array.isArray(payload.data)?payload.data:[]
+  })();
+  return await Promise.race([request,aborted])
  }finally{clearTimeout(timeoutId);signal.removeEventListener('abort',abortRequest)}
 }
 function setModeButtons(){
