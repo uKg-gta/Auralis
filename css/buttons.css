@@ -25,13 +25,27 @@ html[data-theme="light"] button.danger:hover:not(:disabled){background:#ffe2e0;c
 .miniinfo{text-align:left;padding:0;align-self:stretch}
 .playlist-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .playlist-meta>span{flex:1;min-width:0}
-.playlist-open{flex:none;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:10px;color:var(--yellow)}
+.playlist-open{flex:none;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:10px;color:var(--accent-ink,var(--yellow))}
 html[data-theme="light"] .playlist-open{border-color:#d9d1bf}
 
 .volume-control{width:min(300px,82vw);display:flex;align-items:center;gap:12px;margin:2px auto 4px}
 .volume-mute{width:44px;height:44px;min-width:44px;border:1px solid var(--line);border-radius:12px;color:var(--muted);display:grid;place-items:center;font-size:17px}
-.volume-mute[aria-pressed="true"]{border-color:var(--yellow);color:var(--yellow)}
-.volume-control input{flex:1;min-width:0;accent-color:var(--yellow);touch-action:pan-x}
+.volume-mute[aria-pressed="true"]{border-color:var(--accent-ink,var(--yellow));color:var(--accent-ink,var(--yellow))}
+.volume-control input{flex:1;min-width:0;accent-color:var(--accent-ink,var(--yellow));touch-action:pan-x}
 .volume-control output{min-width:3.2em;text-align:right;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
 html[data-theme="light"] .volume-mute{border-color:#d9d1bf;color:#494438}
-html[data-theme="light"] .volume-mute[aria-pressed="true"]{border-color:var(--yellow);color:var(--yellow)}
+html[data-theme="light"] .volume-mute[aria-pressed="true"]{border-color:var(--accent-ink,var(--yellow));color:var(--accent-ink,var(--yellow))}
+
+/* AA contrast and 44px interaction targets */
+button{min-width:44px;min-height:44px}
+.chip,.library-tabs button,.category-list button,.settings-choice button{min-height:44px}
+.track-item .track-buttons button,.queue-item button{width:44px;height:44px;min-width:44px;min-height:44px;padding:0}
+button:focus-visible{outline-color:var(--accent-ink,#f4d447)}
+.track-item .track-buttons button:disabled,.queue-item button:disabled{filter:none;opacity:.45}
+@media(max-width:600px){.queue-item{grid-template-columns:repeat(4,minmax(44px,1fr))}.queue-item button{width:44px;min-width:44px}}
+html[data-theme="light"] .controls .ctrl.active{color:var(--accent-ink,#6a5010)}
+
+.seek input[type="range"],.volume-control input[type="range"]{height:44px;min-height:44px}
+
+.searchbox input,.form-input,.dialog-field{min-height:44px}
+input[type="color"]{width:44px;height:44px;min-width:44px;min-height:44px}

@@ -4,10 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Auralis — Your Local Music</title>
-
-
-
-
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/player.css">
@@ -15,91 +11,129 @@
 <link rel="stylesheet" href="css/buttons.css">
 </head>
 <body>
+<svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+<symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></symbol>
+<symbol id="icon-settings" viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1 1.2 1-1.3 2.3-1.5-.6a8 8 0 0 1-1.5.9l-.2 1.6h-2.7l-.3-1.6a8 8 0 0 1-1.6-.9l-1.5.6-1.3-2.3 1.3-1.1a7 7 0 0 1 0-1.8l-1.3-1.1 1.3-2.3 1.5.6a8 8 0 0 1 1.6-.9l.3-1.6h2.7l.2 1.6a8 8 0 0 1 1.5.9l1.5-.6 1.3 2.3-1.2 1.1a7 7 0 0 1 0 1.8Z" transform="translate(-1 -1)"/></symbol>
+<symbol id="icon-stats" viewBox="0 0 24 24"><path d="M4 19V5M4 19h17"/><path d="M8 16v-4h3v4M14 16V8h3v8M19 16V4h2v12"/></symbol>
+<symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="icon-play" viewBox="0 0 24 24"><path d="M7 4.8v14.4L19 12z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-pause" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="icon-previous" viewBox="0 0 24 24"><path d="M6 5v14M19 5 9 12l10 7z"/></symbol>
+<symbol id="icon-next" viewBox="0 0 24 24"><path d="M18 5v14M5 5l10 7-10 7z"/></symbol>
+<symbol id="icon-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5M4 5h2c6 0 6 14 12 14h3M16 16l5 3-5 3M4 19h2c2.4 0 3.8-2 5-4M14 8c1-1.7 2-3 4-3h3M16 3l5 2-5 3"/></symbol>
+<symbol id="icon-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11V8a2 2 0 0 1 2-2h16M7 22l-4-4 4-4"/><path d="M21 13v3a2 2 0 0 1-2 2H3"/></symbol>
+<symbol id="icon-heart" viewBox="0 0 24 24"><path d="M20.8 8.8c0 5-8.8 11-8.8 11s-8.8-6-8.8-11a4.8 4.8 0 0 1 8.8-2.5 4.8 4.8 0 0 1 8.8 2.5Z"/></symbol>
+<symbol id="icon-heart-filled" viewBox="0 0 24 24"><path d="M20.8 8.8c0 5-8.8 11-8.8 11s-8.8-6-8.8-11a4.8 4.8 0 0 1 8.8-2.5 4.8 4.8 0 0 1 8.8 2.5Z" fill="currentColor"/></symbol>
+<symbol id="icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></symbol>
+<symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+<symbol id="icon-library" viewBox="0 0 24 24"><path d="M5 4h15v17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 4v17M10 8h7M10 12h7M10 16h5"/></symbol>
+<symbol id="icon-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+<symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+<symbol id="icon-playlist" viewBox="0 0 24 24"><path d="M4 5h12M4 10h12M4 15h8M4 20h8"/><path d="m17 15 5 3-5 3z"/></symbol>
+<symbol id="icon-artist" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 21c.5-4 2.8-6 6.5-6s6 2 6.5 6M18 8v9M18 8l4-1v7"/></symbol>
+<symbol id="icon-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-7 7L3 12Z"/><circle cx="8" cy="8" r="1"/></symbol>
+<symbol id="icon-queue" viewBox="0 0 24 24"><path d="M4 5h12M4 10h12M4 15h8M4 20h8"/><path d="m17 14 5 3-5 3z"/></symbol>
+<symbol id="icon-lyrics" viewBox="0 0 24 24"><path d="M4 5h16M4 10h16M4 15h10M4 20h8"/><path d="M18 14v7"/></symbol>
+<symbol id="icon-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6M12 5V2"/></symbol>
+<symbol id="icon-volume" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4zM17 9a5 5 0 0 1 0 6M19 6a9 9 0 0 1 0 12"/></symbol>
+<symbol id="icon-mute" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4zM17 9a5 5 0 0 1 0 6M3 3l18 18"/></symbol>
+<symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="icon-chevron-down" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+<symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+<symbol id="icon-arrow-up" viewBox="0 0 24 24"><path d="m5 14 7-7 7 7M12 7v13"/></symbol>
+<symbol id="icon-arrow-down" viewBox="0 0 24 24"><path d="m5 10 7 7 7-7M12 17V4"/></symbol>
+<symbol id="icon-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+<symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7"/></symbol>
+<symbol id="icon-edit" viewBox="0 0 24 24"><path d="m4 16.5-.8 4.3 4.3-.8L19.8 7.7a2.1 2.1 0 0 0-3-3L4 16.5Z"/><path d="m14.8 6.7 3 3"/></symbol>
+<symbol id="icon-folder" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="icon-file-audio" viewBox="0 0 24 24"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10z"/><path d="M13 3v7h7M10 16v-3l4-1v4M8 17.5a1.5 1.5 0 1 0 3 0M12 16.5a1.5 1.5 0 1 0 3 0"/></symbol>
+<symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/></symbol>
+</svg>
 <div class="app">
 <header class="top">
- <div class="header-profile"><button class="round avatar" aria-label="Open profile" onclick="show('profile')">A</button></div>
- <div class="logo">AURALIS<small>YOUR SOUND. YOUR SPACE.</small></div>
- <div class="topright"><button class="round" aria-label="Search your music" onclick="openSearch()">⌕</button><button class="round" aria-label="Settings" onclick="show('settings')">⚙</button></div>
+  <div class="logo">AURALIS<small>YOUR SOUND. YOUR SPACE.</small></div>
+  <div class="topright"><button id="settingsButton" class="round" aria-label="Settings" onclick="show('settings')"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-settings"></use></svg></button></div>
 </header>
 <main>
 <section id="home" class="screen active">
- <div class="hello"><div><p>Your local collection</p><h1>Listen your way</h1></div><div class="orn">✦</div></div>
- <div class="section"><div class="head"><h2>Recently Played</h2><button class="see" onclick="showRecent()">See all →</button></div><div id="homeRecent" class="row"></div></div>
- <div class="section"><div class="hero"><div><div class="eyebrow">Your listening space</div><h2 id="homeHeroTitle">Start with your music</h2><p id="homeHeroText">Import audio files to build a private library on this device.</p><div class="hero-controls"><button class="bigplay" onclick="show('yourmusic')" aria-label="Open your music">＋</button><button class="action" onclick="document.getElementById('audioImport').click()">Import music</button></div></div></div></div>
- <div class="section"><div class="head"><h2>Made for you</h2><span class="library-count">Based on your library</span></div><div id="homePicks" class="row"></div></div>
- <div class="section"><div class="stats"><div class="label">Your listening time</div><div id="homeListeningTime" class="time">0m</div><div class="period">this week</div><div id="homeWeekBars" class="week-bars"></div></div></div>
+ <div class="hello"><div><p>Your local collection</p><h1>Listen your way</h1></div></div>
+ <section id="homeImportCard" class="section import-card" data-drop-zone hidden>
+  <div class="import-card-art"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-music"></use></svg></div>
+  <div><div class="eyebrow">Your listening space</div><h2 id="homeHeroTitle">Import music</h2>
+  <p id="homeHeroText">Use the + button to choose audio files or a folder, or drop audio files here.</p>
+  <p class="import-note">MP3, M4A, AAC, WAV, OGG, FLAC and OPUS · Multiple files and folders supported where available.</p>
+  <p class="storage-note">Your audio stays in this browser. Clearing site data can remove it; export a backup before clearing storage.</p></div>
+ </section>
+ <section id="homeContinueSection" class="section" hidden><div class="head"><h2>Continue listening</h2></div><div id="homeContinueTrack"></div></section>
+ <section id="homeRecentSection" class="section" hidden><div class="head"><h2><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-history"></use></svg> Recently played</h2><button class="see" onclick="showRecent()">See all</button></div><div id="homeRecent" class="row"></div></section>
+ <section id="homeStatsSection" class="section" hidden><button class="stats-action" onclick="show('profile')"><div class="stats"><div class="label">Listening time this week</div><div id="homeListeningTime" class="time">0s</div><div id="homeWeekBars" class="week-bars"></div><span>View listening stats <svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-chevron-right"></use></svg></span></div></button></section>
 </section>
 <section id="search" class="screen">
- <div class="head"><h2>Search your music</h2></div>
- <div class="searchbox">⌕<input id="searchInput" type="search" oninput="doSearch()" placeholder="Songs, artists, playlists, or categories"></div>
- <div class="chips"><button class="chip active" data-search-filter="all" aria-pressed="true">All</button><button class="chip" data-search-filter="songs" aria-pressed="false">Songs</button><button class="chip" data-search-filter="artists" aria-pressed="false">Artists</button><button class="chip" data-search-filter="playlists" aria-pressed="false">Playlists</button><button class="chip" data-search-filter="categories" aria-pressed="false">Categories</button></div>
+ <div class="head"><h2>Search</h2></div>
+ <label class="searchbox"><span class="search-icon"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-search"></use></svg></span><input id="searchInput" type="search" oninput="doSearch()" placeholder="Songs, artists, or playlists" aria-label="Search songs, artists, and playlists"></label>
+ <div class="chips search-filters" role="group" aria-label="Filter search results"><button class="chip active" data-search-filter="all" aria-pressed="true">All</button><button class="chip" data-search-filter="songs" aria-pressed="false">Songs</button><button class="chip" data-search-filter="artists" aria-pressed="false">Artists</button><button class="chip" data-search-filter="playlists" aria-pressed="false">Playlists</button></div>
  <div id="searchResults"></div>
 </section>
 <section id="library" class="screen">
- <div class="head"><h2>Your Library</h2><span id="librarySummary" class="library-count"></span></div>
- <div class="library-shortcuts">
-  <button class="panel" onclick="showLiked()"><div class="listrow"><div class="catart">♡</div><div class="listinfo"><b>Liked Songs</b><span id="likedCount">0 tracks</span></div><span class="chev">›</span></div></button>
-  <button class="panel" onclick="showRecent()"><div class="listrow"><div class="catart">◷</div><div class="listinfo"><b>Recently Played</b><span id="recentCount">0 tracks</span></div><span class="chev">›</span></div></button>
-  <button class="panel" onclick="show('playlists')"><div class="listrow"><div class="catart">♫</div><div class="listinfo"><b>Playlists</b><span id="playlistCount">0 playlists</span></div><span class="chev">›</span></div></button>
-  <button class="panel" onclick="showArtists()"><div class="listrow"><div class="catart">♙</div><div class="listinfo"><b>Artists</b><span id="artistCount">0 artists</span></div><span class="chev">›</span></div></button>
+ <div class="head library-heading"><div><h2>Library</h2><span id="librarySummary" class="library-count"></span></div></div>
+ <div id="librarySections" class="library-tabs" role="group" aria-label="Library sections">
+  <button class="active" data-library-section="songs" aria-controls="librarySongs" aria-pressed="true">Songs</button>
+  <button data-library-section="playlists" aria-controls="libraryPlaylists" aria-pressed="false">Playlists <span id="playlistCount" class="count">0</span></button>
+  <button data-library-section="artists" aria-controls="libraryArtists" aria-pressed="false">Artists <span id="artistCount" class="count">0</span></button>
+  <button data-library-section="liked" aria-controls="libraryLiked" aria-pressed="false">Liked <span id="likedCount" class="count">0</span></button>
  </div>
- <div class="section"><div class="head"><h2 style="font-size:20px">Your tracks</h2><button class="see" onclick="show('yourmusic')">Manage →</button></div><div id="libraryTracks" class="track-list"></div></div>
-</section>
-<section id="yourmusic" class="screen">
- <div class="head"><h2>Your Music</h2><button class="round" aria-label="Settings" onclick="show('settings')">⚙</button></div>
- <div class="import-bar"><button class="import-btn" onclick="document.getElementById('audioImport').click()">＋ Import music</button><input id="audioImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" multiple hidden onchange="importAudioFiles(this.files)"><span class="import-note">Audio stays in this browser on this device.</span></div>
- <div class="head"><h2 style="font-size:20px">Browse your music</h2><span id="trackCount" class="library-count">0 tracks</span></div>
- <div id="libraryTabs" class="library-tabs">
-  <button class="active" data-library-filter="all" aria-pressed="true">All tracks</button>
-  <button data-library-filter="liked" aria-pressed="false">Liked</button>
-  <button data-library-filter="recent" aria-pressed="false">Recently played</button>
-  <button data-library-filter="unorganized" aria-pressed="false">Unorganized</button>
- </div>
- <div id="categoryList" class="category-list"></div>
- <div id="localTrackList" class="track-list"></div>
- <div class="section"><button class="action save" style="width:100%" onclick="createCategory()">＋ Create Category</button></div>
-</section>
-<section id="organize" class="screen">
- <div class="head"><button class="see" onclick="show('yourmusic')">← Your Music</button><h2 style="font-size:19px">Unorganized tracks</h2><span id="unorganizedCount" class="library-count"></span></div>
- <div id="organizeList" class="track-list"></div>
-</section>
-<section id="playlists" class="screen">
- <div class="head"><h2>Your Playlists</h2><button class="see" onclick="newPlaylist()">＋ New playlist</button></div>
- <div id="playlistGrid" class="playlist-grid"></div>
- <div class="section"><div class="head"><h2 style="font-size:20px">Create a playlist</h2></div><div class="add-panel"><label for="playlistName" style="font-size:12px;color:var(--muted)">Playlist name</label><input class="form-input" id="playlistName" placeholder="e.g. Sunday Morning" maxlength="60"><button class="action save" style="width:100%" onclick="createPlaylist()">Create Playlist</button></div></div>
- <div id="playlistDetail" class="playlist-detail" hidden><div class="head"><div><h2 id="playlistDetailTitle"></h2><span id="playlistDetailCount" class="library-count"></span></div><button class="see" onclick="closePlaylistDetail()">Close</button></div><div class="detail-actions"><button class="action save" onclick="playSelectedPlaylist()">▶ Play all</button><button class="action" onclick="renameSelectedPlaylist()">Rename</button><button class="action danger" onclick="deleteSelectedPlaylist()">Delete</button></div><div id="playlistTracks" class="track-list"></div></div>
-</section>
-<section id="now" class="screen now">
- <div class="nowtop"><button class="round" aria-label="Close player" onclick="show('home')">⌄</button><button id="currentTrackMenuButton" class="round" aria-label="Track actions" onclick="openCurrentMenu()" disabled>•••</button></div>
- <div id="nowArt" class="bigart a1" data-cover="♫"></div><h1 id="nowTitle">Nothing playing</h1><div class="artist" id="nowArtist">Choose a track from your local library</div>
- <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track" disabled><div class="times"><span id="elapsedTime">0:00</span><span id="totalTime">0:00</span></div></div>
- <div class="volume-control"><button id="muteButton" class="volume-mute" aria-label="Mute playback" aria-pressed="false">🔊</button><input id="volumeSlider" type="range" min="0" max="100" step="1" value="80" aria-label="Volume"><output id="volumeValue" for="volumeSlider">80%</output></div>
- <div class="controls"><button id="shuffleButton" class="ctrl" onclick="toggleShuffle()" aria-label="Shuffle off" aria-pressed="false">⤨</button><button id="previousButton" class="ctrl" onclick="previousTrack()" aria-label="Previous track" disabled>◀</button><button class="ctrl main" id="nowPlayButton" onclick="toggle()" aria-label="Play playback">▶</button><button id="nextButton" class="ctrl" onclick="nextTrack()" aria-label="Next track" disabled>▶</button><button id="repeatButton" class="ctrl" onclick="toggleRepeat()" aria-label="Repeat off. Change repeat mode" aria-pressed="false">↻</button></div>
- <div class="player-status" id="playerStatus">Import audio files to begin listening</div>
- <div class="tools"><button id="lyricsButton" onclick="toggleLyrics()" aria-label="Lyrics" disabled><span>▤<small>Lyrics</small></span></button><button id="currentTrackActionsButton" onclick="openCurrentMenu()" aria-label="Track menu" disabled><span>•••<small>Track menu</small></span></button><button onclick="openQueue()" aria-label="Open playback queue"><span>☷<small>Queue</small></span></button><button id="sleepTimerButton" onclick="openSleepTimer()" aria-label="Sleep timer" disabled><span>◷<small>Sleep timer</small></span></button></div>
- <div class="lyrics" id="lyricsPanel" hidden><h3>LYRICS</h3><p id="lyricsText">Lyrics you add for a track appear here.</p></div>
+ <section id="librarySongs" class="library-view">
+  <div class="library-tabs song-filters" role="group" aria-label="Filter songs"><button class="active" data-library-filter="all" aria-pressed="true">All songs</button><button data-library-filter="recent" aria-pressed="false">Recently played</button><button data-library-filter="unorganized" aria-pressed="false">Unorganized</button></div>
+  <p class="library-hint">Tags group songs without setting play order; playlists keep a chosen order.</p>
+  <div id="categoryList" class="category-list"></div>
+  <button class="action tag-create" onclick="createCategory()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-tag"></use></svg> Create tag</button>
+  <div id="localTrackList" class="track-list"></div>
+  <div class="drop-hint" data-drop-zone><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-upload"></use></svg> Drop audio files here to add them to your library.</div>
+ </section>
+ <section id="libraryPlaylists" class="library-view" hidden>
+  <p class="library-hint">Playlists are ordered mixes; tags are labels that group songs without changing playback order.</p>
+  <div id="playlistGrid" class="playlist-grid"></div>
+  <div id="playlistForm" class="section add-panel" hidden><label for="playlistName" class="library-count">Playlist name</label><input class="form-input" id="playlistName" placeholder="e.g. Sunday Morning" maxlength="60"><button class="action save" style="width:100%" onclick="createPlaylist()">Create playlist</button></div>
+  <div id="playlistDetail" class="playlist-detail" hidden><div class="head"><div><h2 id="playlistDetailTitle"></h2><span id="playlistDetailCount" class="library-count"></span></div><button class="see" onclick="closePlaylistDetail()">Close</button></div><div class="detail-actions"><button class="action save" onclick="playSelectedPlaylist()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg> Play all</button><button class="action" onclick="renameSelectedPlaylist()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-edit"></use></svg> Rename</button><button class="action danger" onclick="deleteSelectedPlaylist()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-trash"></use></svg> Delete</button></div><div id="playlistTracks" class="track-list"></div></div>
+ </section>
+ <section id="libraryArtists" class="library-view" hidden><div id="artistList"></div></section>
+ <section id="libraryLiked" class="library-view" hidden><div id="likedTrackList" class="track-list"></div></section>
 </section>
 <section id="profile" class="screen">
- <div class="profile-hero"><div class="profile-avatar">A</div><div><h2>Your listening profile</h2><p>Private listening stats from this device</p></div></div>
- <div class="stats"><div class="label">Total listening time</div><div id="profileListeningTime" class="time">0m</div><div id="profileTrackCount" class="period">No tracks played yet</div><div id="profileWeekBars" class="week-bars"></div></div>
- <div class="section"><div class="head"><h2 style="font-size:20px">Favorite artists</h2></div><div id="favoriteArtists"></div></div>
- <div class="section"><div class="head"><h2 style="font-size:20px">Most played</h2></div><div id="mostPlayed"></div></div>
+ <div class="profile-hero"><div class="profile-avatar"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-stats"></use></svg></div><div><h2>Your listening stats</h2><p>Private listening stats from this device</p></div></div>
+ <section id="profileStats" class="stats"><div class="label">Total listening time</div><div id="profileListeningTime" class="time">0s</div><div id="profileTrackCount" class="period">No tracks played yet</div><div id="profileWeekBars" class="week-bars"></div></section>
+ <section id="profileArtists" class="section"><div class="head"><h2>Favorite artists</h2></div><div id="favoriteArtists"></div></section>
+ <section id="profileMostPlayed" class="section"><div class="head"><h2>Most played</h2></div><div id="mostPlayed"></div></section>
 </section>
 <section id="settings" class="screen">
  <div class="head"><h2>Settings</h2></div>
  <div class="settings-group"><h3>Appearance</h3><p>Choose how Auralis looks on this device.</p><div class="settings-choice"><button data-theme="dark" aria-pressed="true" onclick="setTheme('dark')">Dark</button><button data-theme="light" aria-pressed="false" onclick="setTheme('light')">Light</button></div></div>
  <div class="settings-group"><h3>Accent color</h3><p>Personalize the player and highlights.</p><div class="accent-options"><button aria-label="Gold accent" data-accent="#f4d447" aria-pressed="true" onclick="setAccent('#f4d447')"></button><button aria-label="Blue accent" data-accent="#79a9ff" aria-pressed="false" onclick="setAccent('#79a9ff')"></button><button aria-label="Green accent" data-accent="#65d6aa" aria-pressed="false" onclick="setAccent('#65d6aa')"></button><button aria-label="Rose accent" data-accent="#ff8fa3" aria-pressed="false" onclick="setAccent('#ff8fa3')"></button><input id="customAccent" type="color" value="#f4d447" aria-label="Choose custom accent color" onchange="setAccent(this.value)"></div></div>
- <div class="settings-group"><h3>Local music library</h3><p>Your imported audio and playlists are stored in this browser. Clearing browser site data can remove those files.</p><button class="action" onclick="show('yourmusic')">Manage your music</button></div>
+ <div class="settings-group"><h3>Library storage and backup</h3><p id="storageInfo">Your imported audio, playlists, tags and settings are stored in this browser only.</p><div class="storage-warning"><strong>Clearing browser site data can remove your library.</strong><span>Export a backup before clearing storage or moving browsers.</span></div><button class="action save" data-export-library><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-upload"></use></svg> Export full library backup</button></div>
 </section>
-<div class="mini" id="mini" hidden><div class="minicover a1" id="miniCover"></div><button type="button" class="miniinfo" onclick="show('now')" aria-label="Open now playing"><b id="miniTitle">Nothing playing</b><span id="miniArtist">Choose a track</span></button><div class="mini-actions"><button id="miniLike" class="round" aria-label="Like track" aria-pressed="false" onclick="toggleCurrentLike()">♡</button><button class="mini-play" id="mp" onclick="toggle()" aria-label="Play or pause">▶</button></div></div>
-<nav class="nav" aria-label="Main navigation"><button id="navhome" class="active" aria-current="page" onclick="show('home')"><span>⌂</span>Home</button><button id="navsearch" onclick="show('search')"><span>⌕</span>Search</button><button id="navlibrary" onclick="show('library')"><span>▥</span>Library</button><button id="navmusic" onclick="show('yourmusic')"><span>♫</span>Your Music</button></nav>
-<div class="queue-panel" id="queuePanel"><div class="queue-inner"><div class="queue-head"><h3>Up Next</h3><button class="close" onclick="closeQueue()" aria-label="Close queue">×</button></div><div id="queueList" class="queue-list"></div></div></div>
+<section id="now" class="screen now">
+ <div class="nowtop"><button class="round" aria-label="Close player" onclick="closePlayer()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-chevron-down"></use></svg></button></div>
+ <div id="nowArt" class="bigart a1" data-cover=""></div><h1 id="nowTitle">Nothing playing</h1><div class="artist" id="nowArtist">Choose a track from your local library</div>
+ <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track" disabled><div class="times"><span id="elapsedTime">0:00</span><span id="totalTime">0:00</span></div></div>
+ <div class="volume-control"><button id="muteButton" class="volume-mute" aria-label="Mute playback" aria-pressed="false"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-volume"></use></svg></button><input id="volumeSlider" type="range" min="0" max="100" step="1" value="80" aria-label="Volume"><output id="volumeValue" for="volumeSlider">80%</output></div>
+ <div class="controls"><button id="shuffleButton" class="ctrl" onclick="toggleShuffle()" aria-label="Shuffle off" aria-pressed="false"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-shuffle"></use></svg></button><button id="previousButton" class="ctrl" onclick="previousTrack()" aria-label="Previous track" disabled><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-previous"></use></svg></button><button class="ctrl main" id="nowPlayButton" onclick="toggle()" aria-label="Play playback"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg></button><button id="nextButton" class="ctrl" onclick="nextTrack()" aria-label="Next track" disabled><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-next"></use></svg></button><button id="repeatButton" class="ctrl" onclick="toggleRepeat()" aria-label="Repeat off. Change repeat mode" aria-pressed="false"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-repeat"></use></svg></button></div>
+ <div class="player-status" id="playerStatus">Import audio files to begin listening</div>
+ <div class="tools"><button id="lyricsButton" onclick="toggleLyrics()" aria-label="Open lyrics" disabled><span><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-lyrics"></use></svg><small>Lyrics</small></span></button><button onclick="openQueue()" aria-label="Open playback queue"><span><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-queue"></use></svg><small>Queue</small></span></button><button id="sleepTimerButton" onclick="openSleepTimer()" aria-label="Set sleep timer" disabled><span><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-timer"></use></svg><small>Sleep timer</small></span></button><button id="currentTrackActionsButton" onclick="openCurrentMenu()" aria-label="Track menu" disabled><span><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-more"></use></svg><small>Track menu</small></span></button></div>
+ <div class="lyrics" id="lyricsPanel" hidden><h3>LYRICS</h3><p id="lyricsText">Lyrics you add for a track appear here.</p></div>
+</section>
+<section id="importDropTarget" class="drop-overlay" hidden aria-live="polite"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-upload"></use></svg> Drop audio files to import</section>
+</main>
+<div class="mini" id="mini" hidden><div class="minicover a1" id="miniCover"></div><button type="button" class="miniinfo" onclick="show('now')" aria-label="Open now playing"><b id="miniTitle">Nothing playing</b><span id="miniArtist">Choose a track</span></button><div class="mini-actions"><button id="miniLike" class="round" aria-label="Add to Liked Songs" aria-pressed="false" onclick="toggleCurrentLike()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-heart"></use></svg></button><button class="mini-play" id="mp" onclick="toggle()" aria-label="Play playback"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg></button></div></div>
+<nav class="nav" aria-label="Main navigation"><button id="navhome" class="active" aria-current="page" onclick="show('home')"><span><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-home"></use></svg></span>Home</button><button id="navsearch" onclick="show('search')"><span><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-search"></use></svg></span>Search</button><button id="navlibrary" onclick="show('library')"><span><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-library"></use></svg></span>Library</button></nav>
+<button id="globalAddButton" class="floating-add" aria-label="Import music or create a playlist" onclick="openAddMenu()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-plus"></use></svg></button>
+<div class="queue-panel" id="queuePanel"><div class="queue-inner"><div class="queue-head"><h3>Up next</h3><button class="close" onclick="closeQueue()" aria-label="Close queue"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-close"></use></svg></button></div><div id="queueList" class="queue-list"></div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <audio id="localAudio" preload="metadata"></audio>
-</main>
+<input id="audioImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" multiple hidden>
+<input id="folderImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" webkitdirectory directory multiple hidden>
 </div>
 <dialog id="actionDialog"><div id="dialogContent" class="dialog-inner"></div></dialog>
-
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
