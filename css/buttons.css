@@ -1,17 +1,15 @@
-/* Shared interaction states and comfortable targets for every button. */
-button{min-height:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .12s ease,filter .16s ease}
+/* Shared controls, focus states, and minimum touch targets */
+button{min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .12s ease,filter .16s ease}
 button:hover:not(:disabled){filter:brightness(1.07)}
 button:active:not(:disabled){transform:scale(.98)}
-button:focus-visible{position:relative;z-index:3;outline:3px solid var(--yellow);outline-offset:3px}
+button:focus-visible,.stats-action:focus-visible{position:relative;z-index:3;outline:3px solid var(--accent-ink,var(--yellow));outline-offset:3px}
 button:disabled{cursor:not-allowed;filter:saturate(.5);opacity:.48;transform:none}
-.round,.mini-play,.play{width:44px;height:44px;min-width:44px;min-height:44px}
-.ctrl:not(.main){width:44px;height:44px;min-width:44px;min-height:44px}
-.see{min-height:44px;padding:0 10px;border-radius:10px}
-.action,.import-btn{min-height:44px}
-.chip,.library-tabs button,.category-list button,.settings-choice button{min-height:40px}
-.accent-options button,.mix button{width:44px;height:44px;min-width:44px;min-height:44px}
-.track-item .track-buttons button,.queue-item button{width:38px;height:38px;min-width:38px;min-height:38px;padding:0}
-.track-item .track-buttons button:disabled,.queue-item button:disabled{filter:none;opacity:.38}
+.round,.mini-play,.play,.ctrl:not(.main){width:44px;height:44px;min-width:44px;min-height:44px}
+.see,.action,.import-btn,.playlist-open{min-height:44px}
+.chip,.library-tabs button,.category-list button,.settings-choice button{min-height:44px}
+.accent-options button{width:44px;height:44px;min-width:44px;min-height:44px}
+.track-item .track-buttons button,.queue-item button{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border-radius:50%;display:grid;place-items:center}
+.track-item .track-play{width:44px;height:44px;min-width:44px;min-height:44px}
 button.danger{border:1px solid rgba(222,91,91,.42);background:rgba(126,35,35,.18);color:#ffaaaa}
 button.danger:hover:not(:disabled){border-color:#ef7777;background:rgba(126,35,35,.34);color:#fff}
 html[data-theme="light"] .round:not(.avatar):hover,html[data-theme="light"] .track-item .track-buttons button:not(.track-play):hover,html[data-theme="light"] .queue-item button:hover{background:#eee8d9}
@@ -19,33 +17,32 @@ html[data-theme="light"] .track-item .track-buttons button:not(.track-play),html
 html[data-theme="light"] .library-tabs button:not(.active),html[data-theme="light"] .category-list button:not(.active),html[data-theme="light"] .settings-choice button:not(.active){color:#4b4638;border-color:#d9d1bf}
 html[data-theme="light"] button.danger{border-color:#d99595;background:#fff0ef;color:#8b2626}
 html[data-theme="light"] button.danger:hover:not(:disabled){background:#ffe2e0;color:#751717}
-@media(max-width:600px){.detail-track .track-item{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px}.detail-track .track-item .meta{grid-column:2;grid-row:1}.detail-track .track-item .track-buttons{grid-column:1/-1;justify-content:flex-end;flex-wrap:wrap}.queue-item{display:grid;grid-template-columns:repeat(4,minmax(38px,1fr));align-items:center;gap:4px}.queue-item .qthumb{grid-column:1;grid-row:1}.queue-item .qinfo{grid-column:2/-1;grid-row:1}.queue-item button{width:100%;grid-row:2}.queue-item button:nth-of-type(1){grid-column:1}.queue-item button:nth-of-type(2){grid-column:2}.queue-item button:nth-of-type(3){grid-column:3}.queue-item button:nth-of-type(4){grid-column:4}}
-@media(prefers-reduced-motion:reduce){button{transition:none;transform:none!important}}
-
 .miniinfo{text-align:left;padding:0;align-self:stretch}
 .playlist-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .playlist-meta>span{flex:1;min-width:0}
-.playlist-open{flex:none;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:10px;color:var(--accent-ink,var(--yellow))}
+.playlist-open{flex:none;padding:0 10px;border:1px solid var(--line);border-radius:10px;color:var(--accent-ink,var(--yellow))}
 html[data-theme="light"] .playlist-open{border-color:#d9d1bf}
-
 .volume-control{width:min(300px,82vw);display:flex;align-items:center;gap:12px;margin:2px auto 4px}
-.volume-mute{width:44px;height:44px;min-width:44px;border:1px solid var(--line);border-radius:12px;color:var(--muted);display:grid;place-items:center;font-size:17px}
+.volume-mute{width:44px;height:44px;min-width:44px;border:1px solid var(--line);border-radius:12px;color:var(--muted);display:grid;place-items:center}
 .volume-mute[aria-pressed="true"]{border-color:var(--accent-ink,var(--yellow));color:var(--accent-ink,var(--yellow))}
 .volume-control input{flex:1;min-width:0;accent-color:var(--accent-ink,var(--yellow));touch-action:pan-x}
-.volume-control output{min-width:3.2em;text-align:right;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-html[data-theme="light"] .volume-mute{border-color:#d9d1bf;color:#494438}
-html[data-theme="light"] .volume-mute[aria-pressed="true"]{border-color:var(--accent-ink,var(--yellow));color:var(--accent-ink,var(--yellow))}
-
-/* AA contrast and 44px interaction targets */
-button{min-width:44px;min-height:44px}
-.chip,.library-tabs button,.category-list button,.settings-choice button{min-height:44px}
-.track-item .track-buttons button,.queue-item button{width:44px;height:44px;min-width:44px;min-height:44px;padding:0}
-button:focus-visible{outline-color:var(--accent-ink,#f4d447)}
-.track-item .track-buttons button:disabled,.queue-item button:disabled{filter:none;opacity:.45}
-@media(max-width:600px){.queue-item{grid-template-columns:repeat(4,minmax(44px,1fr))}.queue-item button{width:44px;min-width:44px}}
-html[data-theme="light"] .controls .ctrl.active{color:var(--accent-ink,#6a5010)}
-
+.volume-control output{min-width:3.2em;text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .seek input[type="range"],.volume-control input[type="range"]{height:44px;min-height:44px}
-
 .searchbox input,.form-input,.dialog-field{min-height:44px}
 input[type="color"]{width:44px;height:44px;min-width:44px;min-height:44px}
+.tools button:disabled,.tools button:disabled span,.tools button:disabled small{opacity:.42;filter:grayscale(1);color:var(--muted);cursor:not-allowed}
+@media(max-width:600px){
+ .detail-track .track-item{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px}
+ .detail-track .track-item .meta{grid-column:2;grid-row:1}
+ .detail-track .track-item .track-buttons{grid-column:1/-1;justify-content:flex-end;flex-wrap:wrap}
+ .queue-item{display:grid;grid-template-columns:repeat(4,minmax(44px,1fr));align-items:center;gap:4px}
+ .queue-item .qthumb{grid-column:1;grid-row:1}
+ .queue-item .qinfo{grid-column:2/-1;grid-row:1}
+ .queue-item button{width:100%;grid-row:2}
+ .queue-item button:nth-of-type(1){grid-column:1}
+ .queue-item button:nth-of-type(2){grid-column:2}
+ .queue-item button:nth-of-type(3){grid-column:3}
+ .queue-item button:nth-of-type(4){grid-column:4}
+}
+@media(prefers-reduced-motion:reduce){button{transition:none;transform:none!important}}
+html[data-theme="light"] .controls .ctrl.active{color:var(--accent-ink,#6a5010)}

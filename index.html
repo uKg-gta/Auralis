@@ -67,7 +67,7 @@
  </section>
  <section id="homeContinueSection" class="section" hidden><div class="head"><h2>Continue listening</h2></div><div id="homeContinueTrack"></div></section>
  <section id="homeRecentSection" class="section" hidden><div class="head"><h2><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-history"></use></svg> Recently played</h2><button class="see" onclick="showRecent()">See all</button></div><div id="homeRecent" class="row"></div></section>
- <section id="homeStatsSection" class="section" hidden><button class="stats-action" onclick="show('profile')"><div class="stats"><div class="label">Listening time this week</div><div id="homeListeningTime" class="time">0s</div><div id="homeWeekBars" class="week-bars"></div><span>View listening stats <svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-chevron-right"></use></svg></span></div></button></section>
+ <section id="homeStatsSection" class="section" hidden><div class="stats-action" role="button" tabindex="0" aria-label="Open listening stats" onclick="show('profile')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();show('profile')}"><div class="stats"><div class="label">Listening time this week</div><div id="homeListeningTime" class="time">0s</div><div id="homeWeekBars" class="week-bars"></div><span>View listening stats <svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-chevron-right"></use></svg></span></div></div></section>
 </section>
 <section id="search" class="screen">
  <div class="head"><h2>Search</h2></div>
@@ -83,16 +83,16 @@
   <button data-library-section="artists" aria-controls="libraryArtists" aria-pressed="false">Artists <span id="artistCount" class="count">0</span></button>
   <button data-library-section="liked" aria-controls="libraryLiked" aria-pressed="false">Liked <span id="likedCount" class="count">0</span></button>
  </div>
+ <p class="library-hint">Tags group songs; playlists set playback order.</p>
  <section id="librarySongs" class="library-view">
   <div class="library-tabs song-filters" role="group" aria-label="Filter songs"><button class="active" data-library-filter="all" aria-pressed="true">All songs</button><button data-library-filter="recent" aria-pressed="false">Recently played</button><button data-library-filter="unorganized" aria-pressed="false">Unorganized</button></div>
-  <p class="library-hint">Tags group songs without setting play order; playlists keep a chosen order.</p>
   <div id="categoryList" class="category-list"></div>
   <button class="action tag-create" onclick="createCategory()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-tag"></use></svg> Create tag</button>
   <div id="localTrackList" class="track-list"></div>
   <div class="drop-hint" data-drop-zone><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-upload"></use></svg> Drop audio files here to add them to your library.</div>
  </section>
  <section id="libraryPlaylists" class="library-view" hidden>
-  <p class="library-hint">Playlists are ordered mixes; tags are labels that group songs without changing playback order.</p>
+  
   <div id="playlistGrid" class="playlist-grid"></div>
   <div id="playlistForm" class="section add-panel" hidden><label for="playlistName" class="library-count">Playlist name</label><input class="form-input" id="playlistName" placeholder="e.g. Sunday Morning" maxlength="60"><button class="action save" style="width:100%" onclick="createPlaylist()">Create playlist</button></div>
   <div id="playlistDetail" class="playlist-detail" hidden><div class="head"><div><h2 id="playlistDetailTitle"></h2><span id="playlistDetailCount" class="library-count"></span></div><button class="see" onclick="closePlaylistDetail()">Close</button></div><div class="detail-actions"><button class="action save" onclick="playSelectedPlaylist()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg> Play all</button><button class="action" onclick="renameSelectedPlaylist()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-edit"></use></svg> Rename</button><button class="action danger" onclick="deleteSelectedPlaylist()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-trash"></use></svg> Delete</button></div><div id="playlistTracks" class="track-list"></div></div>
@@ -114,7 +114,7 @@
 </section>
 <section id="now" class="screen now">
  <div class="nowtop"><button class="round" aria-label="Close player" onclick="closePlayer()"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-chevron-down"></use></svg></button></div>
- <div id="nowArt" class="bigart a1" data-cover=""></div><h1 id="nowTitle">Nothing playing</h1><div class="artist" id="nowArtist">Choose a track from your local library</div>
+ <div id="nowArt" class="bigart a1" data-cover=""></div><h2 id="nowTitle">Nothing playing</h2><div class="artist" id="nowArtist">Choose a track from your local library</div>
  <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track" disabled><div class="times"><span id="elapsedTime">0:00</span><span id="totalTime">0:00</span></div></div>
  <div class="volume-control"><button id="muteButton" class="volume-mute" aria-label="Mute playback" aria-pressed="false"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-volume"></use></svg></button><input id="volumeSlider" type="range" min="0" max="100" step="1" value="80" aria-label="Volume"><output id="volumeValue" for="volumeSlider">80%</output></div>
  <div class="controls"><button id="shuffleButton" class="ctrl" onclick="toggleShuffle()" aria-label="Shuffle off" aria-pressed="false"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-shuffle"></use></svg></button><button id="previousButton" class="ctrl" onclick="previousTrack()" aria-label="Previous track" disabled><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-previous"></use></svg></button><button class="ctrl main" id="nowPlayButton" onclick="toggle()" aria-label="Play playback"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg></button><button id="nextButton" class="ctrl" onclick="nextTrack()" aria-label="Next track" disabled><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-next"></use></svg></button><button id="repeatButton" class="ctrl" onclick="toggleRepeat()" aria-label="Repeat off. Change repeat mode" aria-pressed="false"><svg class="icon " aria-hidden="true" focusable="false"><use href="#icon-repeat"></use></svg></button></div>
