@@ -1,7 +1,13 @@
 import {state,$,esc,toast,status,formatClock,byId,artworkClass,artworkUrl,icon} from '../core.js';
 import {add,put} from '../storage.js';
+import {streamTrackUrl} from './catalog.js';
 let volumeSaveTimer=null;
+function playbackMessage(){return byId(state.currentTrackId)?.source==='stream'?'Streaming from Audius':'Playing from your device'}
 function mediaSession(){return typeof navigator!=='undefined'&&navigator.mediaSession?navigator.mediaSession:null}
+function historyTrackSnapshot(track){
+ if(track?.source!=='stream')return undefined;
+ return {id:track.id,source:'stream',provider:track.provider||'audius',providerId:track.providerId||'',title:track.title||track.name||'Untitled track',artist:track.artist||'Unknown artist',album:track.album||'',genre:track.genre||'',duration:Number(track.duration)||0,artworkUrl:track.artworkUrl||'',artworkType:track.artworkType||'image/jpeg',providerUrl:track.providerUrl||'',artistUrl:track.artistUrl||'',artistId:track.artistId||'',added:0,categories:[],liked:false,lyrics:''}
+}
 function updateMediaPosition(){
  const session=mediaSession(),duration=state.audio.duration;if(!session||typeof session.setPositionState!=='function'||!Number.isFinite(duration)||duration<=0)return;
  try{session.setPositionState({duration,playbackRate:state.audio.playbackRate||1,position:Math.max(0,Math.min(duration,state.audio.currentTime||0))})}catch(error){}
@@ -20,7 +26,7 @@ function seekMedia(seconds){const duration=state.audio.duration;if(!Number.isFin
 function installMediaSession(){
  const session=mediaSession();if(!session||typeof session.setActionHandler!=='function')return;
  const handlers={
-  play:()=>{if(!state.currentTrackId)return;if(!state.audio.src){playTrack(state.currentTrackId,state.queueIds);return}state.audio.play().catch(()=>status('Playback could not start; try another audio format'))},
+  play:()=>{if(!state.currentTrackId)return;if(!state.audio.src){playTrack(state.currentTrackId,state.queueIds);return}state.audio.play().catch(()=>status('Playback could not start; try another track'))},
   pause:()=>{state.audio.pause();flushSession()},previoustrack:previousTrack,nexttrack:nextTrack,
   seekbackward:details=>seekMedia(-(Number(details&&details.seekOffset)||10)),seekforward:details=>seekMedia(Number(details&&details.seekOffset)||10),
   seekto:details=>{const duration=state.audio.duration,time=Number(details&&details.seekTime);if(Number.isFinite(duration)&&duration>0&&Number.isFinite(time))state.audio.currentTime=Math.max(0,Math.min(duration,time))},
@@ -71,7 +77,7 @@ export function renderQueue(){
  $('queueList').innerHTML=html||'<div class="queue-empty">Your queue is empty. Choose a song to start listening.</div>';state.queueIndex=currentIndex
 }
 function startSession(track){
- flushSession();state.sessionRecord={trackId:track.id,title:track.title||track.name,artist:track.artist||'Unknown artist',startedAt:Date.now(),seconds:0};state.sessionId=null;state.pendingSeconds=0;state.lastPersist=Date.now();
+ flushSession();const snapshot=historyTrackSnapshot(track);if(snapshot&&!state.catalogTracks.some(item=>item.id===snapshot.id))state.catalogTracks.push(snapshot);state.sessionRecord={trackId:track.id,title:track.title||track.name,artist:track.artist||'Unknown artist',startedAt:Date.now(),seconds:0,...(snapshot?{trackSnapshot:snapshot}:{})};state.sessionId=null;state.pendingSeconds=0;state.lastPersist=Date.now();
  add('history',state.sessionRecord).then(key=>{state.sessionId=key;state.sessionRecord.id=key;state.history.unshift(state.sessionRecord);state.refreshAll()}).catch(()=>{})
 }
 export function flushSession(){
@@ -99,14 +105,17 @@ export async function playTrack(trackId,collection){
  const track=byId(trackId);if(!track){toast('That song is no longer in your library');return}
  const priorQueue=Array.isArray(collection)?collection:state.tracks.map(item=>item.id);state.queueIds=priorQueue.filter(item=>!!byId(item));state.queueIndex=state.queueIds.indexOf(trackId);if(state.queueIndex<0){state.queueIds.unshift(trackId);state.queueIndex=0}state.queueBaseIds=state.queueIds.slice();
  if(state.shuffle&&state.queueIds.length>2){const tail=state.queueIds.slice(state.queueIndex+1);for(let i=tail.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[tail[i],tail[j]]=[tail[j],tail[i]]}state.queueIds.splice(state.queueIndex+1,tail.length,...tail)}
- if(state.objectUrl)URL.revokeObjectURL(state.objectUrl);state.objectUrl=URL.createObjectURL(track.blob);state.audio.src=state.objectUrl;state.currentTrackId=trackId;renderCurrent();window.show('now');startSession(track);state.lastPosition=0;renderQueue();
- try{await state.audio.play();status('Playing from your device')}catch(error){status('Press play to start this song')}updateControls()
+ if(state.objectUrl){URL.revokeObjectURL(state.objectUrl);state.objectUrl=null}
+ let source='';if(track.source==='stream')source=streamTrackUrl(track);else if(track.blob instanceof Blob){state.objectUrl=URL.createObjectURL(track.blob);source=state.objectUrl}
+ if(!source){toast(track.source==='stream'?'This stream is no longer available':'The audio file is missing from this device');return}
+ state.audio.src=source;state.currentTrackId=trackId;renderCurrent();window.show('now');startSession(track);state.lastPosition=0;renderQueue();
+ try{await state.audio.play();status(playbackMessage())}catch(error){status(track.source==='stream'?'Press play to start this stream':'Press play to start this song')}updateControls()
 }
 export function playLocal(index){const track=state.tracks[index];if(track)playTrack(track.id)}
 export function play(title,artist){const track=state.tracks.find(item=>item.title===title&&item.artist===artist);if(track)playTrack(track.id);else toast('Import audio to start listening')}
 export function toggle(){
  if(!state.currentTrackId){toast('Import music to start listening');window.show('library');return}
- if(state.audio.paused){state.audio.play().then(()=>status('Playing from your device')).catch(()=>status('Playback could not start; try another audio format'))}
+ if(state.audio.paused){if(!state.audio.src){playTrack(state.currentTrackId,state.queueIds);return}state.audio.play().then(()=>status(playbackMessage())).catch(()=>status('Playback could not start; try another track'))}
  else{state.audio.pause();flushSession()}
  updateControls()
 }
@@ -164,7 +173,7 @@ export function stopCurrent(trackId){
 export function initPlayer(){
  syncVolume();installMediaSession();updateMediaSession();
  $('volumeSlider').addEventListener('input',event=>{setVolume(event.target.value);persistVolume()});$('volumeSlider').addEventListener('change',()=>persistVolume(true));$('muteButton').addEventListener('click',toggleMute);
- state.audio.addEventListener('play',()=>{state.lastPosition=state.audio.currentTime;updateControls();status('Playing from your device')});state.audio.addEventListener('pause',()=>{flushSession();updateControls()});state.audio.addEventListener('timeupdate',onTimeUpdate);state.audio.addEventListener('loadedmetadata',updateMediaPosition);state.audio.addEventListener('ended',()=>{flushSession();nextTrack()});state.audio.addEventListener('error',()=>status('This audio format could not be played by your browser'));
+ state.audio.addEventListener('play',()=>{state.lastPosition=state.audio.currentTime;updateControls();status(playbackMessage())});state.audio.addEventListener('pause',()=>{flushSession();updateControls()});state.audio.addEventListener('timeupdate',onTimeUpdate);state.audio.addEventListener('loadedmetadata',updateMediaPosition);state.audio.addEventListener('ended',()=>{flushSession();nextTrack()});state.audio.addEventListener('error',()=>{const remote=byId(state.currentTrackId)?.source==='stream';status(remote?'This Audius stream is unavailable. Try another track.':'This audio format could not be played by your browser')});
  $('seekBar').addEventListener('input',event=>{if(state.audio.duration)state.audio.currentTime=(Number(event.target.value)/1000)*state.audio.duration});
  $('miniOpen').addEventListener('click',()=>window.show('now'));$('mp').addEventListener('click',toggle);$('miniNext').addEventListener('click',nextTrack);
  $('nowPlayButton').addEventListener('click',toggle);$('previousButton').addEventListener('click',previousTrack);$('nextButton').addEventListener('click',nextTrack);$('shuffleButton').addEventListener('click',toggleShuffle);$('repeatButton').addEventListener('click',toggleRepeat);

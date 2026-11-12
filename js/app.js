@@ -8,9 +8,10 @@ import {renderProfile} from './features/profile.js';
 import {initPlayer,syncVolume,renderCurrent,renderQueue,playTrack,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,selectSleepTimer,moveQueue,moveQueueTo,removeFromQueue,clearQueue} from './features/player.js';
 import {initActions,showDialog,openImportDialog,openAddMenu,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction} from './features/actions.js';
 import {importLibraryBackup} from './features/backup.js';
+import {initCatalog,loadBrowse} from './features/catalog.js';
 
 let returnScreen='home',currentScreen='home';
-function titleFor(screen){return ({home:'Listen Now',search:'Search',library:'Library',settings:'Settings',profile:'Listening Stats'})[screen]||'Auralis'}
+function titleFor(screen){return ({home:'Listen Now',search:'Search',browse:'Browse',library:'Library',settings:'Settings',profile:'Listening Stats'})[screen]||'Auralis'}
 function show(screenId){
  if(screenId==='now'){
   returnScreen=currentScreen;const dialog=$('now');if(!dialog.open)dialog.showModal();return
@@ -18,11 +19,11 @@ function show(screenId){
  if(screenId!=='settings'&&screenId!=='profile')returnScreen=screenId;
  const dialog=$('now');if(dialog.open)dialog.close();
  currentScreen=screenId;document.querySelectorAll('.screen').forEach(section=>section.classList.toggle('active',section.id===screenId));
- const navMap={home:'navhome',search:'navsearch',library:'navlibrary'},activeId=navMap[screenId];
+ const navMap={home:'navhome',search:'navsearch',browse:'navbrowse',library:'navlibrary'},activeId=navMap[screenId];
  document.querySelectorAll('.nav button').forEach(button=>{const active=button.id===activeId;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
  $('globalAddButton').hidden=screenId!=='home';$('libraryAddButton').hidden=screenId!=='library';
  $('compactTitle').textContent=titleFor(screenId);document.body.classList.remove('is-scrolled');window.scrollTo({top:0,behavior:'auto'});
- if(screenId==='settings')refreshStorageInfo()
+ if(screenId==='settings')refreshStorageInfo();if(screenId==='browse')loadBrowse()
 }
 function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen)}
 function renderAll(){renderHome();renderLibrary();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
@@ -33,7 +34,7 @@ function handleClick(event){
  if(target.dataset.searchFilter){setSearchFilter(target.dataset.searchFilter);return}
  if(target.dataset.librarySection){setLibrarySection(target.dataset.librarySection);show('library')}
  if(target.dataset.libraryFilter){setLibraryFilter(target.dataset.libraryFilter);return}
- if(target.dataset.playTrack){playTrack(target.dataset.playTrack);return}
+ if(target.dataset.playTrack){playTrack(target.dataset.playTrack,target.dataset.playCollection?target.dataset.playCollection.split(','):undefined);return}
  if(target.dataset.trackMenu){trackMenu(target.dataset.trackMenu);return}
  if(target.dataset.toggleLike){toggleLike(target.dataset.toggleLike);return}
  if(target.dataset.playPlaylist){const playlist=state.playlists.find(item=>item.id===target.dataset.playPlaylist);if(playlist)playCollection(playlistTrackIds(playlist));return}
@@ -96,7 +97,7 @@ function setupPreferences(){
 function setupScrollTitle(){let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
 function registerServiceWorker(){if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('./sw.js').catch(()=>{})}
 function boot(){
- initPlayer();initActions();initSearch();setupImportInputs();setupDropImport();setupRowGestures();setupPreferences();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);registerServiceWorker();
+ initPlayer();initActions();initSearch();initCatalog();setupImportInputs();setupDropImport();setupRowGestures();setupPreferences();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);registerServiceWorker();
  Object.assign(window,{show,closePlayer,showDialog,openImportDialog,openAddMenu,setTheme,setAccent,setLargeText,createCategory,importAudioFiles,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySection,openArtist,openAlbum,setLibrarySort,setSearchFilter,doSearch:renderSearch,setSearchQuery,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction,moveInPlaylist,removeFromPlaylist,moveQueue,moveQueueTo,removeFromQueue,clearQueue,importLibraryBackup});
  document.addEventListener('click',handleClick);document.getElementById('libraryBack').addEventListener('click',()=>{state.librarySection='overview';state.selectedArtistName=null;state.selectedAlbumName=null;renderLibrary();window.scrollTo({top:0,behavior:'smooth'})});
  document.getElementById('artistBack').addEventListener('click',()=>{state.selectedArtistName=null;renderLibraryArtists()});document.getElementById('albumBack').addEventListener('click',()=>{state.selectedAlbumName=null;renderLibraryAlbums()});

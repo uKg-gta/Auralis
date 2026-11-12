@@ -19,6 +19,7 @@
 <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></symbol>
 <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15.2a1.8 1.8 0 0 0 .4 2l.1.1-1.8 1.8-.1-.1a1.8 1.8 0 0 0-2-.4 1.8 1.8 0 0 0-1.1 1.6v.2h-2.6v-.2a1.8 1.8 0 0 0-1.1-1.6 1.8 1.8 0 0 0-2 .4l-.1.1-1.8-1.8.1-.1a1.8 1.8 0 0 0 .4-2 1.8 1.8 0 0 0-1.6-1.1h-.2v-2.6h.2a1.8 1.8 0 0 0 1.6-1.1 1.8 1.8 0 0 0-.4-2l-.1-.1 1.8-1.8.1.1a1.8 1.8 0 0 0 2 .4 1.8 1.8 0 0 0 1.1-1.6V5h2.6v.2a1.8 1.8 0 0 0 1.1 1.6 1.8 1.8 0 0 0 2-.4l.1-.1 1.8 1.8-.1.1a1.8 1.8 0 0 0-.4 2 1.8 1.8 0 0 0 1.6 1.1h.2v2.6H21a1.8 1.8 0 0 0-1.6 1.3Z"/></symbol>
 <symbol id="icon-library" viewBox="0 0 24 24"><path d="M5 4h15v17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M7 4v17M10 8h7M10 12h7M10 16h5"/></symbol>
+<symbol id="icon-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.8 8.2-2.4 5.2-5.2 2.4 2.4-5.2 5.2-2.4Z"/></symbol>
 <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
 <symbol id="icon-play" viewBox="0 0 24 24"><path d="M7 4.8v14.4L19 12z" fill="currentColor" stroke="none"/></symbol>
 <symbol id="icon-pause" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor" stroke="none"/></symbol>
@@ -66,6 +67,7 @@
 <nav class="nav" aria-label="Main navigation">
  <button id="navhome" class="active" aria-current="page" onclick="show('home')"><svg class="icon"><use href="#icon-home"></use></svg><span>Listen Now</span></button>
  <button id="navsearch" onclick="show('search')"><svg class="icon"><use href="#icon-search"></use></svg><span>Search</span></button>
+ <button id="navbrowse" onclick="show('browse')"><svg class="icon"><use href="#icon-compass"></use></svg><span>Browse</span></button>
  <button id="navlibrary" onclick="show('library')"><svg class="icon"><use href="#icon-library"></use></svg><span>Library</span></button>
 </nav>
 <main id="mainContent">
@@ -83,7 +85,7 @@
  </section>
  <div id="homeContent" hidden>
   <section id="homeSourceSection" class="source-section" aria-label="Music source">
-   <div class="chip-row" role="group" aria-label="Filter music by source"><button class="chip active" data-home-source="all" aria-pressed="true">All</button><button class="chip" data-home-source="local" aria-pressed="false">Uploads</button><button class="chip" data-home-source="stream" hidden aria-pressed="false">Streamed</button></div>
+   <div class="chip-row" role="group" aria-label="Filter music by source"><button class="chip active" data-home-source="all" aria-pressed="true">All</button><button class="chip" data-home-source="local" aria-pressed="false">Uploads</button><button class="chip" data-home-source="stream" aria-pressed="false">Streamed</button></div>
   </section>
   <section id="homeHeroSection" class="hero-section" hidden aria-label="Top pick">
     <button id="homeHero" class="hero-card" data-play-track="">
@@ -101,6 +103,9 @@
   <section id="homeUploadsSection" class="shelf" hidden>
    <div class="section-heading"><h2>Your Uploads</h2><button class="text-button" data-open-library="uploads">See All</button></div><div id="homeUploads" class="card-shelf"></div>
   </section>
+  <section id="homeStreamedSection" class="shelf" hidden>
+   <div class="section-heading"><h2>Your Streamed Music</h2><button class="text-button" data-open-library="streamed">See All</button></div><div id="homeStreamed" class="card-shelf"></div>
+  </section>
   <section id="homeStatsSection" class="shelf" hidden>
    <button class="stats-card" onclick="show('profile')"><span class="eyebrow">Your week in music</span><strong id="homeListeningTime">0s</strong><span id="homeWeekBars" class="week-bars"></span><span class="stats-link">Listening stats <svg class="icon"><use href="#icon-chevron-right"></use></svg></span></button>
   </section>
@@ -115,6 +120,14 @@
  <div class="chip-row search-filters" role="group" aria-label="Filter search results"><button class="chip active" data-search-filter="all" aria-pressed="true">All</button><button class="chip" data-search-filter="songs" aria-pressed="false">Songs</button><button class="chip" data-search-filter="artists" aria-pressed="false">Artists</button><button class="chip" data-search-filter="albums" aria-pressed="false">Albums</button><button class="chip" data-search-filter="playlists" aria-pressed="false">Playlists</button></div>
  <div id="searchResults" aria-live="polite"></div>
 </section>
+<section id="browse" class="screen" aria-labelledby="browseTitle">
+ <div class="page-heading"><div><h1 id="browseTitle">Browse</h1><p class="subtle">Discover independent music</p></div></div>
+ <div class="search-sticky browse-search-sticky"><label class="searchbox"><svg class="icon"><use href="#icon-search"></use></svg><input id="browseSearchInput" type="search" autocomplete="off" placeholder="Search Audius music" aria-label="Search streamed music"><button id="browseClearSearch" class="clear-search" type="button" aria-label="Clear music search" hidden><svg class="icon"><use href="#icon-close"></use></svg></button></label></div>
+ <div class="chip-row browse-filters" role="group" aria-label="Browse music"><button class="chip active" data-browse-mode="trending" aria-pressed="true">Trending</button><button class="chip" data-browse-mode="underground" aria-pressed="false">Underground</button><button class="chip" data-browse-mode="new" aria-pressed="false">New releases</button></div>
+ <p class="catalog-credit">Streaming catalog by <a href="https://audius.co" target="_blank" rel="noopener noreferrer">Audius</a>. Track availability and rights are set by artists.</p>
+ <div id="browseStatus" class="search-empty" role="status" aria-live="polite">Loading music…</div>
+ <div id="browseResults" class="track-list"></div>
+</section>
 <section id="library" class="screen" aria-labelledby="libraryTitle">
  <div class="page-heading library-heading"><div><h1 id="libraryTitle">Library</h1><p id="librarySummary" class="subtle"></p></div><button id="libraryAddButton" class="icon-button" aria-label="Import music or create a playlist" aria-haspopup="dialog" onclick="openAddMenu()"><svg class="icon"><use href="#icon-plus"></use></svg></button></div>
  <div id="libraryOverview">
@@ -125,6 +138,7 @@
    <button class="directory-row" data-library-section="songs"><span class="directory-icon"><svg class="icon"><use href="#icon-music"></use></svg></span><span><b>Songs</b><small><span id="trackCount">0</span> songs</small></span><svg class="icon chevron"><use href="#icon-chevron-right"></use></svg></button>
    <button class="directory-row" data-library-section="liked"><span class="directory-icon"><svg class="icon"><use href="#icon-heart"></use></svg></span><span><b>Liked Songs</b><small><span id="likedCount">0</span> songs</small></span><svg class="icon chevron"><use href="#icon-chevron-right"></use></svg></button>
    <button class="directory-row" data-library-section="uploads"><span class="directory-icon"><svg class="icon"><use href="#icon-upload"></use></svg></span><span><b>Uploads</b><small><span id="uploadCount">0</span> files on this device</small></span><svg class="icon chevron"><use href="#icon-chevron-right"></use></svg></button>
+   <button class="directory-row" data-library-section="streamed"><span class="directory-icon"><svg class="icon"><use href="#icon-compass"></use></svg></span><span><b>Streamed</b><small><span id="streamedCount">0</span> saved tracks</small></span><svg class="icon chevron"><use href="#icon-chevron-right"></use></svg></button>
    <button class="directory-row" data-library-section="unorganized"><span class="directory-icon"><svg class="icon"><use href="#icon-tag"></use></svg></span><span><b>Unorganized</b><small><span id="unorganizedCount">0</span> songs</small></span><svg class="icon chevron"><use href="#icon-chevron-right"></use></svg></button>
   </div>
   <p class="library-hint">Playlists set the order; tags group songs your way.</p>
@@ -148,6 +162,7 @@
   <section id="libraryAlbums" class="library-view" hidden><div id="albumList" class="music-grid"></div><div id="albumDetail" class="detail-view" hidden><div class="detail-heading"><button id="albumBack" class="back-button"><svg class="icon"><use href="#icon-chevron-left"></use></svg><span>Albums</span></button><h3 id="albumDetailTitle"></h3></div><p id="albumDetailArtist" class="subtle"></p><div id="albumTracks" class="track-list"></div></div></section>
   <section id="libraryLiked" class="library-view" hidden><div id="likedTrackList" class="track-list"></div></section>
   <section id="libraryUploads" class="library-view" hidden><div id="uploadTrackList" class="track-list"></div></section>
+  <section id="libraryStreamed" class="library-view" hidden><div id="streamedTrackList" class="track-list"></div></section>
   <section id="libraryUnorganized" class="library-view" hidden><div id="unorganizedTrackList" class="track-list"></div></section>
  </div>
 </section>

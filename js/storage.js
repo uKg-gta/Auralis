@@ -27,6 +27,7 @@ export async function loadLibraryState(){
  state.tracks=(values[0]||[]).sort((a,b)=>(a.added||0)-(b.added||0));
  state.playlists=(values[1]||[]).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
  state.categories=values[2]||[];state.history=(values[4]||[]).sort((a,b)=>(b.startedAt||0)-(a.startedAt||0));
+ const streamHistory=new Map();state.history.forEach(item=>{const track=item.trackSnapshot;if(track?.source==='stream'&&track.providerId&&!state.tracks.some(saved=>saved.id===track.id))streamHistory.set(track.id,track)});state.catalogTracks=Array.from(streamHistory.values());
  const preference=(values[3]||[]).find(item=>item.key==='preferences');if(preference&&preference.value)state.prefs=Object.assign(state.prefs,preference.value);
 }
 

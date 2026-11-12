@@ -16,7 +16,7 @@ export async function exportLibraryBackup(){
   const manifest={format:'Auralis local library backup',version:1,createdAt:now.toISOString(),tracks:state.tracks.map((track,index)=>{
    const stem=String(index+1).padStart(5,'0')+'-'+safeFilename(track.name||track.title||'track.audio'),audioPath=track.blob instanceof Blob?'audio/'+stem:null,artworkPath=track.artwork instanceof Blob?'artwork/'+String(index+1).padStart(5,'0')+'.'+artExtension(track.artwork.type):null;
    if(audioPath)entries.push({name:audioPath,blob:track.blob});if(artworkPath)entries.push({name:artworkPath,blob:track.artwork});
-   return {id:track.id,title:track.title||'',artist:track.artist||'',album:track.album||'',genre:track.genre||'',name:track.name||'',type:track.type||'',size:Number(track.size||track.blob?.size)||0,signature:track.signature||'',lastModified:track.lastModified||0,added:track.added||0,categories:track.categories||[],liked:!!track.liked,lyrics:track.lyrics||'',source:track.source||'local',audioPath,artworkPath,artworkType:track.artworkType||''}
+   return {id:track.id,title:track.title||'',artist:track.artist||'',album:track.album||'',genre:track.genre||'',name:track.name||'',type:track.type||'',size:Number(track.size||track.blob?.size)||0,signature:track.signature||'',lastModified:track.lastModified||0,added:track.added||0,categories:track.categories||[],liked:!!track.liked,lyrics:track.lyrics||'',source:track.source||'local',provider:track.provider||'',providerId:track.providerId||'',providerUrl:track.providerUrl||'',artistId:track.artistId||'',artistUrl:track.artistUrl||'',duration:Number(track.duration)||0,artworkUrl:track.artworkUrl||'',audioPath,artworkPath,artworkType:track.artworkType||''}
   }),playlists:state.playlists,categories:state.categories,history:state.history,preferences:state.prefs};
   entries.unshift({name:'manifest.json',blob:new Blob([JSON.stringify(manifest,null,2)],{type:'application/json'})});
   const archiveCount=entries.length;if(archiveCount>65535)throw new Error('This library contains too many files for one backup');
@@ -43,10 +43,11 @@ export async function importLibraryBackup(file){
   const {manifest,files}=await readStoredZip(file),categoryMap=new Map(),trackMap=new Map(),addedTracks=[];
   for(const source of manifest.categories||[]){let target=state.categories.find(item=>item.name.toLowerCase()===String(source.name||'').toLowerCase());if(!target){target={...source,id:state.categories.some(item=>item.id===source.id)?makeId():source.id||makeId()};await put('categories',target);state.categories.push(target)}categoryMap.set(source.id,target.id)}
   for(const source of manifest.tracks||[]){
-   const blob=source.audioPath?files.get(source.audioPath):null;if(!blob)continue;
+   const blob=source.audioPath?files.get(source.audioPath):null,isStream=source.source==='stream'&&source.provider==='audius'&&source.providerId;if(!blob&&!isStream)continue;
    const duplicate=source.signature&&state.tracks.find(item=>item.signature===source.signature);if(duplicate){trackMap.set(source.id,duplicate.id);continue}
+   const duplicateStream=isStream&&state.tracks.find(item=>item.source==='stream'&&item.provider==='audius'&&item.providerId===source.providerId);if(duplicateStream){trackMap.set(source.id,duplicateStream.id);continue}
    let id=source.id||makeId();if(state.tracks.some(item=>item.id===id))id=makeId();
-   const track={...source,id,blob,artwork:source.artworkPath?files.get(source.artworkPath)||null:null,source:'local',categories:(source.categories||[]).map(value=>categoryMap.get(value)||value),size:blob.size};
+   const track={...source,id,blob:blob||undefined,artwork:source.artworkPath?files.get(source.artworkPath)||null:null,source:isStream?'stream':'local',categories:(source.categories||[]).map(value=>categoryMap.get(value)||value),size:blob?.size||Number(source.size)||0};
    delete track.audioPath;delete track.artworkPath;await put('tracks',track);state.tracks.push(track);addedTracks.push(track);trackMap.set(source.id,id)
   }
   for(const source of manifest.playlists||[]){
@@ -54,7 +55,7 @@ export async function importLibraryBackup(file){
    const id=state.playlists.some(item=>item.id===source.id)?makeId():source.id||makeId(),playlist={...source,id,trackIds:(source.trackIds||[]).map(trackId=>trackMap.get(trackId)||trackId).filter(id=>state.tracks.some(track=>track.id===id))};
    await put('playlists',playlist);state.playlists.push(playlist)
   }
-  for(const item of manifest.history||[]){const trackId=trackMap.get(item.trackId)||item.trackId;if(!state.tracks.some(track=>track.id===trackId))continue;const copy={...item,trackId};delete copy.id;const key=await add('history',copy);copy.id=key;state.history.unshift(copy)}
+  for(const item of manifest.history||[]){const trackId=trackMap.get(item.trackId)||item.trackId,snapshot=item.trackSnapshot?.source==='stream'?{...item.trackSnapshot,id:trackId}:null;if(!state.tracks.some(track=>track.id===trackId)&&!state.catalogTracks.some(track=>track.id===trackId)&&!snapshot)continue;if(snapshot&&!state.catalogTracks.some(track=>track.id===trackId)&&!state.tracks.some(track=>track.id===trackId))state.catalogTracks.push(snapshot);const copy={...item,trackId,...(snapshot?{trackSnapshot:snapshot}:{})};delete copy.id;const key=await add('history',copy);copy.id=key;state.history.unshift(copy)}
   if(manifest.preferences){state.prefs=Object.assign(state.prefs,manifest.preferences);await put('settings',{key:'preferences',value:state.prefs})}
   state.tracks.sort((a,b)=>(a.added||0)-(b.added||0));state.playlists.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));state.history.sort((a,b)=>(b.startedAt||0)-(a.startedAt||0));state.refreshAll();toast('Backup restored · '+addedTracks.length+' songs added')
  }catch(error){toast(error&&error.message?error.message:'Could not restore this backup')}

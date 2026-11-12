@@ -1,5 +1,5 @@
-const CACHE_NAME='auralis-shell-v3';
-const APP_SHELL=['./','./index.html','./manifest.json','./assets/icon.svg','./css/base.css','./css/buttons.css','./css/app.css','./css/player.css','./css/responsive.css','./js/app.js','./js/core.js','./js/storage.js','./js/features/actions.js','./js/features/backup.js','./js/features/library.js','./js/features/metadata.js','./js/features/player.js','./js/features/playlists.js','./js/features/profile.js','./js/features/search.js','./js/features/settings.js'];
+const CACHE_NAME='auralis-shell-v5';
+const APP_SHELL=['./','./index.html','./manifest.json','./assets/icon.svg','./css/base.css','./css/buttons.css','./css/app.css','./css/player.css','./css/responsive.css','./js/app.js','./js/core.js','./js/storage.js','./js/features/actions.js','./js/features/backup.js','./js/features/catalog.js','./js/features/library.js','./js/features/metadata.js','./js/features/player.js','./js/features/playlists.js','./js/features/profile.js','./js/features/search.js','./js/features/settings.js'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('auralis-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{

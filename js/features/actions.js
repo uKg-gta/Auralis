@@ -3,6 +3,7 @@ import {put,remove} from '../storage.js';
 import {createCategory} from './library.js';
 import {playNext,addToQueue,playCollection,stopCurrent} from './player.js';
 import {exportLibraryBackup} from './backup.js';
+import {saveStreamTrack} from './catalog.js';
 
 let lastDialogTrigger=null;
 function openDialog(title,content){
@@ -23,7 +24,13 @@ export function toggleCurrentLike(){if(state.currentTrackId)toggleLike(state.cur
 function trackHeader(track){return '<div class="dialog-track">'+artMarkup(track,'thumb')+'<span><b>'+esc(track.title||track.name||'Track')+'</b><span>'+esc(track.artist||'Unknown artist')+'</span></span></div>'}
 export function trackMenu(trackId){
  const track=byId(trackId);if(!track)return;state.dialogTrackId=trackId;
- openDialog('Song actions',trackHeader(track)+'<div class="dialog-options"><button data-action="play-next">'+icon('next')+' Play Next</button><button data-action="add-queue">'+icon('queue')+' Add to Queue</button><button data-action="add-playlist">'+icon('playlist')+' Add to Playlist</button><button data-action="toggle-like">'+icon(track.liked?'heart-filled':'heart')+' '+(track.liked?'Remove from Liked Songs':'Like Song')+'</button><button data-action="go-artist">'+icon('artist')+' Go to Artist</button><button data-action="edit-track">'+icon('edit')+' Edit Details</button><button data-action="edit-lyrics">'+icon('lyrics')+' Add or Edit Lyrics</button><button data-action="share-track">'+icon('upload')+' Share</button><button class="danger" data-action="remove-track">'+icon('trash')+' Remove from Library</button><button data-action="categories">'+icon('tag')+' Organize with Tags</button></div>')
+ const saved=state.tracks.some(item=>item.id===trackId),catalogOnly=track.source==='stream'&&!saved;
+ let options='<button data-action="play-next">'+icon('next')+' Play Next</button><button data-action="add-queue">'+icon('queue')+' Add to Queue</button>';
+ if(catalogOnly)options+='<button data-action="save-stream">'+icon('plus')+' Add to Library</button>';
+ options+='<button data-action="add-playlist">'+icon('playlist')+' Add to Playlist</button><button data-action="toggle-like">'+icon(track.liked?'heart-filled':'heart')+' '+(track.liked?'Remove from Liked Songs':'Like Song')+'</button><button data-action="go-artist">'+icon('artist')+(track.source==='stream'?' Open Artist on Audius':' Go to Artist')+'</button>';
+ if(saved)options+='<button data-action="edit-track">'+icon('edit')+' Edit Details</button><button data-action="edit-lyrics">'+icon('lyrics')+' Add or Edit Lyrics</button><button data-action="categories">'+icon('tag')+' Organize with Tags</button><button class="danger" data-action="remove-track">'+icon('trash')+' Remove from Library</button>';
+ options+='<button data-action="share-track">'+icon('upload')+' '+(track.source==='stream'?'Open Track on Audius':'Share')+'</button>';
+ openDialog('Song actions',trackHeader(track)+'<div class="dialog-options">'+options+'</div>')
 }
 export function entityMenu(type,id){
  state.dialogEntity={type,id};
@@ -38,7 +45,9 @@ export function entityMenu(type,id){
  }
 }
 export async function toggleLike(trackId){
- const track=byId(trackId);if(!track)return;track.liked=!track.liked;
+ let track=byId(trackId);if(!track)return;
+ if(track.source==='stream'&&!state.tracks.some(item=>item.id===trackId)){try{track=await saveStreamTrack(trackId)}catch(error){toast('Could not save this streamed song');return}}
+ if(!track)return;track.liked=!track.liked;
  try{await put('tracks',track);state.refreshAll();state.renderCurrent();toast(track.liked?'Added to Liked Songs':'Removed from Liked Songs')}catch(error){track.liked=!track.liked;toast('Could not update Liked Songs')}
 }
 function openAddPlaylist(){
@@ -58,11 +67,12 @@ async function saveLyrics(){
  try{await put('tracks',track);state.renderCurrent();toast('Lyrics saved on this device');closeAction()}catch(error){toast('Could not save lyrics')}
 }
 async function removeTrack(trackId){
- const track=byId(trackId);if(!track||!confirm('Remove “'+(track.title||track.name)+'” from this device? This removes its imported audio from this browser.'))return;
+ const track=byId(trackId);if(!track)return;const message=track.source==='stream'?'Remove “'+(track.title||track.name)+'” from your Auralis library? Its stream stays on Audius.':'Remove “'+(track.title||track.name)+'” from this device? This removes its imported audio from this browser.';if(!confirm(message))return;
  try{await remove('tracks',trackId);state.tracks=state.tracks.filter(item=>item.id!==trackId);state.playlists.forEach(playlist=>{playlist.trackIds=(playlist.trackIds||[]).filter(item=>item!==trackId)});await Promise.all(state.playlists.map(playlist=>put('playlists',playlist)));releaseArtwork(trackId);stopCurrent(trackId);state.queueIds=state.queueIds.filter(item=>item!==trackId);state.queueBaseIds=state.queueIds.slice();state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.refreshAll();closeAction();toast('Song removed from your library')}catch(error){toast('Could not remove this song')}
 }
-function createFromDialog(){
+async function createFromDialog(){
  const field=$('dialogPlaylistName'),name=field.value.trim();if(!name){field.focus();return}
+ try{await saveStreamTrack(state.dialogTrackId)}catch(error){toast('Could not save this streamed song');return}
  const playlist={id:makeId(),name,trackIds:[state.dialogTrackId],createdAt:Date.now()};
  put('playlists',playlist).then(()=>{state.playlists.push(playlist);state.refreshAll();closeAction();toast('Playlist created and song added')}).catch(()=>toast('Could not create playlist'))
 }
@@ -71,14 +81,15 @@ function toggleTrackCategory(categoryId){
  const list=track.categories||[];track.categories=list.includes(categoryId)?list.filter(value=>value!==categoryId):list.concat(categoryId);
  put('tracks',track).then(()=>{state.refreshAll();openCategories()}).catch(()=>toast('Could not update tag'))
 }
-function choosePlaylist(playlistId){
+async function choosePlaylist(playlistId){
  const playlist=state.playlists.find(item=>item.id===playlistId);if(!playlist)return;playlist.trackIds=playlist.trackIds||[];
+ try{await saveStreamTrack(state.dialogTrackId)}catch(error){toast('Could not save this streamed song');return}
  if(!playlist.trackIds.includes(state.dialogTrackId))playlist.trackIds.push(state.dialogTrackId);
  put('playlists',playlist).then(()=>{state.refreshAll();closeAction();toast('Added to '+playlist.name)}).catch(()=>toast('Could not add song'))
 }
 async function shareTrack(){
  const track=byId(state.dialogTrackId);if(!track)return;const text=(track.title||track.name)+' — '+(track.artist||'Unknown artist');
- try{if(navigator.share)await navigator.share({title:track.title||track.name,text});else if(navigator.clipboard){await navigator.clipboard.writeText(text);toast('Song details copied')}else toast(text)}catch(error){if(error.name!=='AbortError')toast('Could not share this song')}
+ try{if(track.source==='stream'&&track.providerUrl){window.open(track.providerUrl,'_blank','noopener,noreferrer');return}if(navigator.share)await navigator.share({title:track.title||track.name,text});else if(navigator.clipboard){await navigator.clipboard.writeText(text);toast('Song details copied')}else toast(text)}catch(error){if(error.name!=='AbortError')toast('Could not share this song')}
 }
 async function shareEntity(){
  const entity=state.dialogEntity;if(!entity)return;const playlist=entity.type==='playlist'?state.playlists.find(item=>item.id===entity.id):null,title=playlist?.name||state.dialogAlbum||'Music collection',tracks=(entity.ids||[]).map(byId).filter(Boolean),text=title+(tracks.length?' · '+tracks.map(track=>(track.title||track.name)+' — '+(track.artist||'Unknown artist')).join('\n'):'');
@@ -109,11 +120,12 @@ function handleDialogClick(event){
  else if(action==='new-playlist'){closeAction();window.newPlaylist()}
  else if(action==='new-tag'){closeAction();createCategory()}
  else if(action==='toggle-like')toggleLike(state.dialogTrackId).then(closeAction);
+ else if(action==='save-stream')saveStreamTrack(state.dialogTrackId).then(track=>{if(!track)throw new Error('Track is unavailable');state.refreshAll();closeAction();toast('Added to your Streamed library')}).catch(()=>toast('Could not add this track to your library'));
  else if(action==='play-next'){playNext(state.dialogTrackId);closeAction()}
  else if(action==='add-queue'){addToQueue(state.dialogTrackId);closeAction()}
- else if(action==='add-playlist')openAddPlaylist();
+ else if(action==='add-playlist')saveStreamTrack(state.dialogTrackId).then(()=>{state.refreshAll();openAddPlaylist()}).catch(()=>toast('Could not add this track to a playlist'));
  else if(action==='categories')openCategories();
- else if(action==='go-artist'){const track=byId(state.dialogTrackId);closeAction();if(track?.artist)window.openArtist(track.artist)}
+ else if(action==='go-artist'){const track=byId(state.dialogTrackId);closeAction();if(track?.source==='stream'&&track.artistUrl)window.open(track.artistUrl,'_blank','noopener,noreferrer');else if(track?.artist)window.openArtist(track.artist)}
  else if(action==='edit-track'){const track=byId(state.dialogTrackId);openDialog('Edit Details','<label for="editTitle">Title</label><input id="editTitle" class="dialog-field" maxlength="120" value="'+esc(track.title||track.name)+'"><label for="editArtist">Artist</label><input id="editArtist" class="dialog-field" maxlength="120" value="'+esc(track.artist||'')+'"><label for="editAlbum">Album</label><input id="editAlbum" class="dialog-field" maxlength="120" value="'+esc(track.album||'')+'"><label for="editGenre">Genre</label><input id="editGenre" class="dialog-field" maxlength="80" value="'+esc(track.genre||'')+'"><div class="dialog-footer"><button class="button button-quiet" onclick="closeAction()">Cancel</button><button class="button button-primary" data-action="save-metadata">Save</button></div>')}
  else if(action==='save-metadata')saveTrackMetadata();
  else if(action==='edit-lyrics'){const track=byId(state.dialogTrackId);openDialog('Lyrics for '+(track.title||'song'),'<textarea id="editLyrics" class="dialog-field" rows="9" placeholder="Add plain text or timestamped LRC lyrics">'+esc(track.lyrics||'')+'</textarea><div class="dialog-footer"><button class="button button-quiet" onclick="closeAction()">Cancel</button><button class="button button-primary" data-action="save-lyrics">Save Lyrics</button></div>')}

@@ -12,8 +12,9 @@ function makeCard(track,subtitle){
 }
 function renderShelfTracks(id,tracks,limit=12,subtitle){$(id).innerHTML=tracks.slice(0,limit).map(track=>makeCard(track,subtitle)).join('')}
 export function renderHome(){
- const recent=uniqueRecent(),latest=sortTracks(state.tracks,'recent'),sourceTracks=state.homeSource==='local'?state.tracks.filter(track=>track.source!=='stream'):state.tracks;
- const heroTrack=state.currentTrackId?byId(state.currentTrackId):recent[0]||latest[0]||null;
+ const matchesSource=track=>state.homeSource==='all'||(state.homeSource==='local'?track.source!=='stream':track.source==='stream');
+ const recent=uniqueRecent().filter(matchesSource),sourceTracks=state.tracks.filter(matchesSource),uploads=sourceTracks.filter(track=>track.source!=='stream'),streamed=sourceTracks.filter(track=>track.source==='stream'),latest=sortTracks(sourceTracks,'recent');
+ const current=state.currentTrackId?byId(state.currentTrackId):null,heroTrack=current&&matchesSource(current)?current:recent[0]||latest[0]||null;
  $('homeLoading').hidden=true;$('homeContent').hidden=!state.tracks.length;$('homeImportCard').hidden=!!state.tracks.length;
  $('homeSourceSection').hidden=!state.tracks.length;
  document.querySelectorAll('[data-home-source]').forEach(button=>{const active=button.dataset.homeSource===state.homeSource;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
@@ -21,13 +22,14 @@ export function renderHome(){
  if(heroTrack){$('homeHero').dataset.playTrack=heroTrack.id;$('homeHeroTitle').textContent=displayName(heroTrack);$('homeHeroArtist').textContent=heroTrack.artist||'Unknown artist';const art=$('homeHeroArt'),url=artworkUrl(heroTrack);art.className='hero-art art '+artworkClass(heroTrack);art.innerHTML=url?'<img src="'+esc(url)+'" alt="">':''}
  const jump=recent.slice(0,8);$('homeJumpSection').hidden=!jump.length;renderShelfTracks('homeJumpCards',jump,10);
  const later=recent.slice(1);$('homeRecentSection').hidden=!later.length;renderShelfTracks('homeRecent',later,12);
- $('homeUploadsSection').hidden=!sourceTracks.length;renderShelfTracks('homeUploads',sortTracks(sourceTracks,'recent'),12,'On this device');
+ $('homeUploadsSection').hidden=!uploads.length;renderShelfTracks('homeUploads',sortTracks(uploads,'recent'),12,'On this device');
+ $('homeStreamedSection').hidden=!streamed.length;renderShelfTracks('homeStreamed',sortTracks(streamed,'recent'),12,'Streamed from Audius');
  const week=weeklySeconds(),hasListening=state.history.length>0||!!state.sessionRecord;$('homeStatsSection').hidden=!hasListening;$('homeListeningTime').textContent=formatDuration(week.total);$('homeWeekBars').innerHTML=week.days.map(day=>'<span class="week-bar"><i style="height:'+day.height+'px"></i>'+esc(day.label)+'</span>').join('');
 }
 function renderOverview(){
  const artists=artistNames(),albums=albumNames();
  $('playlistCount').textContent=String(state.playlists.length);$('artistCount').textContent=String(artists.length);$('albumCount').textContent=String(albums.length);
- $('trackCount').textContent=String(state.tracks.length);$('likedCount').textContent=String(state.tracks.filter(track=>track.liked).length);$('uploadCount').textContent=String(state.tracks.filter(track=>track.source!=='stream').length);
+ $('trackCount').textContent=String(state.tracks.length);$('likedCount').textContent=String(state.tracks.filter(track=>track.liked).length);$('uploadCount').textContent=String(state.tracks.filter(track=>track.source!=='stream').length);$('streamedCount').textContent=String(state.tracks.filter(track=>track.source==='stream').length);
  $('unorganizedCount').textContent=String(state.tracks.filter(track=>!(track.categories||[]).length).length);$('librarySummary').textContent=state.tracks.length+' '+(state.tracks.length===1?'song':'songs')+' · '+state.playlists.length+' playlists';
  $('libraryEmpty').hidden=!!state.tracks.length;
  $('libraryTagsSection').hidden=!state.categories.length;
@@ -63,11 +65,12 @@ export function renderLibraryAlbums(){
 }
 export function renderLiked(){renderTrackList('likedTrackList',sortTracks(state.tracks.filter(track=>!!track.liked),state.prefs.librarySort||'recent'),'Songs you like will appear here.')}
 function renderUploads(){renderTrackList('uploadTrackList',sortTracks(state.tracks.filter(track=>track.source!=='stream'),state.prefs.librarySort||'recent'),'Your imported music will appear here.')}
+function renderStreamed(){renderTrackList('streamedTrackList',sortTracks(state.tracks.filter(track=>track.source==='stream'),state.prefs.librarySort||'recent'),'Streamed tracks you add to your library will appear here.')}
 function renderUnorganized(){renderTrackList('unorganizedTrackList',sortTracks(state.tracks.filter(track=>!(track.categories||[]).length),state.prefs.librarySort||'recent'),'Every song has a tag.')}
 export function renderLibrary(){
  renderOverview();const overview=state.librarySection==='overview';$('libraryOverview').hidden=!overview;$('libraryContents').hidden=overview;
  if(overview)return;
- const titleMap={songs:'Songs',recent:'Recently Played',playlists:'Playlists',artists:'Artists',albums:'Albums',liked:'Liked Songs',uploads:'Uploads',unorganized:'Unorganized'};
+ const titleMap={songs:'Songs',recent:'Recently Played',playlists:'Playlists',artists:'Artists',albums:'Albums',liked:'Liked Songs',uploads:'Uploads',streamed:'Streamed',unorganized:'Unorganized'};
  $('librarySectionTitle').textContent=titleMap[state.librarySection]||'Library';
  document.querySelectorAll('.library-view').forEach(section=>{section.hidden=section.id!=='library'+state.librarySection.charAt(0).toUpperCase()+state.librarySection.slice(1)});
  if(state.librarySection==='songs')renderYourMusic();
@@ -76,11 +79,12 @@ export function renderLibrary(){
  if(state.librarySection==='albums')renderLibraryAlbums();
  if(state.librarySection==='liked')renderLiked();
  if(state.librarySection==='uploads')renderUploads();
+ if(state.librarySection==='streamed')renderStreamed();
  if(state.librarySection==='unorganized')renderUnorganized();
  const sort=$('librarySort');if(sort)sort.value=state.prefs.librarySort||'recent'
 }
 export function setLibraryFilter(filter){state.libraryFilter=filter||'all';renderYourMusic()}
-export function setLibrarySection(section){const allowed=['overview','songs','recent','playlists','artists','albums','liked','uploads','unorganized'];state.selectedArtistName=null;state.selectedAlbumName=null;state.librarySection=allowed.includes(section)?section:'overview';renderLibrary()}
+export function setLibrarySection(section){const allowed=['overview','songs','recent','playlists','artists','albums','liked','uploads','streamed','unorganized'];state.selectedArtistName=null;state.selectedAlbumName=null;state.librarySection=allowed.includes(section)?section:'overview';renderLibrary()}
 export function showLiked(){setLibrarySection('liked');window.show('library')}
 export function showRecent(){setLibrarySection('recent');window.show('library')}
 export function showArtists(){setLibrarySection('artists');window.show('library')}

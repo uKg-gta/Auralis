@@ -1,6 +1,6 @@
 # Auralis
 
-Auralis is a local-first music player for audio files you add from this device.
+Auralis is a local-first music player for files on this device, with an Audius catalog for discovering and streaming independent music.
 
 ## Run locally
 
@@ -13,9 +13,13 @@ Then open \`http://localhost:8000\`.
 
 ## Data and backups
 
-Imported audio, artwork, playlists, tags, lyrics, preferences, and listening history are stored in this browser's IndexedDB. Export a backup before clearing site data. Auralis can restore backups created by its own Export backup command.
+Imported audio, artwork, saved Audius track details, playlists, tags, lyrics, preferences, and listening history are stored in this browser's IndexedDB. Export a backup before clearing site data. Auralis can restore backups created by its own Export backup command.
 
-The service worker caches the application shell for offline launch. It does not upload or cache imported audio files in the network cache; audio stays in IndexedDB.
+The service worker caches the application shell for offline launch. Imported audio stays in IndexedDB. Audius tracks stream from Audius and require an internet connection; Auralis does not download or cache their audio.
+
+## Streaming catalog
+
+Browse uses Audius read-only endpoints for trending, underground, new-release, and track-search results. Streamed tracks keep their artist attribution and link back to Audius. Track availability and rights settings are controlled by each artist.
 
 ## Metadata
 
