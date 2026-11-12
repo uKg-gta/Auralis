@@ -3,6 +3,7 @@ import {put} from '../storage.js';
 
 const API_ROOT='https://api.audius.co/v1';
 const APP_NAME='Auralis';
+const REQUEST_TIMEOUT_MS=12000;
 const modes={
  trending:{label:'Trending this week',path:'/tracks/trending',params:{time:'week'}},
  underground:{label:'Underground',path:'/tracks/trending/underground',params:{}},
@@ -49,10 +50,18 @@ function buildUrl(path,params={}){
  Object.entries(params).forEach(([key,value])=>{if(value!==undefined&&value!==null&&value!=='')url.searchParams.set(key,String(value))});return url
 }
 async function fetchTracks(path,params,signal){
- const response=await fetch(buildUrl(path,params),{headers:{Accept:'application/json'},signal});
- if(!response.ok)throw new Error('Audius returned '+response.status);
- const payload=await response.json();if(payload.error)throw new Error(String(payload.error));
- return Array.isArray(payload.data)?payload.data:[]
+ const requestController=new AbortController();let timeoutId,abortRequest;
+ const aborted=new Promise((resolve,reject)=>{
+  abortRequest=()=>{clearTimeout(timeoutId);const error=new Error('Catalog request cancelled');error.name='AbortError';reject(error);requestController.abort()};
+  signal.addEventListener('abort',abortRequest,{once:true});
+  timeoutId=setTimeout(()=>{const error=new Error('Audius is taking too long to respond');error.name='TimeoutError';reject(error);requestController.abort()},REQUEST_TIMEOUT_MS)
+ });
+ try{
+  const response=await Promise.race([fetch(buildUrl(path,params),{headers:{Accept:'application/json'},signal:requestController.signal}),aborted]);
+  if(!response.ok)throw new Error('Audius returned '+response.status);
+  const payload=await response.json();if(payload.error)throw new Error(String(payload.error));
+  return Array.isArray(payload.data)?payload.data:[]
+ }finally{clearTimeout(timeoutId);signal.removeEventListener('abort',abortRequest)}
 }
 function setModeButtons(){
  document.querySelectorAll('[data-browse-mode]').forEach(button=>{const active=button.dataset.browseMode===mode;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))})
@@ -79,7 +88,7 @@ async function loadBrowseImpl(force=false){
  try{
   const result=query?await fetchTracks('/tracks/search',{query},signal):await fetchTracks(modes[mode].path,modes[mode].params,signal);
   if(id!==requestId)return;const tracks=rememberTracks(result);cache.set(key,tracks);renderTracks(tracks,query?'Search results':'Audius · '+modes[mode].label)
- }catch(error){if(error.name==='AbortError'||id!==requestId)return;showMessage('Could not load the Audius catalog. Check your connection.',true)}
+ }catch(error){if(error.name==='AbortError'||id!==requestId)return;showMessage(error.name==='TimeoutError'?'Audius is taking too long to respond. Check your connection and retry.':'Could not load the Audius catalog. Check your connection and retry.',true)}
 }
 export function streamTrackUrl(track){
  if(!track||track.source!=='stream'||!track.providerId)return '';
@@ -93,7 +102,8 @@ export async function saveStreamTrack(trackId){
 }
 export function initCatalog(){
  const input=$('browseSearchInput'),clear=$('browseClearSearch');
- input.addEventListener('input',()=>{clear.hidden=!input.value;clearTimeout(timer);timer=setTimeout(()=>loadBrowseImpl(),220)});
+ const onSearchInput=()=>{clear.hidden=!input.value;clearTimeout(timer);timer=setTimeout(()=>loadBrowseImpl(),220)};
+ input.addEventListener('input',onSearchInput);input.addEventListener('search',onSearchInput);
  clear.addEventListener('click',()=>{clearTimeout(timer);input.value='';clear.hidden=true;setModeButtons();loadBrowseImpl();input.focus()});
  document.querySelectorAll('[data-browse-mode]').forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.browseMode||'trending';input.value='';clear.hidden=true;loadBrowseImpl()}))
 }
