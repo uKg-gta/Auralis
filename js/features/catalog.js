@@ -68,3 +68,9 @@ export async function loadAudiusShelf(mode='trending'){
 export function streamTrackUrl(track){if(!track||track.source!=='audius'||!track.providerId)return '';return buildUrl('/tracks/'+encodeURIComponent(track.providerId)+'/stream',{}).toString()}
 export async function saveStreamTrack(trackId){const existing=state.tracks.find(track=>track.id===trackId);if(existing)return existing;const track=byId(trackId);if(!track||track.source!=='audius')return null;const saved={...track,added:Date.now(),categories:Array.isArray(track.categories)?track.categories.slice():[],liked:!!track.liked};await put('tracks',saved);state.tracks.push(saved);state.tracks.sort((a,b)=>(a.added||0)-(b.added||0));return saved}
 export function initCatalog(){}
+export async function getAudiusDiscoveryCandidates(){
+ const shelves=await Promise.allSettled(['trending','underground','new'].map(mode=>loadAudiusShelf(mode)));
+ const unique=new Map();
+ for(const result of shelves){if(result.status!=='fulfilled')continue;for(const track of result.value||[])if(track?.id&&!unique.has(track.id))unique.set(track.id,track)}
+ return Array.from(unique.values());
+}
