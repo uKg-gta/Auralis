@@ -13,7 +13,7 @@ function makeCard(track,subtitle){
 }
 function renderShelfTracks(id,tracks,limit=12,subtitle){$(id).innerHTML=tracks.slice(0,limit).map(track=>makeCard(track,subtitle)).join('')}
 export function renderHome(){
- const remote=state.tracks.filter(track=>track.source!=='local'&&track.source!=='stream' ? true : track.source==='stream'&&track.provider==='audius');
+ const remote=state.tracks.filter(track=>['audius','youtube','jamendo'].includes(track.source)||(track.source==='stream'&&track.provider==='audius'));
  const recent=uniqueRecent().filter(track=>track.source!=='local'),latest=sortTracks(remote,'recent');
  const current=state.currentTrackId?byId(state.currentTrackId):null,heroTrack=current&&current.source!=='local'?current:recent[0]||latest[0]||null;
  $('homeLoading').hidden=true;$('homeContent').hidden=false;
