@@ -1,5 +1,5 @@
 export const state={
- db:null,tracks:[],catalogTracks:[],playlists:[],categories:[],history:[],
+ db:null,tracks:[],catalogTracks:[],playlists:[],categories:[],history:[],listeningSignals:[],discoveryPreferences:{hiddenTrackIds:[],excludedArtists:[],excludedGenres:[]},
  currentTrackId:null,queueIds:[],queueBaseIds:[],queueIndex:-1,shuffle:false,repeatMode:'off',
  libraryFilter:'all',librarySource:'all',librarySection:'overview',searchFilter:'all',searchScope:'library',selectedPlaylistId:null,selectedArtistName:null,selectedAlbumName:null,dialogTrackId:null,
  prefs:{theme:'dark',accent:'#fa2d48',volume:.8,lastVolume:.8,librarySort:'recent',largeText:false,recentSearches:[],youtubeApiKey:'',youtubeConsent:false,jamendoClientId:''},
