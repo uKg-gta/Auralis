@@ -24,7 +24,7 @@ export async function exportLibraryBackup(){
   for(const entry of entries){const size=entry.blob.size;if(size>0xffffffff)throw new Error('A file is too large for the ZIP backup format');const crc=await crc32(entry.blob),local=header(entry.name,crc,size,0,stamp,false),central=header(entry.name,crc,size,offset,stamp,true);if(offset+local.length+size>0xffffffff)throw new Error('This backup is too large for the ZIP format');localParts.push(...local.parts,entry.blob);centralParts.push(...central.parts);offset+=local.length+size}
   const centralOffset=offset,centralSize=centralParts.reduce((sum,part)=>sum+part.length,0);if(centralOffset+centralSize>0xffffffff)throw new Error('This backup is too large for the ZIP format');
   const end=[u32(0x06054b50),u16(0),u16(0),u16(archiveCount),u16(archiveCount),u32(centralSize),u32(centralOffset),u16(0)],archive=new Blob([...localParts,...centralParts,...end],{type:'application/zip'}),url=URL.createObjectURL(archive),link=document.createElement('a');
-  link.href=url;link.download='auralis-library-'+now.toISOString().slice(0,10)+'.zip';link.hidden=true;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);await put('settings',{key:'lastBackupAt',value:Date.now()});toast('Library backup exported')
+  link.href=url;link.download='auralis-library-'+now.toISOString().slice(0,10)+'.zip';link.hidden=true;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);toast('Library backup exported')
  }catch(error){toast(error&&error.message?error.message:'Could not export the library backup')}
 }
 async function readStoredZip(file){
