@@ -1,0 +1,39 @@
+name: AURALIS isolated PR checks
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax-and-preview-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "Checking $file"
+            node --check "$file"
+          done < <(find js -type f -name '*.js' -print0)
+      - name: Package isolated browser-test copy
+        run: |
+          mkdir -p dist
+          git archive --format=zip --output=dist/auralis-pr-preview.zip HEAD
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4
+        with:
+          name: auralis-pr-preview
+          path: dist/auralis-pr-preview.zip
+          if-no-files-found: error
+          retention-days: 7
