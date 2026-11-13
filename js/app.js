@@ -4,14 +4,14 @@ import {applyPreferences,setTheme,setAccent,setLargeText,refreshStorageInfo,requ
 import {renderHome,renderLibrary,renderYourMusic,createCategory,importAudioFiles,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort} from './features/library.js';
 import {renderPlaylists,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,moveInPlaylist,removeFromPlaylist} from './features/playlists.js';
 import {renderSearch,setSearchFilter,setSearchScope,initSearch,setSearchQuery} from './features/search.js';
-import {renderProfile,openProfile,initProfile} from './features/profile.js';
+
 import {initPlayer,syncVolume,renderCurrent,renderQueue,playTrack,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,selectSleepTimer,moveQueue,moveQueueTo,removeFromQueue,clearQueue} from './features/player.js';
 import {initActions,showDialog,openImportDialog,openAddMenu,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction} from './features/actions.js';
 import {importLibraryBackup} from './features/backup.js';
 import {initCatalog,loadBrowse} from './features/catalog.js';
 import {initDiscovery,loadDiscovery,hideRecommendation,moreLikeRecommendation,resetTasteProfile} from './features/discovery.js';
 
-let returnScreen='home',currentScreen='home',playerTrigger=null;
+let returnScreen='home',currentScreen='home',playerTrigger=null,profileModulePromise=null;
 function titleFor(screen){return ({home:'Listen Now',search:'Search',browse:'Browse',library:'Library',settings:'Settings',profile:'Profile'})[screen]||'Auralis'}
 function show(screenId){
  if(screenId==='now'){
@@ -24,10 +24,10 @@ function show(screenId){
  document.querySelectorAll('.nav button').forEach(button=>{const active=button.id===activeId;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
  $('globalAddButton').hidden=screenId!=='home'&&screenId!=='library';
  $('compactTitle').textContent=titleFor(screenId);document.body.classList.remove('is-scrolled');window.scrollTo({top:0,behavior:'auto'});
- if(screenId==='settings')refreshStorageInfo();if(screenId==='profile')openProfile();if(screenId==='browse')loadBrowse();if(screenId==='home')loadDiscovery()
+ if(screenId==='settings')refreshStorageInfo();if(screenId==='profile')loadProfileScreen();if(screenId==='browse')loadBrowse();if(screenId==='home')loadDiscovery()
 }
-function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
-function renderAll(){renderHome();renderLibrary();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
+function loadProfileScreen(){profileModulePromise??=import('./features/profile.js');profileModulePromise.then(module=>{module.initProfile();module.openProfile()}).catch(error=>{console.error('Auralis Profile failed to load',error);toast('Profile could not load. Your music library is unaffected.')})}\nfunction closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
+function renderAll(){renderHome();renderLibrary();renderPlaylists();renderSearch();renderCurrent();renderQueue()}
 state.refreshAll=renderAll;state.renderSearch=renderSearch;state.renderCurrent=renderCurrent;
 function handleClick(event){
  const target=event.target.closest('[data-search-filter],[data-search-scope],[data-library-filter],[data-library-source],[data-library-section],[data-play-track],[data-track-menu],[data-toggle-like],[data-open-playlist],[data-play-playlist],[data-smart],[data-play-collection],[data-move-playlist],[data-remove-playlist],[data-queue-play],[data-queue-move],[data-queue-remove],[data-timer],[data-open-artist],[data-open-album],[data-album-menu],[data-playlist-menu],[data-home-source],[data-open-library],[data-browse-play-all],[data-browse-retry]');
@@ -101,7 +101,7 @@ function setupPreferences(){
 }
 function setupScrollTitle(){let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
 function boot(){
- initPlayer();initActions();initSearch();initCatalog();initDiscovery();initProfile();setupImportInputs();setupDropImport();setupRowGestures();setupPreferences();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
+ initPlayer();initActions();initSearch();initCatalog();initDiscovery();setupImportInputs();setupDropImport();setupRowGestures();setupPreferences();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
  Object.assign(window,{show,closePlayer,showDialog,openImportDialog,openAddMenu,loadDiscovery,hideRecommendation,moreLikeRecommendation,resetTasteProfile,setTheme,setAccent,setLargeText,createCategory,importAudioFiles,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort,setSearchFilter,setSearchScope,doSearch:renderSearch,setSearchQuery,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction,moveInPlaylist,removeFromPlaylist,moveQueue,moveQueueTo,removeFromQueue,clearQueue,importLibraryBackup});
  document.addEventListener('click',handleClick);document.getElementById('libraryBack').addEventListener('click',()=>{state.librarySection='overview';state.selectedArtistName=null;state.selectedAlbumName=null;renderLibrary();window.scrollTo({top:0,behavior:'smooth'})});
  document.getElementById('artistBack').addEventListener('click',()=>{state.selectedArtistName=null;renderLibraryArtists()});document.getElementById('albumBack').addEventListener('click',()=>{state.selectedAlbumName=null;renderLibraryAlbums()});
