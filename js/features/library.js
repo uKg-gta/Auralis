@@ -49,8 +49,24 @@ function filteredTracks(){
  else if(state.librarySource==='stream')list=list.filter(track=>track.source==='stream');
  return sortTracks(list,state.prefs.librarySort||'recent')
 }
+const virtualLists=new WeakMap();
+const VIRTUAL_THRESHOLD=100,VIRTUAL_ROW_HEIGHT=72,VIRTUAL_WINDOW=44;
+function paintVirtualList(container){
+ const model=virtualLists.get(container);if(!model)return;
+ const start=Math.max(0,Math.floor(container.scrollTop/VIRTUAL_ROW_HEIGHT)-8),end=Math.min(model.list.length,start+VIRTUAL_WINDOW);
+ const top=start*VIRTUAL_ROW_HEIGHT,bottom=Math.max(0,(model.list.length-end)*VIRTUAL_ROW_HEIGHT);
+ const rows=model.list.slice(start,end).map((track,index)=>trackRow(track,model.options.playlist?{playlist:true,playlistIndex:start+index,playlistCount:model.list.length}:{query:model.options.query})).join('');
+ container.innerHTML='<div class="virtual-spacer" aria-hidden="true" style="height:'+top+'px"></div>'+rows+'<div class="virtual-spacer" aria-hidden="true" style="height:'+bottom+'px"></div>';
+}
 function renderTrackList(id,list,empty,options={}){
  const container=$(id);if(!container)return;
+ if(list.length>VIRTUAL_THRESHOLD){
+  container.classList.add('is-virtualized');container.dataset.virtualized='true';
+  virtualLists.set(container,{list,options});container.scrollTop=0;
+  if(!container.dataset.virtualBound){container.addEventListener('scroll',()=>paintVirtualList(container),{passive:true});container.dataset.virtualBound='true'}
+  paintVirtualList(container);return
+ }
+ virtualLists.delete(container);container.classList.remove('is-virtualized');delete container.dataset.virtualized;
  container.innerHTML=list.length?list.map((track,index)=>trackRow(track,options.playlist?{playlist:true,playlistIndex:index,playlistCount:list.length}:{query:options.query})).join(''):'<div class="search-empty">'+esc(empty)+'</div>'
 }
 function renderSongTags(){const box=$('songTags');box.innerHTML=state.categories.map(category=>'<button class="chip tag-chip '+(state.libraryFilter==='category:'+category.id?'active':'')+'" data-library-filter="category:'+esc(category.id)+'">'+icon('tag')+esc(category.name)+'</button>').join('')}
@@ -61,12 +77,21 @@ export function renderYourMusic(){
 }
 export function renderLibraryArtists(){
  const names=artistNames(),list=$('artistList'),detail=$('artistDetail');list.hidden=!!state.selectedArtistName;detail.hidden=!state.selectedArtistName;
- if(state.selectedArtistName){const artist=state.selectedArtistName,tracks=sortTracks(state.tracks.filter(track=>(track.artist||'Unknown artist')===artist),state.prefs.librarySort||'recent');$('artistDetailTitle').textContent=artist;renderTrackList('artistTracks',tracks,'No songs by this artist.');return}
+ if(state.selectedArtistName){const artist=state.selectedArtistName,tracks=sortTracks(state.tracks.filter(track=>(track.artist||'Unknown artist')===artist),state.prefs.librarySort||'recent'),albums=Array.from(new Set(tracks.map(track=>track.album).filter(Boolean)));$('artistDetailTitle').textContent=artist;
+  let overview=$('artistOverview');if(!overview){overview=document.createElement('div');overview.id='artistOverview';overview.className='entity-overview';$('artistDetail').insertBefore(overview,$('artistTracks'))}
+  const seconds=tracks.reduce((sum,track)=>sum+(Number(track.duration)||0),0),cover=tracks.find(track=>track.artwork||track.artworkUrl)||tracks[0],url=artworkUrl(cover);
+  overview.innerHTML='<div class="entity-hero"><div class="entity-cover art '+artworkClass(cover)+'">'+(url?'<img src="'+esc(url)+'" alt="">':'')+'</div><div class="entity-copy"><span class="eyebrow">Artist</span><h2>'+esc(artist)+'</h2><p>'+tracks.length+' songs · '+albums.length+' albums'+(seconds?' · '+formatDuration(seconds):'')+'</p><button class="button button-primary" data-play-collection="'+esc(tracks.map(track=>track.id).join(','))+'">'+icon('play')+' Play artist</button></div></div>'+
+   (albums.length?'<div class="entity-albums"><h3>Albums in your library</h3><div class="entity-album-grid">'+albums.map(album=>{const first=tracks.find(track=>track.album===album),artUrl=artworkUrl(first);return '<button class="entity-album" data-open-album="'+esc(album)+'"><span class="entity-album-art art '+artworkClass(first)+'">'+(artUrl?'<img src="'+esc(artUrl)+'" alt="">':'')+'</span><b>'+esc(album)+'</b><small>'+tracks.filter(track=>track.album===album).length+' songs</small></button>'}).join('')+'</div></div>':'');
+  renderTrackList('artistTracks',tracks,'No songs by this artist.');return}
  list.innerHTML=names.length?names.map(name=>{const ids=state.tracks.filter(track=>(track.artist||'Unknown artist')===name).map(track=>track.id);return '<button class="artist-result" data-open-artist="'+esc(name)+'"><span class="artist-result-icon">'+icon('artist')+'</span><span class="listinfo"><b>'+esc(name)+'</b><small>'+ids.length+' '+(ids.length===1?'song':'songs')+'</small></span>'+icon('chevron-right')+'</button>'}).join(''):'<div class="search-empty">Artist names from your music files appear here.</div>'
 }
 export function renderLibraryAlbums(){
  const albums=albumNames(),list=$('albumList'),detail=$('albumDetail');list.hidden=!!state.selectedAlbumName;detail.hidden=!state.selectedAlbumName;
- if(state.selectedAlbumName){const album=state.selectedAlbumName,tracks=sortTracks(state.tracks.filter(track=>track.album===album),state.prefs.librarySort||'recent'),track=tracks[0];$('albumDetailTitle').textContent=album;$('albumDetailArtist').textContent=track?.artist||'';renderTrackList('albumTracks',tracks,'No songs in this album.');return}
+ if(state.selectedAlbumName){const album=state.selectedAlbumName,tracks=sortTracks(state.tracks.filter(track=>track.album===album),state.prefs.librarySort||'recent'),track=tracks[0];$('albumDetailTitle').textContent=album;$('albumDetailArtist').textContent=track?.artist||'';
+  let overview=$('albumOverview');if(!overview){overview=document.createElement('div');overview.id='albumOverview';overview.className='entity-overview';$('albumDetail').insertBefore(overview,$('albumTracks'))}
+  const url=artworkUrl(track),seconds=tracks.reduce((sum,item)=>sum+(Number(item.duration)||0),0);
+  overview.innerHTML='<div class="entity-hero"><div class="entity-cover art '+artworkClass(track)+'">'+(url?'<img src="'+esc(url)+'" alt="">':'')+'</div><div class="entity-copy"><span class="eyebrow">Album</span><h2>'+esc(album)+'</h2><p>'+esc(track?.artist||'Unknown artist')+' · '+tracks.length+' songs'+(seconds?' · '+formatDuration(seconds):'')+'</p><button class="button button-primary" data-play-collection="'+esc(tracks.map(item=>item.id).join(','))+'">'+icon('play')+' Play album</button></div></div>';
+  renderTrackList('albumTracks',tracks,'No songs in this album.');return}
  list.innerHTML=albums.length?albums.map(album=>{const tracks=state.tracks.filter(track=>track.album===album),first=tracks[0],url=artworkUrl(first),art='<span class="card-art art '+artworkClass(first)+'">'+(url?'<img src="'+esc(url)+'" alt="">':'')+'<span class="card-play">'+icon('play')+'</span></span>';return '<div class="album-card"><button class="album-open" data-open-album="'+esc(album)+'">'+art+'<span class="card-title">'+esc(album)+'</span><span class="card-subtitle">'+esc(first?.artist||'Unknown artist')+' · '+tracks.length+' songs</span></button><button class="icon-button album-menu" data-album-menu="'+esc(album)+'" aria-label="More actions for '+esc(album)+'" aria-haspopup="dialog">'+icon('more')+'</button></div>'}).join(''):'<div class="search-empty">Album details appear when included in your music files.</div>'
 }
 export function renderLiked(){renderTrackList('likedTrackList',sortTracks(state.tracks.filter(track=>!!track.liked),state.prefs.librarySort||'recent'),'Songs you like will appear here.')}
