@@ -78,9 +78,16 @@ export async function loadDiscovery(force=false){
  if(loading&&!force)return loading;
  loading=(async()=>{
   const statusBox=$('discoveryStatus');if(statusBox){statusBox.hidden=false;statusBox.textContent='Finding music on Audius…'}
-  try{candidates=await discoverFromProviders(['audius']);loaded=true;renderDiscovery();if(statusBox){statusBox.hidden=!!candidates.length;if(!candidates.length)statusBox.textContent='No Audius recommendations are available right now.'}}
-  catch(error){if(statusBox){statusBox.hidden=false;statusBox.textContent='Could not load recommendations. Check your connection and try again.'}}
-  finally{loading=null}
+  let timeoutId;
+  try{
+   const timeout=new Promise((resolve,reject)=>{timeoutId=setTimeout(()=>reject(new Error('Discovery timed out')),16000)});
+   candidates=await Promise.race([discoverFromProviders(['audius']),timeout]);
+   loaded=true;renderDiscovery();
+   if(statusBox){statusBox.hidden=!!candidates.length;if(!candidates.length)statusBox.textContent='Audius did not return any playable tracks. Try again in a moment.'}
+  }catch(error){
+   loaded=false;
+   if(statusBox){statusBox.hidden=false;statusBox.innerHTML='Audius discovery is taking too long or is unavailable. <button type="button" class="text-button" data-discovery-retry>Try again</button>'}
+  }finally{clearTimeout(timeoutId);loading=null}
  })();return loading;
 }
 async function savePreferences(){try{await put('settings',{key:'discoveryPreferences',value:state.discoveryPreferences})}catch(error){toast('Could not save discovery preferences')}}
@@ -112,7 +119,8 @@ export function initDiscovery(){
   sessionSeconds=0;totalSessionSeconds=0;activeTrackId=null;
  });
  document.addEventListener('click',event=>{
-  const more=event.target.closest('[data-discovery-more]'),hide=event.target.closest('[data-discovery-hide]');
+  const retry=event.target.closest('[data-discovery-retry]'),more=event.target.closest('[data-discovery-more]'),hide=event.target.closest('[data-discovery-hide]');
+  if(retry){loadDiscovery(true);return}
   if(more){moreLikeRecommendation(more.dataset.discoveryMore);return}
   if(hide){hideRecommendation(hide.dataset.discoveryHide);return}
  });
