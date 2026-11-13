@@ -1,0 +1,41 @@
+/* Online-first Listen Now and restored personal profile */
+.home-heading{padding-top:18px;padding-bottom:16px}
+.home-heading .eyebrow,.profile-section-label{color:var(--accent-ink);font-size:11px;font-weight:800;letter-spacing:.14em}
+.home-heading h1{margin-top:5px}
+.home-heading .subtle{margin:7px 0 0;font-size:14px}
+.home-content{display:block}
+.home-content>.shelf{margin-top:27px}
+.home-content>.hero-section{margin:6px 0 25px}
+.home-content .hero-card{min-height:250px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--surface)}
+.home-content .hero-copy{inset:auto 19px 19px;gap:5px}
+.home-content .hero-copy .eyebrow{color:#fff;font-size:11px;letter-spacing:.12em}
+.home-content .hero-copy strong{font-size:clamp(23px,6vw,32px);white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.home-content .hero-play{margin-top:8px}
+.home-content .section-heading{margin-bottom:12px}
+.home-content .section-heading h2{font-size:20px;letter-spacing:-.035em}
+.home-content .card-shelf{grid-auto-columns:minmax(138px,42vw);gap:12px;padding-bottom:4px}
+.home-content .music-card{min-width:0}
+.home-content .card-art{border-radius:13px}
+.home-content .discovery-shelf .discovery-status{padding:14px 8px;text-align:left;background:var(--surface);border-radius:12px}
+.home-content .discovery-shelf .card-shelf:empty{display:none}
+.home-content .discovery-shelf .discovery-status[hidden]{display:none}
+.home-content .stats-card{margin-top:4px}
+.profile-identity-card{display:flex;align-items:center;gap:14px;margin:4px 0 25px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
+.profile-avatar{width:68px;height:68px;flex:none;display:grid;place-items:center;border-radius:22px;background:var(--accent);color:var(--accent-on);font-size:25px;font-weight:850;letter-spacing:-.04em}
+.profile-identity-copy{flex:1;min-width:0}
+.profile-identity-copy h2{margin:0;font-size:20px;letter-spacing:-.035em;overflow-wrap:anywhere}
+.profile-identity-copy p{margin:5px 0 0;color:var(--muted);font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.profile-edit-button{min-height:42px;padding:0 14px}
+.profile-edit-panel{margin-top:-12px}
+.profile-edit-panel label{margin-top:10px}
+.profile-edit-panel .detail-actions{margin-bottom:0}
+.profile-section-label{margin:26px 0 12px}
+#profileStats{margin-bottom:24px}
+#profileStats[hidden]{display:none}
+#profileWeekBars{margin-top:12px}
+@media(min-width:600px){
+ .home-content>.hero-section{max-width:850px}
+ .home-content .hero-card{min-height:330px}
+ .home-content .card-shelf{grid-auto-columns:175px;gap:16px}
+ .profile-identity-card{max-width:760px;padding:22px}
+}
