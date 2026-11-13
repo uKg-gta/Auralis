@@ -32,6 +32,7 @@ function buildProfile(){
   if(event.type==='play_started')addScore(track,.5);
   else if(event.type==='play_progress')addScore(track,Math.min(3,(Number(event.playedSeconds)||0)/90));
   else if(event.type==='play_completed')addScore(track,3);
+  else if(event.type==='track_replayed')addScore(track,2);
   else if(event.type==='track_skipped')addScore(track,-1.5);
   else if(event.type==='more_like_this')addScore(track,4);
   else if(event.type==='track_liked')addScore(track,4);
@@ -92,9 +93,9 @@ export async function moreLikeRecommendation(id){
  await recordDiscoverySignal('more_like_this',track);renderDiscovery();toast('We’ll recommend more like this');
 }
 export async function resetTasteProfile(){
- if(!confirm('Reset your Auralis taste profile? Your listening history will be kept.'))return;
+ if(!confirm('Reset listening-based discovery learning? Your listening history and liked songs will be kept, and liked songs will still influence recommendations.'))return;
  state.listeningSignals=[];try{await new Promise((resolve,reject)=>{const tx=state.db.transaction('listeningSignals','readwrite');tx.objectStore('listeningSignals').clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}catch(error){toast('Could not reset the taste profile');return}
- renderDiscovery();toast('Taste profile reset. Your listening history is unchanged.');
+ renderDiscovery();toast('Listening-based discovery learning reset. Likes are still used.');
 }
 export function initDiscovery(){
  state.audio.addEventListener('play',()=>{const track=byId(state.currentTrackId);if(track&&track.id!==activeTrackId)trackChanged(track)});
