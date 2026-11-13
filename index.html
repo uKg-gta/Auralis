@@ -201,7 +201,7 @@
  window.__auralisSetReady=()=>{window.__auralisLibraryReady=true;clearTimeout(startupTimer);const card=document.getElementById('startupError');if(card)card.hidden=true};
  window.__auralisLibraryReady=false;
  document.getElementById('startupReload').addEventListener('click',()=>window.location.reload());
- window.addEventListener('error',()=>{if(!window.__auralisLibraryReady)showStartupError('Auralis could not load one of its app files. Reload the page to try the latest version.')});
+ window.addEventListener('error',event=>{if(window.__auralisLibraryReady)return;const detail=event instanceof ErrorEvent?(event.message||'Unknown JavaScript error'):(event.target?.src||event.target?.href||'A required app resource failed to load');const location=event instanceof ErrorEvent&&event.filename?(event.filename.split('/').slice(-2).join('/')+':'+event.lineno):'';const stage=window.__auralisBootStage?' during '+window.__auralisBootStage:'';showStartupError('Startup error'+stage+': '+detail+(location?' ('+location+')':'')+'. Reload after sharing this message so the exact failure can be fixed.')},true);
  window.addEventListener('unhandledrejection',()=>{if(!window.__auralisLibraryReady)showStartupError('Auralis could not finish opening your library. Close other Auralis tabs, then reload the app.')});
  startupTimer=setTimeout(()=>{if(!window.__auralisLibraryReady)showStartupError('Your library is taking too long to open. Close any other Auralis tabs, then reload the app.')},12000);
  if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
