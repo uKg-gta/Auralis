@@ -130,7 +130,14 @@ function setupSourceSettings(){
 }
 function setupScrollTitle(){let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
 function boot(){
- initPlayer();initActions();initSearch();initCatalog();initProfile();initDiscovery();setupBackupInput();setupRowGestures();setupPreferences();setupSourceSettings();setupYoutubeDataMaintenance();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
+ const stage=name=>{window.__auralisBootStage=name};
+ stage('player setup');initPlayer();
+ stage('actions setup');initActions();
+ stage('search setup');initSearch();
+ stage('catalog setup');initCatalog();
+ stage('profile setup');initProfile();
+ stage('discovery setup');initDiscovery();
+ stage('interface setup');setupBackupInput();setupRowGestures();setupPreferences();setupSourceSettings();setupYoutubeDataMaintenance();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
  Object.assign(window,{show,closePlayer,showDialog,openAddMenu,setTheme,setAccent,setLargeText,createCategory,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort,setSearchFilter,setSearchScope,doSearch:renderSearch,setSearchQuery,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction,moveInPlaylist,removeFromPlaylist,moveQueue,moveQueueTo,removeFromQueue,clearQueue,stopCurrent,importLibraryBackup});
  const playerDialog=$('now');playerDialog.addEventListener('close',()=>{document.body.classList.remove('player-open');pauseYouTubePlayback()});playerDialog.addEventListener('toggle',()=>document.body.classList.toggle('player-open',playerDialog.open));
  $('actionDialog').addEventListener('cancel',event=>{event.preventDefault();closeAction()});$('actionDialog').addEventListener('click',event=>{if(event.target===$('actionDialog'))closeAction()});
