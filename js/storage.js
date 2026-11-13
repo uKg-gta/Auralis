@@ -1,6 +1,6 @@
 import {state,status} from './core.js';
 const DB_NAME='auralis-local-library-v1';
-const DB_VERSION=5;
+const DB_VERSION=6;
 export function openDatabase(){
  return new Promise((resolve,reject)=>{
   if(!window.indexedDB){reject(new Error('This browser does not support local music storage.'));return}
@@ -22,9 +22,31 @@ export function getAll(name){return request(name,'readonly',store=>store.getAll(
 export function put(name,value){return request(name,'readwrite',store=>store.put(value))}
 export function add(name,value){return request(name,'readwrite',store=>store.add(value))}
 export function remove(name,key){return request(name,'readwrite',store=>store.delete(key))}
+async function removeLocalOnlyData(){
+ await new Promise((resolve,reject)=>{
+  const stores=['tracks','playlists','history','listeningSignals'],tx=state.db.transaction(stores,'readwrite'),tracks=tx.objectStore('tracks'),playlists=tx.objectStore('playlists'),history=tx.objectStore('history'),signals=tx.objectStore('listeningSignals');
+  const playlistRequest=playlists.getAll(),historyRequest=history.getAll(),signalRequest=signals.getAll(),cursorRequest=tracks.openCursor();
+  let remoteIds=new Set(),playlistRows=null,historyRows=null,signalRows=null,tracksDone=false,cleaned=false;
+  const cleanup=()=>{
+   if(cleaned||!tracksDone||!playlistRows||!historyRows||!signalRows)return;cleaned=true;
+   for(const playlist of playlistRows){const ids=Array.isArray(playlist.trackIds)?playlist.trackIds:[],next=ids.filter(id=>remoteIds.has(id));if(next.length!==ids.length){playlist.trackIds=next;playlists.put(playlist)}}
+   for(const item of historyRows){const source=item.trackSnapshot?.source,trackId=String(item.trackId||''),remote=['audius','youtube','jamendo'].includes(source)||(source==='stream'&&item.trackSnapshot?.provider==='audius')||/^(audius|youtube|jamendo):/.test(trackId)||remoteIds.has(trackId);if(!remote)history.delete(item.id)}
+   for(const item of signalRows){const source=item.track?.source||item.source,trackId=String(item.trackId||''),remote=item.type==='search_performed'||['audius','youtube','jamendo'].includes(source)||(source==='stream'&&(item.track?.provider==='audius'||item.provider==='audius'))||/^(audius|youtube|jamendo):/.test(trackId)||remoteIds.has(trackId);if(!remote)signals.delete(item.id)}
+  };
+  cursorRequest.onsuccess=event=>{
+   const cursor=event.target.result;
+   if(cursor){const track=cursor.value,source=track.source==='stream'?(track.provider||'audius'):track.source;if(['audius','youtube','jamendo'].includes(source)){remoteIds.add(track.id);if(track.source==='stream'){track.source='audius';track.provider='audius';cursor.update(track)}}else cursor.delete();cursor.continue()}
+   else{tracksDone=true;cleanup()}
+  };
+  playlistRequest.onsuccess=()=>{playlistRows=playlistRequest.result||[];cleanup()};
+  historyRequest.onsuccess=()=>{historyRows=historyRequest.result||[];cleanup()};
+  signalRequest.onsuccess=()=>{signalRows=signalRequest.result||[];cleanup()};
+  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Could not remove on-device audio data'));tx.onabort=()=>reject(tx.error||new Error('Could not remove on-device audio data'));
+ });
+}
 export async function loadLibraryState(){
- await openDatabase();const values=await Promise.all([getAll('tracks'),getAll('playlists'),getAll('categories'),getAll('settings'),getAll('history')]);
- const preference=(values[3]||[]).find(item=>item.key==='preferences');if(preference&&preference.value)state.prefs=Object.assign(state.prefs,preference.value);
+ await openDatabase();await removeLocalOnlyData();const values=await Promise.all([getAll('tracks'),getAll('playlists'),getAll('categories'),getAll('settings'),getAll('history'),getAll('listeningSignals')]);
+ const preference=(values[3]||[]).find(item=>item.key==='preferences');if(preference&&preference.value)state.prefs=Object.assign(state.prefs,preference.value);const discovery=(values[3]||[]).find(item=>item.key==='discoveryPreferences');state.discoveryPreferences=Object.assign({hiddenTrackIds:[],excludedArtists:[],excludedGenres:[]},discovery?.value||{});state.listeningSignals=values[5]||[];
  const maxYoutubeAge=30*24*60*60*1000,now=Date.now(),expiredYoutubeIds=new Set(),loadedTracks=[];
  for(const track of values[0]||[]){
   if(track.source==='stream'&&(!track.provider||track.provider==='audius')){track.source='audius';track.provider='audius';put('tracks',track).catch(()=>{})}

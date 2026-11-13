@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<meta name="description" content="Auralis is your personal music library and player.">
+<meta name="description" content="Auralis is your online music and discovery companion.">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="manifest" href="manifest.json">
 <title>Auralis — Listen Now</title>
@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/player.css">
 <link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/home-profile.css">
 </head>
 <body>
 <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
@@ -62,7 +63,8 @@
   <a class="brand" href="#home" onclick="show('home');return false" aria-label="Auralis home"><span class="brand-mark" aria-hidden="true">a</span><span>Auralis</span></a>
   <div id="compactTitle" class="compact-title">Listen Now</div>
   <div class="top-actions">
-    <button id="globalAddButton" class="icon-button" aria-label="Add music or create a playlist" aria-haspopup="dialog" onclick="openAddMenu()"><svg class="icon"><use href="#icon-plus"></use></svg></button>
+    <button id="globalAddButton" class="icon-button" aria-label="Create a playlist" aria-haspopup="dialog" onclick="openAddMenu()"><svg class="icon"><use href="#icon-plus"></use></svg></button>
+    <button id="profileButton" class="icon-button" aria-label="Profile" onclick="show('profile')"><svg class="icon"><use href="#icon-artist"></use></svg></button>
     <button id="settingsButton" class="icon-button" aria-label="Settings" onclick="show('settings')"><svg class="icon"><use href="#icon-settings"></use></svg></button>
   </div>
 </header>
@@ -74,46 +76,19 @@
 </nav>
 <main id="mainContent">
 <section id="home" class="screen active" aria-labelledby="homeTitle">
- <div class="page-heading"><h1 id="homeTitle">Listen Now</h1></div>
- <section id="startupError" class="import-card startup-error" role="alert" aria-live="assertive" hidden><div class="empty-copy"><h2>Auralis couldn’t finish loading</h2><p id="startupErrorMessage">Reload the app to try again. If your music library is updating, close any other Auralis tabs first.</p><button id="startupReload" class="button button-primary" type="button">Reload Auralis</button></div></section>
- <div id="homeLoading" class="skeleton-stack" role="status" aria-label="Loading your library"><div class="skeleton skeleton-hero"></div><div class="skeleton-row"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div></div>
- <section id="homeImportCard" class="import-card" hidden aria-labelledby="homeImportTitle">
-  <div class="empty-art"><svg class="icon"><use href="#icon-music"></use></svg></div>
-  <div class="empty-copy"><p class="eyebrow">Your listening space</p><h2 id="homeImportTitle">Add your music</h2>
-   <p>Bring your collection into Auralis. Your audio stays on this device.</p>
-   <div class="empty-actions"><button class="button button-primary" data-import-files><svg class="icon"><use href="#icon-upload"></use></svg> Import files</button><button class="button button-secondary" data-import-folder><svg class="icon"><use href="#icon-folder"></use></svg> Choose a folder</button></div>
-   <p class="format-note">MP3, M4A, AAC, WAV, OGG, FLAC and OPUS</p>
-   <p class="storage-note">Clearing this browser’s site data can remove your music. Export a backup before clearing storage.</p>
-  </div>
- </section>
- <div id="homeContent" hidden>
-  <section id="homeSourceSection" class="source-section" aria-label="Music source">
-   <div class="chip-row" role="group" aria-label="Filter music by source"><button class="chip active" data-home-source="all" aria-pressed="true">All</button><button class="chip" data-home-source="local" aria-pressed="false">Uploads</button><button class="chip" data-home-source="audius" aria-pressed="false">Audius</button><button class="chip" data-home-source="youtube" aria-pressed="false">YouTube</button><button class="chip" data-home-source="jamendo" aria-pressed="false">Jamendo</button></div>
-  </section>
-  <section id="homeHeroSection" class="hero-section" hidden aria-label="Top pick">
-    <button id="homeHero" class="hero-card" data-play-track="">
-     <span id="homeHeroArt" class="hero-art art a1"></span>
-     <span class="hero-scrim"></span>
-     <span class="hero-copy"><span class="eyebrow">Your top pick</span><strong id="homeHeroTitle">—</strong><span id="homeHeroArtist">—</span><span class="hero-play"><svg class="icon"><use href="#icon-play"></use></svg> Play now</span></span>
-    </button>
-  </section>
-  <section id="homeJumpSection" class="shelf" hidden>
-   <div class="section-heading"><h2>Jump Back In</h2><button class="text-button" data-open-library="recent">See All</button></div><div id="homeJumpCards" class="card-shelf"></div>
-  </section>
-  <section id="homeRecentSection" class="shelf" hidden>
-   <div class="section-heading"><h2>Recently Played</h2><button class="text-button" data-open-library="recent">See All</button></div><div id="homeRecent" class="card-shelf"></div>
-  </section>
-  <section id="homeUploadsSection" class="shelf" hidden>
-   <div class="section-heading"><h2>Your Uploads</h2><button class="text-button" data-open-library="uploads">See All</button></div><div id="homeUploads" class="card-shelf"></div>
-  </section>
-  <section id="homeStreamedSection" class="shelf" hidden>
-   <div class="section-heading"><h2>Your Streamed Music</h2><button class="text-button" data-open-library="streamed">See All</button></div><div id="homeStreamed" class="card-shelf"></div>
-  </section>
-  <section id="homeYoutubeSection" class="shelf" hidden><div class="section-heading"><h2>Bollywood on YouTube</h2><button class="text-button" data-open-browse-source="youtube">See All</button></div><div id="homeYoutubeStatus" class="search-empty" role="status" hidden></div><div id="homeYoutube" class="card-shelf"></div></section>
-  <section id="homeJamendoSection" class="shelf" hidden><div class="section-heading"><h2>Free Music (Jamendo)</h2><button class="text-button" data-open-browse-source="jamendo">See All</button></div><div id="homeJamendoStatus" class="search-empty" role="status" hidden></div><div id="homeJamendo" class="card-shelf"></div></section>
-  <section id="homeStatsSection" class="shelf" hidden>
-   <button class="stats-card" onclick="show('profile')"><span class="eyebrow">Your week in music</span><strong id="homeListeningTime">0s</strong><span id="homeWeekBars" class="week-bars"></span><span class="stats-link">Listening stats <svg class="icon"><use href="#icon-chevron-right"></use></svg></span></button>
-  </section>
+ <div class="page-heading home-heading"><div><p class="eyebrow">YOUR MUSIC, YOUR MOMENT</p><h1 id="homeTitle">Listen Now</h1><p class="subtle" id="homeGreeting">A little music for wherever you are.</p></div></div>
+ <div id="homeLoading" class="skeleton-stack" role="status" aria-label="Finding music"><div class="skeleton skeleton-hero"></div><div class="skeleton-row"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div></div>
+ <section id="startupError" class="import-card startup-error" role="alert" aria-live="assertive" hidden><div class="empty-copy"><h2>Auralis couldn’t finish loading</h2><p id="startupErrorMessage">Reload the app to try again.</p><button id="startupReload" class="button button-primary" type="button">Reload Auralis</button></div></section>
+ <div id="homeContent" class="home-content" hidden>
+  <section id="homeHeroSection" class="hero-section" hidden aria-label="Featured music"><button id="homeHero" class="hero-card" data-play-track=""><span id="homeHeroArt" class="hero-art art a1"></span><span class="hero-scrim"></span><span class="hero-copy"><span class="eyebrow">FEATURED FOR YOU</span><strong id="homeHeroTitle">Discover something new</strong><span id="homeHeroArtist">Music selected for your next moment</span><span class="hero-play"><svg class="icon"><use href="#icon-play"></use></svg> Play now</span></span></button></section>
+  <section id="homeJumpSection" class="shelf" hidden><div class="section-heading"><h2>Continue Listening</h2><button class="text-button" data-open-library="recent">See All</button></div><div id="homeJumpCards" class="card-shelf"></div></section>
+  <section id="homeMadeForYouSection" class="shelf discovery-shelf"><div class="section-heading"><h2>Made For You</h2></div><p class="discovery-status search-empty" role="status">Finding music for you…</p><div class="card-shelf"></div></section>
+  <section id="homeBecauseSection" class="shelf discovery-shelf" hidden><div class="section-heading"><h2>Because You Listened</h2></div><p class="discovery-status search-empty" role="status">Play a few songs to shape these picks.</p><div class="card-shelf"></div></section>
+  <section id="homeFreshSection" class="shelf discovery-shelf"><div class="section-heading"><h2>Fresh Finds</h2></div><p class="discovery-status search-empty" role="status">Finding new music…</p><div class="card-shelf"></div></section>
+  <section id="homeRecentSection" class="shelf" hidden><div class="section-heading"><h2>Recently Played</h2><button class="text-button" data-open-library="recent">See All</button></div><div id="homeRecent" class="card-shelf"></div></section>
+  <section id="homeYoutubeSection" class="shelf" hidden><div class="section-heading"><h2>Music Videos on YouTube</h2><button class="text-button" data-open-browse-source="youtube">Explore</button></div><div id="homeYoutubeStatus" class="search-empty" role="status" hidden></div><div id="homeYoutube" class="card-shelf"></div></section>
+  <section id="homeJamendoSection" class="shelf" hidden><div class="section-heading"><h2>Independent Music</h2><button class="text-button" data-open-browse-source="jamendo">Explore</button></div><div id="homeJamendoStatus" class="search-empty" role="status" hidden></div><div id="homeJamendo" class="card-shelf"></div></section>
+  <section id="homeStatsSection" class="shelf" hidden><button class="stats-card" onclick="show('profile')"><span class="eyebrow">YOUR WEEK IN MUSIC</span><strong id="homeListeningTime">0s</strong><span id="homeWeekBars" class="week-bars"></span><span class="stats-link">Listening stats <svg class="icon"><use href="#icon-chevron-right"></use></svg></span></button></section>
  </div>
 </section>
 <section id="search" class="screen" aria-labelledby="searchTitle">
@@ -151,13 +126,13 @@
   <p class="library-hint">Playlists set the order; tags group songs your way.</p>
   <section id="libraryTagsSection" class="shelf" hidden><div class="section-heading"><h2>Tags</h2><button class="text-button" onclick="createCategory()">New tag</button></div><div id="categoryList" class="chip-row"></div></section>
   <section id="recentlyAddedSection" class="shelf" hidden><div class="section-heading"><h2>Recently Added</h2><button class="text-button" data-library-section="recent">See All</button></div><div id="recentlyAddedGrid" class="music-grid"></div></section>
-  <section id="libraryEmpty" class="library-empty" hidden><p>Your library is ready when you are.</p><button class="button button-primary" onclick="openAddMenu()"><svg class="icon"><use href="#icon-plus"></use></svg> Add your music</button></section>
+  <section id="libraryEmpty" class="library-empty" hidden><p>Your saved music will appear here.</p><button class="button button-primary" onclick="show('browse')">Explore music</button></section>
  </div>
  <div id="libraryContents" hidden>
   <div class="collection-toolbar"><button id="libraryBack" class="back-button"><svg class="icon"><use href="#icon-chevron-left"></use></svg><span>Library</span></button><h2 id="librarySectionTitle">Songs</h2><label class="sort-control"><span class="sr-only">Sort library</span><select id="librarySort"><option value="recent">Recently Added</option><option value="az">A–Z</option><option value="artist">Artist</option></select></label></div>
   <section id="librarySongs" class="library-view">
    <div class="filter-bar"><button class="chip active" data-library-filter="all" aria-pressed="true">All Songs</button><button class="chip" data-library-filter="recent" aria-pressed="false">Recently Played</button></div>
- <div class="source-filter" role="group" aria-label="Filter songs by source"><span>Source</span><div class="filter-bar"><button class="chip active" data-library-source="all" aria-pressed="true">All</button><button class="chip" data-library-source="local" aria-pressed="false">Uploads</button><button class="chip" data-library-source="audius" aria-pressed="false">Audius</button><button class="chip" data-library-source="youtube" aria-pressed="false">YouTube</button><button class="chip" data-library-source="jamendo" aria-pressed="false">Jamendo</button></div></div>
+ <div class="source-filter" role="group" aria-label="Filter songs by source"><span>Source</span><div class="filter-bar"><button class="chip active" data-library-source="all" aria-pressed="true">All</button><button class="chip" data-library-source="audius" aria-pressed="false">Audius</button><button class="chip" data-library-source="youtube" aria-pressed="false">YouTube</button><button class="chip" data-library-source="jamendo" aria-pressed="false">Jamendo</button></div></div>
    <div id="songTags" class="chip-row"></div><div id="localTrackList" class="track-list"></div>
   </section>
   <section id="libraryRecent" class="library-view" hidden><div id="recentTrackList" class="track-list"></div></section>
@@ -169,14 +144,17 @@
   <section id="libraryArtists" class="library-view" hidden><div id="artistList"></div><div id="artistDetail" class="detail-view" hidden><div class="detail-heading"><button id="artistBack" class="back-button"><svg class="icon"><use href="#icon-chevron-left"></use></svg><span>Artists</span></button><h3 id="artistDetailTitle"></h3></div><div id="artistTracks" class="track-list"></div><section class="shelf"><div class="section-heading"><h3>MusicBrainz releases</h3><button id="musicBrainzArtistRetry" class="text-button" type="button">Load</button></div><div id="musicBrainzArtistReleases" class="search-empty" role="status">Metadata from MusicBrainz is optional.</div></section></div></section>
   <section id="libraryAlbums" class="library-view" hidden><div id="albumList" class="music-grid"></div><div id="albumDetail" class="detail-view" hidden><div class="detail-heading"><button id="albumBack" class="back-button"><svg class="icon"><use href="#icon-chevron-left"></use></svg><span>Albums</span></button><h3 id="albumDetailTitle"></h3></div><p id="albumDetailArtist" class="subtle"></p><div id="albumTracks" class="track-list"></div></div></section>
   <section id="libraryLiked" class="library-view" hidden><div id="likedTrackList" class="track-list"></div></section>
-  <section id="libraryUploads" class="library-view" hidden><div id="uploadTrackList" class="track-list"></div></section>
-  <section id="libraryStreamed" class="library-view" hidden><div id="streamedTrackList" class="track-list"></div></section>
+  
+  
   <section id="libraryUnorganized" class="library-view" hidden><div id="unorganizedTrackList" class="track-list"></div></section>
  </div>
 </section>
 <section id="profile" class="screen" aria-labelledby="profileTitle">
- <div class="page-heading"><h1 id="profileTitle">Listening Stats</h1></div>
- <div id="profileStats" class="stats-card"><span class="eyebrow">Total listening time</span><strong id="profileListeningTime">0s</strong><p id="profileTrackCount">No tracks played yet</p><div id="profileWeekBars" class="week-bars"></div></div>
+ <div class="page-heading"><p class="eyebrow">YOUR AURALIS</p><h1 id="profileTitle">Your Profile</h1></div>
+ <section class="profile-identity-card" aria-label="Personal profile"><div class="profile-avatar" id="profileAvatar" aria-hidden="true">A</div><div class="profile-identity-copy"><h2 id="profileDisplayName">Your name</h2><p id="profileBioDisplay">Your music, your mood.</p></div><button class="button button-secondary profile-edit-button" id="profileEditButton" type="button">Edit</button></section>
+ <section id="profileEditPanel" class="form-card profile-edit-panel" hidden><label for="profileNameInput">Display name</label><input id="profileNameInput" class="form-input" maxlength="40" autocomplete="name" placeholder="Your name"><label for="profileBioInput">Bio or motto</label><textarea id="profileBioInput" class="form-input" maxlength="100" rows="2" placeholder="A line that feels like you"></textarea><div class="detail-actions"><button class="button button-primary" id="profileSaveButton" type="button">Save profile</button><button class="button button-quiet" id="profileCancelButton" type="button">Cancel</button></div></section>
+ <div class="profile-section-label">YOUR MUSIC</div>
+ <div id="profileStats" class="stats-card"><span class="eyebrow">TOTAL LISTENING TIME</span><strong id="profileListeningTime">0s</strong><p id="profileTrackCount">Your listening story starts here.</p><div id="profileWeekBars" class="week-bars"></div></div>
  <section id="profileArtists" class="shelf"><div class="section-heading"><h2>Favorite Artists</h2></div><div id="favoriteArtists"></div></section>
  <section id="profileMostPlayed" class="shelf"><div class="section-heading"><h2>Most Played</h2></div><div id="mostPlayed" class="track-list"></div></section>
 </section>
@@ -185,8 +163,8 @@
  <section class="settings-group"><div class="settings-heading"><h2>Appearance</h2><p>Make Auralis feel like yours.</p></div><div class="settings-row"><span>Theme</span><div class="segmented"><button data-theme="dark" aria-pressed="true" onclick="setTheme('dark')">Dark</button><button data-theme="light" aria-pressed="false" onclick="setTheme('light')">Light</button></div></div><div class="settings-row accent-row"><span>Accent color</span><div class="accent-options"><button aria-label="Coral accent" data-accent="#fa2d48" aria-pressed="true" onclick="setAccent('#fa2d48')"></button><button aria-label="Blue accent" data-accent="#408cff" aria-pressed="false" onclick="setAccent('#408cff')"></button><button aria-label="Green accent" data-accent="#36ad7d" aria-pressed="false" onclick="setAccent('#36ad7d')"></button><button aria-label="Purple accent" data-accent="#a86de8" aria-pressed="false" onclick="setAccent('#a86de8')"></button><input id="customAccent" type="color" value="#fa2d48" aria-label="Choose a custom accent" onchange="setAccent(this.value)"></div></div><label class="settings-row" for="largeText"><span>Large text</span><input id="largeText" type="checkbox" class="toggle"></label></section>
  <section class="settings-group"><div class="settings-heading"><h2>Library</h2><p>Defaults for this device</p></div><label class="settings-row" for="defaultLibrarySort"><span>Default sort</span><select id="defaultLibrarySort"><option value="recent">Recently Added</option><option value="az">A–Z</option><option value="artist">Artist</option></select></label></section>
  <section class="settings-group"><div class="settings-heading"><h2>Music Sources</h2><p>Optional public API credentials stay in this browser. Restrict the YouTube key to this site’s HTTP referrer and YouTube Data API v3.</p></div><label class="settings-row youtube-consent-toggle" for="youtubeConsent"><span><b>I agree to the Privacy Policy and Terms of Use; enable YouTube</b><small>YouTube receives your searches and loads its official video player.</small></span><input id="youtubeConsent" class="toggle" type="checkbox"></label><p class="youtube-consent-note">Enabling YouTube confirms that you agree to the <a href="./privacy.html">Auralis Privacy Policy</a> and <a href="./terms.html">Auralis Terms of Use</a>, which include the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">YouTube Terms of Service</a>. You can turn this off here at any time.</p><label class="source-key-field" for="youtubeApiKey">YouTube Data API key</label><input id="youtubeApiKey" class="form-input" type="text" autocomplete="off" spellcheck="false" placeholder="Paste a referrer-restricted key"><label class="source-key-field" for="jamendoClientId">Jamendo client_id</label><input id="jamendoClientId" class="form-input" type="text" autocomplete="off" spellcheck="false" placeholder="Paste your free Jamendo client_id"><button id="saveSourceCredentials" class="button button-secondary source-save" type="button">Save music sources</button><p class="subtle source-noncommercial">Non-commercial prototype. Jamendo and MusicBrainz use is kept non-commercial.</p></section>
- <section class="settings-group"><div class="settings-heading"><h2>Storage &amp; Backup</h2><p id="storageInfo">Your music, playlists, tags and settings live in this browser.</p></div><div class="storage-warning"><strong>Clearing browser site data can remove your library.</strong><span>Export a backup before clearing storage or moving browsers.</span></div><div class="settings-actions"><button class="button button-primary" data-export-library><svg class="icon"><use href="#icon-upload"></use></svg> Export backup</button><button class="button button-secondary" data-import-backup><svg class="icon"><use href="#icon-download"></use></svg> Import backup</button><button id="persistentStorageButton" class="button button-secondary" type="button">Keep music on this device</button></div></section>
- <section class="settings-group"><div class="settings-heading"><h2>Sources &amp; Licenses</h2><p>Auralis plays music through official players and public catalogs. Availability and rights are set by the rights holders.</p><p>Local files stay in this browser. MusicBrainz is used for metadata only.</p><p>Non-commercial prototype. Jamendo and MusicBrainz use remains non-commercial.</p></div><div class="settings-row"><span>Version</span><span class="subtle">1.2</span></div><div class="source-license-list"><a href="https://audius.co/documents/TermsOfUse.pdf" target="_blank" rel="noopener noreferrer">Audius terms</a><a href="https://developers.google.com/youtube/terms/developer-policies" target="_blank" rel="noopener noreferrer">YouTube API policies</a><a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">YouTube terms</a><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google privacy policy</a><a href="https://devportal.jamendo.com/api_terms_of_use" target="_blank" rel="noopener noreferrer">Jamendo API terms</a><a href="https://creativecommons.org/licenses/" target="_blank" rel="noopener noreferrer">Creative Commons licenses</a><a href="https://musicbrainz.org/doc/MusicBrainz_API" target="_blank" rel="noopener noreferrer">MusicBrainz API</a><a href="https://musicbrainz.org/doc/About/Data_License" target="_blank" rel="noopener noreferrer">MusicBrainz data license</a><a href="./terms.html">Auralis Terms of Use</a><a href="./privacy.html">Privacy Policy</a></div></section>
+ <section class="settings-group"><div class="settings-heading"><h2>Storage &amp; Backup</h2><p id="storageInfo">Your playlists, likes and listening history are saved in this browser.</p></div><div class="storage-warning"><strong>Clearing browser site data can remove your Auralis preferences and playlists.</strong><span>Export a backup before clearing storage or moving browsers.</span></div><div class="settings-actions"><button class="button button-primary" data-export-library><svg class="icon"><use href="#icon-upload"></use></svg> Export backup</button><button class="button button-secondary" data-import-backup><svg class="icon"><use href="#icon-download"></use></svg> Import backup</button><button id="persistentStorageButton" class="button button-secondary" type="button">Request persistent app storage</button></div></section>
+ <section class="settings-group"><div class="settings-heading"><h2>Sources &amp; Licenses</h2><p>Auralis plays music through official players and public catalogs. Availability and rights are set by the rights holders.</p><p>Auralis is an online-first music app. MusicBrainz is used for metadata only.</p><p>Non-commercial prototype. Jamendo and MusicBrainz use remains non-commercial.</p></div><div class="settings-row"><span>Version</span><span class="subtle">1.2</span></div><div class="source-license-list"><a href="https://audius.co/documents/TermsOfUse.pdf" target="_blank" rel="noopener noreferrer">Audius terms</a><a href="https://developers.google.com/youtube/terms/developer-policies" target="_blank" rel="noopener noreferrer">YouTube API policies</a><a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">YouTube terms</a><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google privacy policy</a><a href="https://devportal.jamendo.com/api_terms_of_use" target="_blank" rel="noopener noreferrer">Jamendo API terms</a><a href="https://creativecommons.org/licenses/" target="_blank" rel="noopener noreferrer">Creative Commons licenses</a><a href="https://musicbrainz.org/doc/MusicBrainz_API" target="_blank" rel="noopener noreferrer">MusicBrainz API</a><a href="https://musicbrainz.org/doc/About/Data_License" target="_blank" rel="noopener noreferrer">MusicBrainz data license</a><a href="./terms.html">Auralis Terms of Use</a><a href="./privacy.html">Privacy Policy</a></div></section>
 </section>
 <footer class="legal-footer"><a href="./sources.html">Sources &amp; Licenses</a><span aria-hidden="true">·</span><a href="./privacy.html">Privacy Policy</a><span aria-hidden="true">·</span><a href="./terms.html">Terms of Use</a></footer>
 </main>
@@ -195,7 +173,6 @@
  <button id="mp" class="mini-control" aria-label="Play"><svg class="icon"><use href="#icon-play"></use></svg></button>
  <button id="miniNext" class="mini-control" aria-label="Next track"><svg class="icon"><use href="#icon-next"></use></svg></button>
 </div>
-<div id="importDropTarget" class="drop-overlay" hidden aria-live="polite"><svg class="icon"><use href="#icon-upload"></use></svg><span>Drop music files to add them to your library</span></div>
 <dialog id="now" class="player-sheet" aria-label="Now playing">
  <div class="sheet-handle-wrap"><button class="sheet-handle" aria-label="Drag down to close player"></button></div>
  <div class="player-top"><button id="playerClose" class="icon-button" aria-label="Close player"><svg class="icon"><use href="#icon-chevron-down"></use></svg></button><div class="player-top-label">NOW PLAYING</div><span class="player-top-spacer" aria-hidden="true"></span></div>
@@ -206,7 +183,7 @@
   <div class="seek"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek through track" disabled><div class="times"><span id="elapsedTime">0:00</span><span id="remainingTime">−0:00</span></div></div>
   <div class="volume-control"><button id="muteButton" class="icon-button" aria-label="Mute playback" aria-pressed="false"><svg class="icon"><use href="#icon-volume"></use></svg></button><input id="volumeSlider" type="range" min="0" max="100" step="1" value="80" aria-label="Volume"><output id="volumeValue" for="volumeSlider">80%</output></div>
   <div class="controls"><button id="shuffleButton" class="ctrl" aria-label="Shuffle off" aria-pressed="false"><svg class="icon"><use href="#icon-shuffle"></use></svg></button><button id="previousButton" class="ctrl" aria-label="Previous track" disabled><svg class="icon"><use href="#icon-previous"></use></svg></button><button id="nowPlayButton" class="ctrl main" aria-label="Play playback"><svg class="icon"><use href="#icon-play"></use></svg></button><button id="nextButton" class="ctrl" aria-label="Next track" disabled><svg class="icon"><use href="#icon-next"></use></svg></button><button id="repeatButton" class="ctrl" aria-label="Repeat off. Change repeat mode" aria-pressed="false"><svg class="icon"><use href="#icon-repeat"></use></svg></button></div>
-  <p id="playerStatus" class="player-status" aria-live="polite">Import audio to begin listening</p>
+  <p id="playerStatus" class="player-status" aria-live="polite">Choose a song from Browse or Search to begin</p>
   <div class="player-tools"><button id="lyricsButton" class="tool-button" aria-label="Open lyrics" disabled><svg class="icon"><use href="#icon-lyrics"></use></svg><span>Lyrics</span></button><button id="queueButton" class="tool-button" aria-label="Open queue"><svg class="icon"><use href="#icon-queue"></use></svg><span>Queue</span></button><button id="sleepTimerButton" class="tool-button" aria-label="Set sleep timer" disabled><svg class="icon"><use href="#icon-timer"></use></svg><span>Sleep Timer</span></button></div>
  </div>
  <section id="lyricsPanel" class="lyrics-screen" hidden aria-label="Lyrics"><div class="lyrics-top"><button id="lyricsClose" class="icon-button" aria-label="Close lyrics"><svg class="icon"><use href="#icon-chevron-down"></use></svg></button><div><strong id="lyricsTrackTitle">Lyrics</strong><span id="lyricsTrackArtist"></span></div></div><div id="lyricsText" class="lyrics-lines"></div></section>
@@ -214,9 +191,7 @@
 <dialog id="queuePanel" class="action-sheet queue-sheet" aria-labelledby="queueTitle"><div class="sheet-handle-wrap"><button class="sheet-handle" aria-label="Drag down to close queue"></button></div><div class="sheet-head"><div><h2 id="queueTitle">Playing Next</h2><p>Reorder your listening queue</p></div><div class="queue-head-actions"><button id="queueClear" class="text-button" type="button">Clear</button><button id="queueHeaderClose" class="icon-button" type="button" aria-label="Close queue"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-chevron-down"></use></svg></button></div></div><div id="queueList" class="queue-list"></div><button id="queueClose" class="button button-quiet queue-done" type="button">Done</button></dialog>
 <dialog id="actionDialog" class="action-sheet" aria-labelledby="dialogTitle"><div class="sheet-handle-wrap"><button class="sheet-handle" aria-label="Drag down to close actions"></button></div><div id="dialogContent" class="dialog-inner"></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<audio id="localAudio" preload="metadata"></audio>
-<input id="audioImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" multiple hidden>
-<input id="folderImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" webkitdirectory directory multiple hidden>
+<audio id="streamAudio" preload="metadata"></audio>
 <input id="backupImport" type="file" accept=".zip,application/zip" hidden>
 <script>
 (()=>{
