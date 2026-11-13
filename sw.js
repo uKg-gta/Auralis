@@ -1,5 +1,5 @@
-const CACHE_NAME='auralis-shell-v21';
-const APP_SHELL=['./','./index.html','./sources.html','./privacy.html','./terms.html','./manifest.json','./assets/icon.svg','./css/base.css','./css/buttons.css','./css/app.css','./css/player.css','./css/responsive.css','./css/home-profile.css','./js/app.js','./js/core.js','./js/storage.js','./js/sources/index.js','./js/sources/youtube.js','./js/sources/jamendo.js','./js/sources/musicbrainz.js','./js/features/actions.js','./js/features/backup.js','./js/features/catalog.js','./js/features/library.js','./js/features/metadata.js','./js/features/player.js','./js/features/playlists.js','./js/features/profile.js','./js/features/search.js','./js/features/settings.js'];
+const CACHE_NAME='auralis-shell-v22';
+const APP_SHELL=['./','./index.html','./sources.html','./privacy.html','./terms.html','./manifest.json','./assets/icon.svg','./css/base.css','./css/buttons.css','./css/app.css','./css/player.css','./css/responsive.css','./css/home-profile.css','./js/app.js','./js/core.js','./js/storage.js','./js/sources/index.js','./js/sources/youtube.js','./js/sources/jamendo.js','./js/sources/musicbrainz.js','./js/features/actions.js','./js/features/backup.js','./js/features/catalog.js','./js/features/discovery.js','./js/features/library.js','./js/features/metadata.js','./js/features/player.js','./js/features/playlists.js','./js/features/profile.js','./js/features/search.js','./js/features/settings.js'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('auralis-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
@@ -7,4 +7,3 @@ self.addEventListener('fetch',event=>{
  if(request.mode==='navigate'){event.respondWith(fetch(request).then(response=>{if(response.ok)caches.open(CACHE_NAME).then(cache=>cache.put('./index.html',response.clone()));return response}).catch(()=>caches.match('./index.html')));return}
  event.respondWith(caches.match(request).then(cached=>fetch(request).then(response=>{if(response.ok)caches.open(CACHE_NAME).then(cache=>cache.put(request,response.clone()));return response}).catch(()=>cached||new Response('Auralis is offline and this file is not cached.',{status:503,statusText:'Offline'}))))
 });
-
