@@ -13,22 +13,19 @@ function makeCard(track,subtitle){
 }
 function renderShelfTracks(id,tracks,limit=12,subtitle){$(id).innerHTML=tracks.slice(0,limit).map(track=>makeCard(track,subtitle)).join('')}
 export function renderHome(){
- const matchesSource=track=>state.homeSource==='all'||track.source===state.homeSource;
- const recent=uniqueRecent().filter(matchesSource),sourceTracks=state.tracks.filter(matchesSource),uploads=sourceTracks.filter(track=>track.source==='local'),streamed=sourceTracks.filter(track=>track.source==='audius'),latest=sortTracks(sourceTracks,'recent');
- const current=state.currentTrackId?byId(state.currentTrackId):null,heroTrack=current&&matchesSource(current)?current:recent[0]||latest[0]||null;
- const homeHasRemote=!!(state.homeCatalog.youtube?.length||state.homeCatalog.jamendo?.length),homeHasAny=!!state.tracks.length||homeHasRemote;
- $('homeLoading').hidden=true;$('homeContent').hidden=!homeHasAny;$('homeImportCard').hidden=!!state.tracks.length;
- $('homeSourceSection').hidden=!homeHasAny;
- document.querySelectorAll('[data-home-source]').forEach(button=>{const active=button.dataset.homeSource===state.homeSource;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
+ const remote=state.tracks.filter(track=>track.source!=='local'&&track.source!=='stream' ? true : track.source==='stream'&&track.provider==='audius');
+ const recent=uniqueRecent().filter(track=>track.source!=='local'),latest=sortTracks(remote,'recent');
+ const current=state.currentTrackId?byId(state.currentTrackId):null,heroTrack=current&&current.source!=='local'?current:recent[0]||latest[0]||null;
+ $('homeLoading').hidden=true;$('homeContent').hidden=false;
+ const greeting=$('homeGreeting');if(greeting){const hour=new Date().getHours();greeting.textContent=hour<12?'Good morning. Find a soundtrack for today.':hour<18?'Good afternoon. What are you in the mood for?':'Good evening. Set the mood with music.'}
  const hero=$('homeHeroSection');hero.hidden=!heroTrack;
  if(heroTrack){$('homeHero').dataset.playTrack=heroTrack.id;$('homeHeroTitle').textContent=displayName(heroTrack);$('homeHeroArtist').textContent=heroTrack.artist||'Unknown artist';const art=$('homeHeroArt'),url=artworkUrl(heroTrack);art.className='hero-art art '+artworkClass(heroTrack);art.innerHTML=url?'<img src="'+esc(url)+'" alt="">':''}
- const jump=recent.slice(0,8);$('homeJumpSection').hidden=!jump.length;renderShelfTracks('homeJumpCards',jump,10);
- const later=recent.slice(1);$('homeRecentSection').hidden=!later.length;renderShelfTracks('homeRecent',later,12);
- $('homeUploadsSection').hidden=!uploads.length;renderShelfTracks('homeUploads',sortTracks(uploads,'recent'),12,'On this device');
- $('homeStreamedSection').hidden=!streamed.length||!['all','audius'].includes(state.homeSource);renderShelfTracks('homeStreamed',sortTracks(streamed,'recent'),12,'Streamed from Audius');
- const youtubeTracks=state.homeCatalog.youtube||[],jamendoTracks=state.homeCatalog.jamendo||[],youtubeSection=$('homeYoutubeSection'),jamendoSection=$('homeJamendoSection');
- if(youtubeSection){youtubeSection.hidden=!['all','youtube'].includes(state.homeSource)||(!youtubeTracks.length&&!state.homeSourceErrors.youtube);$('homeYoutubeStatus').hidden=!!youtubeTracks.length||!state.homeSourceErrors.youtube;$('homeYoutubeStatus').textContent=state.homeSourceErrors.youtube||'';renderShelfTracks('homeYoutube',youtubeTracks,12,'YouTube · official music videos')}
- if(jamendoSection){jamendoSection.hidden=!['all','jamendo'].includes(state.homeSource)||(!jamendoTracks.length&&!state.homeSourceErrors.jamendo);$('homeJamendoStatus').hidden=!!jamendoTracks.length||!state.homeSourceErrors.jamendo;$('homeJamendoStatus').textContent=state.homeSourceErrors.jamendo||'';renderShelfTracks('homeJamendo',jamendoTracks,12,'Creative Commons · Jamendo')}
+ const jump=recent.slice(0,8);$('homeJumpSection').hidden=!jump.length;renderShelfTracks('homeJumpCards',jump,8);
+ const later=recent.slice(1,9);$('homeRecentSection').hidden=!later.length;renderShelfTracks('homeRecent',later,8);
+ const youtubeTracks=state.homeCatalog.youtube||[],jamendoTracks=state.homeCatalog.jamendo||[];
+ const youtubeSection=$('homeYoutubeSection'),jamendoSection=$('homeJamendoSection');
+ if(youtubeSection){youtubeSection.hidden=!youtubeTracks.length&&!state.homeSourceErrors.youtube;$('homeYoutubeStatus').hidden=!!youtubeTracks.length||!state.homeSourceErrors.youtube;$('homeYoutubeStatus').textContent=state.homeSourceErrors.youtube||'';renderShelfTracks('homeYoutube',youtubeTracks,8,'YouTube · official music videos')}
+ if(jamendoSection){jamendoSection.hidden=!jamendoTracks.length&&!state.homeSourceErrors.jamendo;$('homeJamendoStatus').hidden=!!jamendoTracks.length||!state.homeSourceErrors.jamendo;$('homeJamendoStatus').textContent=state.homeSourceErrors.jamendo||'';renderShelfTracks('homeJamendo',jamendoTracks,8,'Creative Commons · Jamendo')}
  const week=weeklySeconds(),hasListening=state.history.length>0||!!state.sessionRecord;$('homeStatsSection').hidden=!hasListening;$('homeListeningTime').textContent=formatDuration(week.total);$('homeWeekBars').innerHTML=week.days.map(day=>'<span class="week-bar"><i style="height:'+day.height+'px"></i>'+esc(day.label)+'</span>').join('');
 }
 function renderOverview(){
@@ -100,18 +97,3 @@ export async function createCategory(name){
  const category={id:makeId(),name:value.slice(0,40),createdAt:Date.now()};
  try{await put('categories',category);state.categories.push(category);state.refreshAll();toast('Tag created');window.closeAction()}catch(error){toast('Could not save this tag')}
 }
-export async function importAudioFiles(files){
- if(!files||!files.length)return;let addedCount=0,skipped=0;
- try{
-  const known=new Set(state.tracks.map(track=>track.signature).filter(Boolean));
-  for(const file of Array.from(files)){
-   if(!file.type?.startsWith('audio/')&&!/\.(mp3|m4a|aac|wav|ogg|flac|opus)$/i.test(file.name)){skipped++;continue}
-   const signature=file.name+'|'+file.size+'|'+file.lastModified;if(known.has(signature)){skipped++;continue}
-   const metadata=await parseAudioMetadata(file),track={id:makeId(),title:metadata.title,artist:metadata.artist,album:metadata.album||'',genre:metadata.genre||'',name:file.name,type:file.type||metadata.artworkType||'audio/*',artwork:metadata.artwork||null,artworkType:metadata.artworkType||'',blob:file,source:'local',added:Date.now()+addedCount,signature,size:file.size,lastModified:file.lastModified,categories:[],liked:false,lyrics:''};
-   await put('tracks',track);state.tracks.push(track);known.add(signature);addedCount++
-  }
-  state.tracks=sortTracks(state.tracks,'recent').reverse();state.refreshAll();status(addedCount+' song(s) added to your library');toast(addedCount?addedCount+' song(s) imported':skipped?'Those files are already in your library':'No supported audio files were selected');
- }catch(error){status('Could not save music: '+error.message);toast('Import failed. Check available browser storage')}
- finally{['audioImport','folderImport'].forEach(id=>{const input=$(id);if(input)input.value=''})}
-}
-
