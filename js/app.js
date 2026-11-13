@@ -26,7 +26,8 @@ function show(screenId){
  $('compactTitle').textContent=titleFor(screenId);document.body.classList.remove('is-scrolled');window.scrollTo({top:0,behavior:'auto'});
  if(screenId==='settings')refreshStorageInfo();if(screenId==='profile')loadProfileScreen();if(screenId==='browse')loadBrowse();if(screenId==='home')loadDiscovery()
 }
-function loadProfileScreen(){profileModulePromise??=import('./features/profile.js');profileModulePromise.then(module=>{module.initProfile();module.openProfile()}).catch(error=>{console.error('Auralis Profile failed to load',error);toast('Profile could not load. Your music library is unaffected.')})}\nfunction closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
+function loadProfileScreen(){profileModulePromise??=import('./features/profile.js');profileModulePromise.then(module=>{module.initProfile();module.openProfile()}).catch(error=>{console.error('Auralis Profile failed to load',error);toast('Profile could not load. Your music library is unaffected.')})}
+function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
 function renderAll(){renderHome();renderLibrary();renderPlaylists();renderSearch();renderCurrent();renderQueue()}
 state.refreshAll=renderAll;state.renderSearch=renderSearch;state.renderCurrent=renderCurrent;
 function handleClick(event){
