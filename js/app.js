@@ -15,7 +15,7 @@ import {pauseYouTubePlayback} from './sources/youtube.js';
 import {artistReleasesByName} from './sources/musicbrainz.js';
 
 let returnScreen='home',currentScreen='home',playerTrigger=null,browseSelectedSource='audius',browseRequest=0,libraryLoaded=false,youtubeMaintenanceBusy=false;
-function titleFor(screen){return ({home:'Listen Now',search:'Search',browse:'Browse',library:'Library',settings:'Settings',profile:'Listening Stats'})[screen]||'Auralis'}
+function titleFor(screen){return ({home:'Listen Now',search:'Search',browse:'Browse',library:'Library',settings:'Settings',profile:'Your Profile'})[screen]||'Auralis'}
 function show(screenId){
  if(screenId==='now'){
   const dialog=$('now');if(!dialog.open){returnScreen=currentScreen;playerTrigger=document.activeElement;dialog.showModal()}document.body.classList.add('player-open');return
