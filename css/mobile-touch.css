@@ -1,0 +1,36 @@
+/* Keep touch-first devices in the phone layout even when browser zoom changes CSS viewport width. */
+@media (hover: none) and (pointer: coarse) {
+  :root { --header-h: 60px; --tab-h: 66px; }
+  .app { padding-left: 0; padding-bottom: calc(var(--tab-h) + var(--safe-bottom) + 24px); }
+  .top { padding-left: 18px; padding-right: 18px; }
+  .screen { width: 100%; max-width: 760px; margin: 0 auto; padding: 10px 18px 30px; }
+  .nav {
+    top: auto; right: 0; bottom: 0; left: 0; width: auto;
+    min-height: calc(var(--tab-h) + var(--safe-bottom));
+    padding: 5px 12px calc(5px + var(--safe-bottom));
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex-direction: initial; align-items: stretch; gap: 0;
+    border-top: 1px solid var(--line); border-right: 0;
+  }
+  .nav button { min-height: 52px; flex-direction: column; justify-content: center; gap: 2px; padding: 0; text-align: center; font-size: 12px; }
+  .nav button.active { background: transparent; }
+  .mini { left: 10px; right: 10px; bottom: calc(var(--tab-h) + var(--safe-bottom) + 8px); width: auto; }
+  .player-sheet,
+  .player-sheet[open] {
+    left: 0; right: 0; bottom: 0; width: 100%; max-width: none;
+    max-height: min(94dvh, 900px); margin: 0;
+    border-radius: 22px 22px 0 0; transform: none;
+  }
+  .player-sheet[open] { animation-name: phone-sheet-in; }
+  .player-scroll { width: 100%; min-width: 0; max-width: 100%; overflow-x: hidden; }
+  .bigart { width: min(76vw, 390px, 100%); max-width: 100%; }
+  .player-trackline, .seek, .volume-control, .controls, .player-tools {
+    width: 100%; min-width: 0; max-width: 500px;
+  }
+  .player-track-copy { min-width: 0; }
+  .player-track-copy h2, .player-track-copy p { max-width: 100%; }
+}
+@keyframes phone-sheet-in {
+  from { transform: translateY(30px); opacity: .6; }
+  to { transform: none; opacity: 1; }
+}
