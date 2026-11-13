@@ -4,7 +4,7 @@ import {applyPreferences,setTheme,setAccent,setLargeText,refreshStorageInfo,requ
 import {renderHome,renderLibrary,renderYourMusic,createCategory,importAudioFiles,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort} from './features/library.js';
 import {renderPlaylists,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,moveInPlaylist,removeFromPlaylist} from './features/playlists.js';
 import {renderSearch,setSearchFilter,setSearchScope,initSearch,setSearchQuery} from './features/search.js';
-import {renderProfile,initProfile} from './features/profile.js';
+import {renderProfile,openProfile,initProfile} from './features/profile.js';
 import {initPlayer,syncVolume,renderCurrent,renderQueue,playTrack,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,selectSleepTimer,moveQueue,moveQueueTo,removeFromQueue,clearQueue} from './features/player.js';
 import {initActions,showDialog,openImportDialog,openAddMenu,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction} from './features/actions.js';
 import {importLibraryBackup} from './features/backup.js';
@@ -24,7 +24,7 @@ function show(screenId){
  document.querySelectorAll('.nav button').forEach(button=>{const active=button.id===activeId;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
  $('globalAddButton').hidden=screenId!=='home'&&screenId!=='library';
  $('compactTitle').textContent=titleFor(screenId);document.body.classList.remove('is-scrolled');window.scrollTo({top:0,behavior:'auto'});
- if(screenId==='settings')refreshStorageInfo();if(screenId==='profile')renderProfile();if(screenId==='browse')loadBrowse();if(screenId==='home')loadDiscovery()
+ if(screenId==='settings')refreshStorageInfo();if(screenId==='profile')openProfile();if(screenId==='browse')loadBrowse();if(screenId==='home')loadDiscovery()
 }
 function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
 function renderAll(){renderHome();renderLibrary();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
