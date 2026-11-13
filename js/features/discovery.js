@@ -69,6 +69,10 @@ function renderShelf(id,tracks,message){
 }
 export function renderDiscovery(){
  const result=compose();
+ const featured=(state.currentTrackId&&byId(state.currentTrackId))||result.made[0]||result.fresh[0]||null;
+ const hero=$('homeHeroSection');
+ if(hero&&featured){hero.hidden=false;$('homeHero').dataset.playTrack=featured.id;$('homeHeroTitle').textContent=featured.title||featured.name||'Discover something new';$('homeHeroArtist').textContent=featured.artist||'Auralis pick';const art=$('homeHeroArt'),url=artworkUrl(featured);art.className='hero-art art '+artworkClass(featured);art.innerHTML=url?'<img src="'+esc(url)+'" alt="">':''}
+
  renderShelf('homeMadeForYouSection',result.made,'Recommendations from your library and streaming catalogues will appear here.');
  renderShelf('homeBecauseSection',result.familiar,'Listen to a few songs to build your personalised picks.');
  renderShelf('homeFreshSection',result.fresh,'New tracks will appear here.');
