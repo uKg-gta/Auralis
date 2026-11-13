@@ -24,7 +24,7 @@ function show(screenId){
  document.querySelectorAll('.nav button').forEach(button=>{const active=button.id===activeId;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
  $('globalAddButton').hidden=screenId!=='home'&&screenId!=='library';
  $('compactTitle').textContent=titleFor(screenId);document.body.classList.remove('is-scrolled');window.scrollTo({top:0,behavior:'auto'});
- if(screenId==='settings')refreshStorageInfo();if(screenId==='browse')loadBrowse();if(screenId==='home')loadDiscovery()
+ if(screenId==='settings')refreshStorageInfo();if(screenId==='profile')renderProfile();if(screenId==='browse')loadBrowse();if(screenId==='home')loadDiscovery()
 }
 function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
 function renderAll(){renderHome();renderLibrary();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
