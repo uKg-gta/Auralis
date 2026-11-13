@@ -11,12 +11,12 @@
 @media(min-width:900px){
  :root{--header-h:66px;--tab-h:0px}
  .app{padding-left:226px;padding-bottom:28px}
- .top{padding:0 34px}
+ .top{padding:var(--safe-top) 34px 0}
  .brand{font-size:21px}
  .screen{max-width:1100px;padding:24px 38px 40px}
  .page-heading{padding:18px 0 22px}
  .page-heading h1{font-size:34px}
- .nav{top:var(--header-h);right:auto;bottom:0;left:0;width:205px;min-height:0;padding:22px 14px calc(20px + var(--safe-bottom));display:flex;flex-direction:column;align-items:stretch;gap:4px;border-top:0;border-right:1px solid var(--line)}
+ .nav{top:calc(var(--header-h) + var(--safe-top));right:auto;bottom:0;left:0;width:205px;min-height:0;padding:22px 14px calc(20px + var(--safe-bottom));display:flex;flex-direction:column;align-items:stretch;gap:4px;border-top:0;border-right:1px solid var(--line)}
  .nav button{flex-direction:row;justify-content:flex-start;gap:13px;padding:0 14px;text-align:left;font-size:14px}
  .nav button.active{background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
  .mini{left:236px;right:auto;bottom:18px;width:min(500px,calc(100vw - 260px))}
@@ -37,4 +37,5 @@
  .ctrl{width:42px;min-width:42px}
  .ctrl.main{width:58px;min-width:58px;height:58px}
 }
+
 

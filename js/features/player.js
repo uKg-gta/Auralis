@@ -2,6 +2,7 @@ import {state,$,esc,toast,status,formatClock,byId,artworkClass,artworkUrl,icon} 
 import {add,put} from '../storage.js';
 import {streamTrackUrl} from './catalog.js';
 let volumeSaveTimer=null;
+let queueTrigger=null;
 function playbackMessage(){return byId(state.currentTrackId)?.source==='stream'?'Streaming from Audius':'Playing from your device'}
 function mediaSession(){return typeof navigator!=='undefined'&&navigator.mediaSession?navigator.mediaSession:null}
 function historyTrackSnapshot(track){
@@ -40,7 +41,7 @@ function setCover(elementId,track){
  if(image){image.hidden=!url;if(url)image.src=url}else if(url){const img=document.createElement('img');img.alt='';img.className='cover-image';img.src=url;element.appendChild(img)}
 }
 export function updateControls(){
- const hasTrack=!!byId(state.currentTrackId),playing=hasTrack&&!!state.audio.src&&!state.audio.paused,playLabel=playing?'Pause playback':'Play playback';
+ const hasTrack=!!byId(state.currentTrackId),playing=hasTrack&&!!state.audio.src&&!state.audio.paused,playLabel=playing?'Pause':'Play';
  $('mp').innerHTML=icon(playing?'pause':'play');$('mp').setAttribute('aria-label',playLabel);$('nowPlayButton').innerHTML=icon(playing?'pause':'play');$('nowPlayButton').setAttribute('aria-label',playLabel);
  $('shuffleButton').classList.toggle('active',state.shuffle);$('shuffleButton').setAttribute('aria-pressed',String(state.shuffle));$('shuffleButton').setAttribute('aria-label','Shuffle '+(state.shuffle?'on':'off'));
  $('repeatButton').classList.toggle('active',state.repeatMode!=='off');$('repeatButton').setAttribute('aria-pressed',String(state.repeatMode!=='off'));$('repeatButton').setAttribute('aria-label','Repeat '+state.repeatMode+'. Change repeat mode');
@@ -67,7 +68,7 @@ export function renderCurrent(){
 }
 function renderQueueItem(trackId,index,current){
  const track=byId(trackId);if(!track)return '';const url=artworkUrl(track),cover='<span class="qthumb art '+artworkClass(track)+'">'+(url?'<img src="'+esc(url)+'" alt="">':'')+'</span>';
- return '<div class="queue-item '+(current?'current':'')+'" data-queue-row="'+esc(trackId)+'" draggable="true">'+cover+'<div class="qinfo"><b>'+esc(track.title||track.name||'Unknown song')+'</b><span>'+esc(track.artist||'Unknown artist')+'</span></div><button data-queue-play="'+esc(trackId)+'" aria-label="Play '+esc(track.title||'song')+'">'+icon('play')+'</button><button data-queue-move="'+esc(trackId)+'" data-dir="-1" aria-label="Move '+esc(track.title||'song')+' up"'+(index===0?' disabled':'')+'>'+icon('arrow-up')+'</button><button data-queue-move="'+esc(trackId)+'" data-dir="1" aria-label="Move '+esc(track.title||'song')+' down"'+(index===state.queueIds.length-1?' disabled':'')+'>'+icon('arrow-down')+'</button><button data-queue-remove="'+esc(trackId)+'" aria-label="Remove '+esc(track.title||'song')+' from queue"'+(current?' disabled':'')+'>'+icon('close')+'</button></div>'
+ return '<div class="queue-item '+(current?'current':'')+'" data-queue-row="'+esc(trackId)+'"><button class="queue-main" data-queue-play="'+esc(trackId)+'" aria-label="Play '+esc(track.title||'song')+'">'+cover+'<span class="qinfo"><b>'+esc(track.title||track.name||'Unknown song')+'</b><span>'+esc(track.artist||'Unknown artist')+'</span></span></button><button class="queue-drag-handle" data-queue-drag="'+esc(trackId)+'" draggable="true" aria-label="Drag to reorder '+esc(track.title||'song')+'">'+icon('grip')+'</button><button data-queue-move="'+esc(trackId)+'" data-dir="-1" aria-label="Move '+esc(track.title||'song')+' up"'+(current||index===0?' disabled':'')+'>'+icon('arrow-up')+'</button><button data-queue-move="'+esc(trackId)+'" data-dir="1" aria-label="Move '+esc(track.title||'song')+' down"'+(current||index===state.queueIds.length-1?' disabled':'')+'>'+icon('arrow-down')+'</button><button data-queue-remove="'+esc(trackId)+'" aria-label="Remove '+esc(track.title||'song')+' from queue"'+(current?' disabled':'')+'>'+icon('close')+'</button></div>'
 }
 export function renderQueue(){
  const currentIndex=state.queueIds.indexOf(state.currentTrackId),current=byId(state.currentTrackId);let html='';
@@ -152,15 +153,15 @@ export function addToQueue(trackId){
  if(!state.queueIds.includes(trackId))state.queueIds.push(trackId);state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.queueBaseIds=state.queueIds.slice();renderQueue();toast('Added to Up Next')
 }
 export function moveQueue(trackId,direction){
- const index=state.queueIds.indexOf(trackId);if(index<0)return;const target=Math.max(0,Math.min(state.queueIds.length-1,index+direction));if(target===index)return;const item=state.queueIds.splice(index,1)[0];state.queueIds.splice(target,0,item);state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.queueBaseIds=state.queueIds.slice();renderQueue()
+ const index=state.queueIds.indexOf(trackId);if(index<0||trackId===state.currentTrackId)return;const target=Math.max(0,Math.min(state.queueIds.length-1,index+direction));if(target===index)return;const item=state.queueIds.splice(index,1)[0];state.queueIds.splice(target,0,item);state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.queueBaseIds=state.queueIds.slice();renderQueue();requestAnimationFrame(()=>Array.from($('queueList').querySelectorAll('[data-queue-move]')).find(button=>button.dataset.queueMove===trackId&&Number(button.dataset.dir)===direction)?.focus({preventScroll:true}))
 }
 export function moveQueueTo(trackId,targetIndex){
- const index=state.queueIds.indexOf(trackId);if(index<0)return;const item=state.queueIds.splice(index,1)[0];const target=Math.max(0,Math.min(state.queueIds.length,targetIndex));state.queueIds.splice(target,0,item);state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.queueBaseIds=state.queueIds.slice();renderQueue()
+ const index=state.queueIds.indexOf(trackId);if(index<0||trackId===state.currentTrackId)return;const item=state.queueIds.splice(index,1)[0];const target=Math.max(0,Math.min(state.queueIds.length,targetIndex));state.queueIds.splice(target,0,item);state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.queueBaseIds=state.queueIds.slice();renderQueue()
 }
 export function removeFromQueue(trackId){if(trackId===state.currentTrackId){toast('The playing song stays in the queue');return}state.queueIds=state.queueIds.filter(item=>item!==trackId);state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.queueBaseIds=state.queueIds.slice();renderQueue()}
 export function clearQueue(){const current=state.currentTrackId;state.queueIds=current?[current]:[];state.queueBaseIds=state.queueIds.slice();state.queueIndex=current?0:-1;renderQueue();toast('Queue cleared')}
-export function openQueue(){renderQueue();const panel=$('queuePanel');panel.style.display='';if(!panel.open)panel.showModal()}
-export function closeQueue(){const panel=$('queuePanel');if(panel.open)panel.close();panel.style.display='none'}
+export function openQueue(){renderQueue();const panel=$('queuePanel');if(!panel.open){queueTrigger=document.activeElement;panel.showModal()}}
+export function closeQueue(){const panel=$('queuePanel');if(panel.open)panel.close();const trigger=queueTrigger;queueTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
 export function openSleepTimer(){window.showDialog('Sleep timer','<div class="sleep-timer-intro">'+icon('timer')+' Stop playback after a set time</div><div class="dialog-options"><button data-timer="15">'+icon('timer')+' 15 minutes</button><button data-timer="30">'+icon('timer')+' 30 minutes</button><button data-timer="45">'+icon('timer')+' 45 minutes</button><button data-timer="60">'+icon('timer')+' 60 minutes</button><button data-timer="0">'+icon('close')+' Cancel sleep timer</button></div>')}
 export function selectSleepTimer(minutes){
  clearTimeout(state.sleepTimer);state.sleepTimer=null;window.closeAction();if(!minutes){updateControls();toast('Sleep timer cancelled');return}
@@ -178,15 +179,22 @@ export function initPlayer(){
  $('miniOpen').addEventListener('click',()=>window.show('now'));$('mp').addEventListener('click',toggle);$('miniNext').addEventListener('click',nextTrack);
  $('nowPlayButton').addEventListener('click',toggle);$('previousButton').addEventListener('click',previousTrack);$('nextButton').addEventListener('click',nextTrack);$('shuffleButton').addEventListener('click',toggleShuffle);$('repeatButton').addEventListener('click',toggleRepeat);
  $('nowLikeButton').addEventListener('click',()=>{if(state.currentTrackId)window.toggleLike(state.currentTrackId)});$('nowMoreButton').addEventListener('click',()=>{if(state.currentTrackId)window.trackMenu(state.currentTrackId)});
- $('lyricsButton').addEventListener('click',toggleLyrics);$('queueButton').addEventListener('click',openQueue);$('playerQueueOpen').addEventListener('click',openQueue);$('sleepTimerButton').addEventListener('click',openSleepTimer);
+ $('lyricsButton').addEventListener('click',toggleLyrics);$('queueButton').addEventListener('click',openQueue);$('sleepTimerButton').addEventListener('click',openSleepTimer);
  $('playerClose').addEventListener('click',()=>window.closePlayer());$('lyricsClose').addEventListener('click',()=>{$('lyricsPanel').hidden=true;$('now').classList.remove('lyrics-open');$('lyricsButton').focus()});
  $('queueClose').addEventListener('click',closeQueue);$('queueHeaderClose').addEventListener('click',closeQueue);$('queueClear').addEventListener('click',clearQueue);
  $('now').addEventListener('cancel',event=>{event.preventDefault();window.closePlayer()});$('queuePanel').addEventListener('cancel',event=>{event.preventDefault();closeQueue()});
  $('queuePanel').addEventListener('click',event=>{if(event.target=== $('queuePanel'))closeQueue()});
- let dragId=null;
- $('queueList').addEventListener('dragstart',event=>{const row=event.target.closest('[data-queue-row]');if(!row)return;dragId=row.dataset.queueRow;event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',dragId)});
- $('queueList').addEventListener('dragover',event=>{if(event.target.closest('[data-queue-row]'))event.preventDefault()});
- $('queueList').addEventListener('drop',event=>{const row=event.target.closest('[data-queue-row]');if(!row||!dragId)return;event.preventDefault();const target=state.queueIds.indexOf(row.dataset.queueRow);moveQueueTo(dragId,target);dragId=null});
+ const queueList=$('queueList');let dragId=null,pointerDrag=null;
+ function queueDropIndex(targetRow,clientY,draggedId){const targetIndex=state.queueIds.indexOf(targetRow.dataset.queueRow),sourceIndex=state.queueIds.indexOf(draggedId);if(targetIndex<0||sourceIndex<0)return -1;const rect=targetRow.getBoundingClientRect(),boundary=targetIndex+(clientY>rect.top+rect.height/2?1:0);return boundary-(sourceIndex<boundary?1:0)}
+ queueList.addEventListener('dragstart',event=>{const handle=event.target.closest('[data-queue-drag]');if(!handle||handle.closest('.current')){event.preventDefault();return}dragId=handle.dataset.queueDrag;event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',dragId)});
+ queueList.addEventListener('dragover',event=>{if(dragId&&event.target.closest('[data-queue-row]'))event.preventDefault()});
+ queueList.addEventListener('drop',event=>{const row=event.target.closest('[data-queue-row]');if(!row||!dragId)return;event.preventDefault();const target=queueDropIndex(row,event.clientY,dragId);if(target>=0)moveQueueTo(dragId,target);dragId=null});
+ queueList.addEventListener('dragend',()=>{dragId=null});
+ queueList.addEventListener('pointerdown',event=>{const handle=event.target.closest('[data-queue-drag]'),row=handle?.closest('[data-queue-row]');if(!handle||!row||row.classList.contains('current')||event.pointerType==='mouse')return;pointerDrag={id:handle.dataset.queueDrag,pointerId:event.pointerId,startY:event.clientY,moved:false,target:row};row.classList.add('queue-dragging');handle.setPointerCapture?.(event.pointerId)});
+ queueList.addEventListener('pointermove',event=>{if(!pointerDrag||event.pointerId!==pointerDrag.pointerId)return;if(Math.abs(event.clientY-pointerDrag.startY)<8&&!pointerDrag.moved)return;pointerDrag.moved=true;queueList.querySelectorAll('[data-drop-target]').forEach(row=>delete row.dataset.dropTarget);const row=document.elementFromPoint(event.clientX,event.clientY)?.closest('[data-queue-row]');if(row&&queueList.contains(row)){pointerDrag.target=row;row.dataset.dropTarget='true'}});
+ function finishPointerDrag(event){if(!pointerDrag||event.pointerId!==pointerDrag.pointerId)return;const drag=pointerDrag;pointerDrag=null;queueList.querySelectorAll('[data-drop-target]').forEach(row=>delete row.dataset.dropTarget);queueList.querySelectorAll('.queue-dragging').forEach(row=>row.classList.remove('queue-dragging'));if(!drag.moved)return;const target=queueDropIndex(drag.target,event.clientY,drag.id);if(target>=0){moveQueueTo(drag.id,target);requestAnimationFrame(()=>Array.from(queueList.querySelectorAll('[data-queue-drag]')).find(handle=>handle.dataset.queueDrag===drag.id)?.focus({preventScroll:true}))}}
+ queueList.addEventListener('pointerup',finishPointerDrag);queueList.addEventListener('pointercancel',()=>{if(pointerDrag){queueList.querySelectorAll('[data-drop-target]').forEach(row=>delete row.dataset.dropTarget);queueList.querySelectorAll('.queue-dragging').forEach(row=>row.classList.remove('queue-dragging'));pointerDrag=null}});
  window.addEventListener('beforeunload',()=>{flushSession();if(state.objectUrl)URL.revokeObjectURL(state.objectUrl);for(const url of state.artworkUrls.values())URL.revokeObjectURL(url)})
 }
+
 

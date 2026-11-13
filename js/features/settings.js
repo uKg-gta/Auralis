@@ -5,10 +5,10 @@ function linear(value){return value<=.04045?value/12.92:Math.pow((value+.055)/1.
 function luminance(hex){return rgb(hex).map(linear).reduce((sum,value,index)=>sum+value*[.2126,.7152,.0722][index],0)}
 export function contrastRatio(first,second){const values=[luminance(first),luminance(second)].sort((a,b)=>b-a);return (values[0]+.05)/(values[1]+.05)}
 function mix(hex,target,amount){const source=rgb(hex).map(value=>value*255),destination=rgb(target).map(value=>value*255);return '#'+source.map((value,index)=>Math.round(value+(destination[index]-value)*amount).toString(16).padStart(2,'0')).join('')}
-function accessibleAccent(hex,background){let candidate=hex;const direction=background==='#000000'?'#ffffff':'#000000';for(let step=0;step<=100;step++){if(contrastRatio(candidate,background)>=4.5)return candidate;candidate=mix(hex,direction,(step+1)/100)}return direction}
+function accessibleAccent(hex,background){const direction=contrastRatio('#000000',background)>=contrastRatio('#ffffff',background)?'#000000':'#ffffff';let candidate=hex;for(let step=0;step<=100;step++){if(contrastRatio(candidate,background)>=4.5)return candidate;candidate=mix(hex,direction,(step+1)/100)}return direction}
 function accentForeground(hex){return contrastRatio(hex,'#000000')>=contrastRatio(hex,'#ffffff')?'#000000':'#ffffff'}
 export function applyPreferences(){
- const theme=state.prefs.theme==='light'?'light':'dark',accent=/^#[0-9a-f]{6}$/i.test(state.prefs.accent||'')?state.prefs.accent:'#fa2d48',background=theme==='light'?'#ffffff':'#1c1c1e';
+ const theme=state.prefs.theme==='light'?'light':'dark',accent=/^#[0-9a-f]{6}$/i.test(state.prefs.accent||'')?state.prefs.accent:'#fa2d48',background=theme==='light'?'#f2f2f7':'#1c1c1e';
  document.documentElement.dataset.theme=theme;document.documentElement.style.setProperty('--accent',accent);document.documentElement.style.setProperty('--accent-ink',accessibleAccent(accent,background));document.documentElement.style.setProperty('--accent-on',accentForeground(accent));
  document.body.classList.toggle('large-text',!!state.prefs.largeText);
  document.querySelectorAll('[data-theme]').forEach(button=>{const active=button.dataset.theme===theme;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
@@ -29,4 +29,5 @@ export async function requestPersistentStorage(){
  if(!navigator.storage||typeof navigator.storage.persist!=='function'){toast('Persistent storage is not available in this browser');return}
  try{const granted=await navigator.storage.persist();toast(granted?'Auralis storage is protected from automatic cleanup':'The browser did not grant persistent storage')}catch(error){toast('Could not request persistent storage')}
 }
+
 

@@ -1,7 +1,7 @@
 export const state={
  db:null,tracks:[],catalogTracks:[],playlists:[],categories:[],history:[],
  currentTrackId:null,queueIds:[],queueBaseIds:[],queueIndex:-1,shuffle:false,repeatMode:'off',
- libraryFilter:'all',librarySection:'overview',selectedPlaylistId:null,selectedArtistName:null,selectedAlbumName:null,dialogTrackId:null,
+ libraryFilter:'all',librarySource:'all',librarySection:'overview',searchFilter:'all',searchScope:'library',selectedPlaylistId:null,selectedArtistName:null,selectedAlbumName:null,dialogTrackId:null,
  prefs:{theme:'dark',accent:'#fa2d48',volume:.8,lastVolume:.8,librarySort:'recent',largeText:false,recentSearches:[]},
  objectUrl:null,artworkUrls:new Map(),sleepTimer:null,sessionId:null,sessionRecord:null,lastPosition:0,pendingSeconds:0,lastPersist:0,
  homeSource:'all',audio:document.getElementById('localAudio'),refreshAll:function(){},renderSearch:function(){},renderCurrent:function(){}
@@ -30,4 +30,5 @@ export function trackRow(track,options={}){
  if(options.playlist){const positioned=Number.isInteger(options.playlistIndex)&&Number.isInteger(options.playlistCount),atStart=positioned&&options.playlistIndex===0,atEnd=positioned&&options.playlistIndex===options.playlistCount-1;extra='<button class="track-extra" data-move-playlist="'+esc(track.id)+'" data-dir="-1" aria-label="Move '+esc(title)+' up"'+(atStart?' disabled':'')+'>'+icon('arrow-up')+'</button><button class="track-extra" data-move-playlist="'+esc(track.id)+'" data-dir="1" aria-label="Move '+esc(title)+' down"'+(atEnd?' disabled':'')+'>'+icon('arrow-down')+'</button><button class="track-extra" data-remove-playlist="'+esc(track.id)+'" aria-label="Remove '+esc(title)+' from playlist">'+icon('close')+'</button>'}
  return '<article class="track-item" data-track-row data-track-id="'+esc(track.id)+'"><button class="track-main" data-play-track="'+esc(track.id)+'"'+collection+' aria-label="Play '+esc(title)+' by '+esc(artist)+'">'+artMarkup(track,'thumb')+'<span class="meta"><b>'+highlight(title,query)+'</b><span>'+highlight(artist,query)+(track.album?' · '+esc(track.album):'')+'</span></span></button><button class="track-more" data-track-menu="'+esc(track.id)+'" aria-label="More actions for '+esc(title)+'" aria-haspopup="dialog">'+icon('more')+'</button>'+extra+'</article>'
 }
+
 
