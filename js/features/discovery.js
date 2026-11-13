@@ -27,6 +27,7 @@ function buildProfile(){
  const addScore=(track,score)=>{if(!track)return;const artist=(track.artist||'').trim().toLowerCase(),genre=(track.genre||'').trim().toLowerCase();if(artist)profile.artists[artist]=(profile.artists[artist]||0)+score;if(genre)profile.genres[genre]=(profile.genres[genre]||0)+score};
  state.tracks.filter(track=>track.liked).forEach(track=>addScore(track,4));
  state.listeningSignals.forEach(event=>{
+  if(event.type==='search_performed'&&event.query)profile.searchTerms.push(String(event.query).toLowerCase());
   const track=event.track||byId(event.trackId);if(!track)return;
   if(event.type==='play_started')addScore(track,.5);
   else if(event.type==='play_progress')addScore(track,Math.min(3,(Number(event.playedSeconds)||0)/90));
