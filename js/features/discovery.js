@@ -3,7 +3,7 @@ import {add,put} from '../storage.js';
 import {discoverFromProviders} from '../providers/provider-registry.js';
 
 const FAMILIAR_SHARE=.60,FEED_SIZE=10;
-let candidates=[],loading=null,activeTrackId=null,lastPosition=0,sessionSeconds=0,totalSessionSeconds=0,lastSignalAt=0;
+let candidates=[],loading=null,loaded=false,activeTrackId=null,lastPosition=0,sessionSeconds=0,totalSessionSeconds=0,lastSignalAt=0;
 
 function snapshot(track){return {id:track.id,provider:track.provider||'local',source:track.source||'local',title:track.title||track.name||'Unknown track',artist:track.artist||'Unknown artist',genre:track.genre||'',album:track.album||'',providerId:track.providerId||''}}
 export async function recordDiscoverySignal(type,track,extra={}){
@@ -36,7 +36,7 @@ function buildProfile(){
   else if(event.type==='more_like_this')addScore(track,4);
   else if(event.type==='track_liked')addScore(track,4);
  });
- profile.hasTaste=Object.values(profile.artists).some(value=>value>1)||Object.values(profile.genres).some(value=>value>1);
+ profile.hasTaste=profile.searchTerms.length>0||Object.values(profile.artists).some(value=>value>1)||Object.values(profile.genres).some(value=>value>1);
  return profile;
 }
 function isExcluded(track){
@@ -72,10 +72,11 @@ export function renderDiscovery(){
  const note=$('discoveryMixNote');if(note)note.textContent=result.profile.hasTaste?'A balanced mix: 60% familiar sounds and 40% new discoveries.':'Starting with Audius trending, underground and new releases.';
 }
 export async function loadDiscovery(force=false){
+ if(loaded&&!force)return;
  if(loading&&!force)return loading;
  loading=(async()=>{
   const statusBox=$('discoveryStatus');if(statusBox){statusBox.hidden=false;statusBox.textContent='Finding music on Audius…'}
-  try{candidates=await discoverFromProviders(['audius']);renderDiscovery();if(statusBox)statusBox.hidden=true}
+  try{candidates=await discoverFromProviders(['audius']);loaded=true;renderDiscovery();if(statusBox){statusBox.hidden=!!candidates.length;if(!candidates.length)statusBox.textContent='No Audius recommendations are available right now.'}}
   catch(error){if(statusBox){statusBox.hidden=false;statusBox.textContent='Could not load recommendations. Check your connection and try again.'}}
   finally{loading=null}
  })();return loading;
