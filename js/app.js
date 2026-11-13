@@ -1,12 +1,13 @@
 import {state,$,status,toast,uniqueRecent,playlistTrackIds,esc,icon,formatDuration} from './core.js';
 import {loadLibraryState} from './storage.js';
 import {applyPreferences,setTheme,setAccent,setLargeText,refreshStorageInfo,requestPersistentStorage} from './features/settings.js';
-import {renderHome,renderLibrary,renderYourMusic,renderLibraryArtists,renderLibraryAlbums,createCategory,importAudioFiles,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort} from './features/library.js';
+import {renderHome,renderLibrary,renderYourMusic,renderLibraryArtists,renderLibraryAlbums,createCategory,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort} from './features/library.js';
 import {renderPlaylists,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,moveInPlaylist,removeFromPlaylist} from './features/playlists.js';
 import {renderSearch,setSearchFilter,setSearchScope,initSearch,setSearchQuery} from './features/search.js';
-import {renderProfile} from './features/profile.js';
+import {renderProfile,initProfile} from './features/profile.js';
+import {initDiscovery,loadDiscovery,renderDiscovery} from './features/discovery.js';
 import {initPlayer,syncVolume,renderCurrent,renderQueue,playTrack,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,selectSleepTimer,moveQueue,moveQueueTo,removeFromQueue,clearQueue,stopCurrent} from './features/player.js';
-import {initActions,showDialog,openImportDialog,openAddMenu,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction} from './features/actions.js';
+import {initActions,showDialog,openAddMenu,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction} from './features/actions.js';
 import {importLibraryBackup} from './features/backup.js';
 import {initCatalog,loadBrowse} from './features/catalog.js';
 import {hydrateSavedSources,revalidateSavedYoutubeReferences,saveSourceCredentials,browseSource,loadHomeSources} from './sources/index.js';
@@ -29,7 +30,7 @@ function show(screenId){
  if(screenId==='settings')refreshStorageInfo();if(screenId==='browse')showBrowseSource(browseSelectedSource)
 }
 function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
-function renderAll(){renderHome();renderLibrary();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
+function renderAll(){renderHome();renderDiscovery();renderLibrary();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
 state.refreshAll=renderAll;state.renderSearch=renderSearch;state.renderCurrent=renderCurrent;
 function handleClick(event){
  const target=event.target.closest('[data-search-filter],[data-search-scope],[data-library-filter],[data-library-source],[data-library-section],[data-play-track],[data-track-menu],[data-toggle-like],[data-open-playlist],[data-play-playlist],[data-smart],[data-play-collection],[data-move-playlist],[data-remove-playlist],[data-queue-play],[data-queue-move],[data-queue-remove],[data-timer],[data-open-artist],[data-open-album],[data-album-menu],[data-playlist-menu],[data-home-source],[data-open-library],[data-open-browse-source],[data-browse-source],[data-browse-play-all],[data-browse-retry],[data-open-youtube-settings]');
@@ -64,17 +65,7 @@ function handleClick(event){
  if(target.dataset.browseSource){showBrowseSource(target.dataset.browseSource);return}
  if(target.dataset.openBrowseSource){show('browse');showBrowseSource(target.dataset.openBrowseSource);return}
 }
-function setupImportInputs(){
- $('audioImport').addEventListener('change',event=>importAudioFiles(event.target.files));$('folderImport').addEventListener('change',event=>importAudioFiles(event.target.files));
- $('backupImport').addEventListener('change',event=>window.importLibraryBackup(event.target.files?.[0]))
-}
-function setupDropImport(){
- const overlay=$('importDropTarget');if(!overlay)return;let dragDepth=0;
- document.addEventListener('dragenter',event=>{if(!Array.from(event.dataTransfer?.types||[]).includes('Files'))return;event.preventDefault();dragDepth++;overlay.hidden=false});
- document.addEventListener('dragover',event=>{if(Array.from(event.dataTransfer?.types||[]).includes('Files'))event.preventDefault()});
- document.addEventListener('dragleave',event=>{if(!Array.from(event.dataTransfer?.types||[]).includes('Files'))return;dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)overlay.hidden=true});
- document.addEventListener('drop',event=>{if(!Array.from(event.dataTransfer?.types||[]).includes('Files'))return;event.preventDefault();dragDepth=0;overlay.hidden=true;importAudioFiles(event.dataTransfer.files)})
-}
+function setupBackupInput(){$('backupImport')?.addEventListener('change',event=>window.importLibraryBackup(event.target.files?.[0]))}
 function setupRowGestures(){
  let pointer=null,longPress=null,consumedLongPress=false;
  document.addEventListener('click',event=>{if(!consumedLongPress)return;const row=event.target.closest('[data-track-row]');if(!row)return;event.preventDefault();event.stopImmediatePropagation();consumedLongPress=false},true);
@@ -139,13 +130,13 @@ function setupSourceSettings(){
 }
 function setupScrollTitle(){let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
 function boot(){
- initPlayer();initActions();initSearch();initCatalog();setupImportInputs();setupDropImport();setupRowGestures();setupPreferences();setupSourceSettings();setupYoutubeDataMaintenance();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
- Object.assign(window,{show,closePlayer,showDialog,openImportDialog,openAddMenu,setTheme,setAccent,setLargeText,createCategory,importAudioFiles,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort,setSearchFilter,setSearchScope,doSearch:renderSearch,setSearchQuery,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction,moveInPlaylist,removeFromPlaylist,moveQueue,moveQueueTo,removeFromQueue,clearQueue,stopCurrent,importLibraryBackup});
+ initPlayer();initActions();initSearch();initCatalog();initProfile();initDiscovery();setupBackupInput();setupRowGestures();setupPreferences();setupSourceSettings();setupYoutubeDataMaintenance();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
+ Object.assign(window,{show,closePlayer,showDialog,openAddMenu,setTheme,setAccent,setLargeText,createCategory,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort,setSearchFilter,setSearchScope,doSearch:renderSearch,setSearchQuery,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction,moveInPlaylist,removeFromPlaylist,moveQueue,moveQueueTo,removeFromQueue,clearQueue,stopCurrent,importLibraryBackup});
  const playerDialog=$('now');playerDialog.addEventListener('close',()=>{document.body.classList.remove('player-open');pauseYouTubePlayback()});playerDialog.addEventListener('toggle',()=>document.body.classList.toggle('player-open',playerDialog.open));
  $('actionDialog').addEventListener('cancel',event=>{event.preventDefault();closeAction()});$('actionDialog').addEventListener('click',event=>{if(event.target===$('actionDialog'))closeAction()});
  document.addEventListener('click',handleClick);document.addEventListener('error',event=>{if(event.target instanceof HTMLImageElement){event.target.hidden=true;event.target.removeAttribute('src');event.target.closest('.art')?.classList.add('art-load-failed')}},true);document.getElementById('libraryBack').addEventListener('click',()=>{state.librarySection='overview';state.selectedArtistName=null;state.selectedAlbumName=null;renderLibrary();window.scrollTo({top:0,behavior:'smooth'})});
  document.getElementById('artistBack').addEventListener('click',()=>{state.selectedArtistName=null;renderLibraryArtists()});document.getElementById('albumBack').addEventListener('click',()=>{state.selectedAlbumName=null;renderLibraryAlbums()});
- loadLibraryState().then(()=>{libraryLoaded=true;applyPreferences();syncVolume();renderAll();window.__auralisSetReady?.();hydrateSavedSources().then(async()=>{await revalidateSavedYoutubeReferences();state.refreshAll()}).catch(()=>{});loadHomeSourceShelves().catch(()=>{})}).catch(error=>{status(error.message);try{renderAll()}catch(renderError){window.__auralisShowStartupError?.('Auralis could not render your library. Reload the app and try again.')}window.__auralisSetReady?.();toast(error.message)})
+ loadLibraryState().then(()=>{libraryLoaded=true;applyPreferences();syncVolume();renderAll();window.__auralisSetReady?.();loadDiscovery().catch(()=>{});hydrateSavedSources().then(async()=>{await revalidateSavedYoutubeReferences();state.refreshAll()}).catch(()=>{});loadHomeSourceShelves().catch(()=>{})}).catch(error=>{status(error.message);try{renderAll()}catch(renderError){window.__auralisShowStartupError?.('Auralis could not render your library. Reload the app and try again.')}window.__auralisSetReady?.();toast(error.message)})
 }
 boot();
 
