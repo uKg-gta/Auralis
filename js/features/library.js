@@ -1,7 +1,6 @@
 import {state,$,makeId,esc,toast,status,formatDuration,byId,uniqueRecent,artworkClass,artworkUrl,trackRow,sortTracks,icon} from '../core.js';
 import {put} from '../storage.js';
 import {weeklySeconds} from './profile.js';
-import {parseAudioMetadata} from './metadata.js';
 
 function displayName(track){return track.title||track.name||'Unknown track'}
 function artistNames(){return Array.from(new Set(state.tracks.map(track=>track.artist||'Unknown artist'))).sort((a,b)=>a.localeCompare(b))}
