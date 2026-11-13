@@ -144,7 +144,7 @@ export function toggleShuffle(){
  else if(state.queueBaseIds.length){const current=state.currentTrackId,base=state.queueBaseIds.slice(),index=base.indexOf(current);if(index>=0){state.queueIds=base;state.queueIndex=index}}
  updateControls();renderQueue();toast(state.shuffle?'Shuffle on':'Shuffle off')
 }
-export function toggleRepeat(){state.repeatMode=state.repeatMode==='off'?'all':state.repeatMode==='all'?'one':'off';updateControls();toast('Repeat '+state.repeatMode)}
+export function toggleRepeat(){state.repeatMode=state.repeatMode==='off'?'all':state.repeatMode==='all'?'one':'off';persistQueue();updateControls();toast('Repeat '+state.repeatMode)}
 export function playCollection(ids){const valid=ids.filter(trackId=>!!byId(trackId));if(!valid.length){toast('No songs in this collection yet');return}playTrack(valid[0],valid)}
 export function playNext(trackId){
  if(!byId(trackId))return;if(!state.queueIds.length)state.queueIds=state.tracks.map(track=>track.id);const currentIndex=state.queueIds.indexOf(state.currentTrackId),existing=state.queueIds.indexOf(trackId);
