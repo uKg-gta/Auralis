@@ -2,8 +2,9 @@ import {state,$,esc,toast,status,formatClock,byId,artworkClass,artworkUrl,icon} 
 import {add,put} from '../storage.js';
 import {streamTrackUrl} from './catalog.js';
 import {recordDiscoverySignal} from './discovery.js';
-let volumeSaveTimer=null;
+let volumeSaveTimer=null,queueSaveTimer=null;
 let queueTrigger=null;
+function persistQueue(){clearTimeout(queueSaveTimer);queueSaveTimer=setTimeout(()=>{const allowed=state.queueIds.filter(id=>{const track=byId(id);return track&&track.provider!=='youtube'&&track.source!=='youtube'}),current=byId(state.currentTrackId);const value={queueIds:allowed,queueBaseIds:(state.queueBaseIds||allowed).filter(id=>allowed.includes(id)),currentTrackId:current&&current.provider!=='youtube'&&current.source!=='youtube'?current.id:null,shuffle:!!state.shuffle,repeatMode:state.repeatMode};put('settings',{key:'queueState',value}).catch(()=>toast('Could not save the listening queue'))},80)}
 function playbackMessage(){return byId(state.currentTrackId)?.source==='stream'?'Streaming from Audius':'Playing from your device'}
 function mediaSession(){return typeof navigator!=='undefined'&&navigator.mediaSession?navigator.mediaSession:null}
 function historyTrackSnapshot(track){
@@ -15,7 +16,7 @@ function updateMediaPosition(){
  try{session.setPositionState({duration,playbackRate:state.audio.playbackRate||1,position:Math.max(0,Math.min(duration,state.audio.currentTime||0))})}catch(error){}
 }
 function updateMediaSession(){
- const session=mediaSession();if(!session)return;const track=byId(state.currentTrackId);
+ const session=mediaSession();if(!session)return;installMediaSession();const track=byId(state.currentTrackId);
  try{
   if(!track){session.metadata=null;session.playbackState='none';return}
   const artwork=artworkUrl(track),metadata={title:track.title||track.name||'Unknown track',artist:track.artist||'Unknown artist',album:track.album||'Auralis'};
@@ -27,6 +28,7 @@ function updateMediaSession(){
 function seekMedia(seconds){const duration=state.audio.duration;if(!Number.isFinite(duration)||duration<=0)return;state.audio.currentTime=Math.max(0,Math.min(duration,state.audio.currentTime+seconds))}
 function installMediaSession(){
  const session=mediaSession();if(!session||typeof session.setActionHandler!=='function')return;
+ const track=byId(state.currentTrackId),provider=track?.provider||'local',allowed=!!track&&track.source!=='youtube'&&provider!=='youtube'&&(track.source!=='stream'||['audius','jamendo'].includes(provider));if(!allowed){['play','pause','previoustrack','nexttrack','seekbackward','seekforward','seekto','stop'].forEach(action=>{try{session.setActionHandler(action,null)}catch(error){}});return}
  const handlers={
   play:()=>{if(!state.currentTrackId)return;if(!state.audio.src){playTrack(state.currentTrackId,state.queueIds);return}state.audio.play().catch(()=>status('Playback could not start; try another track'))},
   pause:()=>{state.audio.pause();flushSession()},previoustrack:previousTrack,nexttrack:nextTrack,
@@ -76,7 +78,7 @@ export function renderQueue(){
  if(current)html+='<div class="queue-group-title">Now Playing</div>'+renderQueueItem(current.id,currentIndex,true);
  const upcoming=currentIndex>=0?state.queueIds.slice(currentIndex+1):state.queueIds.filter(id=>!!byId(id));
  if(upcoming.length){html+='<div class="queue-group-title">Playing Next</div>'+renderQueueItem(upcoming[0],currentIndex+1,false);if(upcoming.length>1)html+='<div class="queue-group-title">Up Next</div>'+upcoming.slice(1).map((id,index)=>renderQueueItem(id,currentIndex+2+index,false)).join('')}
- $('queueList').innerHTML=html||'<div class="queue-empty">Your queue is empty. Choose a song to start listening.</div>';state.queueIndex=currentIndex
+ $('queueList').innerHTML=html||'<div class="queue-empty">Your queue is empty. Choose a song to start listening.</div>';state.queueIndex=currentIndex;persistQueue()
 }
 function startSession(track){
  flushSession();const snapshot=historyTrackSnapshot(track);if(snapshot&&!state.catalogTracks.some(item=>item.id===snapshot.id))state.catalogTracks.push(snapshot);state.sessionRecord={trackId:track.id,title:track.title||track.name,artist:track.artist||'Unknown artist',startedAt:Date.now(),seconds:0,...(snapshot?{trackSnapshot:snapshot}:{})};state.sessionId=null;state.pendingSeconds=0;state.lastPersist=Date.now();
@@ -169,7 +171,8 @@ export function selectSleepTimer(minutes){
  clearTimeout(state.sleepTimer);state.sleepTimer=null;window.closeAction();if(!minutes){updateControls();toast('Sleep timer cancelled');return}
  state.sleepTimer=setTimeout(()=>{state.sleepTimer=null;state.audio.pause();flushSession();status('Sleep timer stopped playback');updateControls();toast('Sleep timer finished')},minutes*60000);updateControls();toast('Playback will stop in '+minutes+' minutes')
 }
-export function toggleLyrics(){const panel=$('lyricsPanel');panel.hidden=!panel.hidden;$('now').classList.toggle('lyrics-open',!panel.hidden);if(!panel.hidden){renderLyrics();$('lyricsClose').focus()}}
+export function toggleLyrics(){const panel=$('lyricsPanel');panel.hidden=!panel.hidden;$('now').class.toggle('lyrics-open',!panel.hidden);if(!panel.hidden){renderLyrics();$('lyricsClose').focus()}}
+export async function importLyricsFile(file){if(!file)return;const track=state.tracks.find(item=>item.id===state.currentTrackId);if(!track){toast('Select a saved library track before importing lyrics');return}try{if(file.size>1024*1024)throw new Error('Lyrics files must be smaller than 1 MB');const lyrics=(await file.text()).replace(/^\\uFEFF/,'').trim();if(!lyrics)throw new Error('The lyrics file is empty');track.lyrics=lyrics;await put('tracks',track);renderCurrent();toast('Lyrics imported')}catch(error){toast(error.message||'Could not import lyrics')}finally{$('lyricsImport').value=''}}
 export function stopCurrent(trackId){
  if(state.currentTrackId!==trackId)return;state.audio.pause();flushSession();state.audio.removeAttribute('src');state.audio.load();if(state.objectUrl)URL.revokeObjectURL(state.objectUrl);state.objectUrl=null;state.currentTrackId=null;state.sessionId=null;state.sessionRecord=null;state.queueIds=state.queueIds.filter(id=>id!==trackId);state.queueIndex=-1;renderCurrent();renderQueue()
 }
@@ -181,7 +184,7 @@ export function initPlayer(){
  $('miniOpen').addEventListener('click',()=>window.show('now'));$('mp').addEventListener('click',toggle);$('miniNext').addEventListener('click',nextTrack);
  $('nowPlayButton').addEventListener('click',toggle);$('previousButton').addEventListener('click',previousTrack);$('nextButton').addEventListener('click',nextTrack);$('shuffleButton').addEventListener('click',toggleShuffle);$('repeatButton').addEventListener('click',toggleRepeat);
  $('nowLikeButton').addEventListener('click',()=>{if(state.currentTrackId)window.toggleLike(state.currentTrackId)});$('nowMoreButton').addEventListener('click',()=>{if(state.currentTrackId)window.trackMenu(state.currentTrackId)});
- $('lyricsButton').addEventListener('click',toggleLyrics);$('queueButton').addEventListener('click',openQueue);$('sleepTimerButton').addEventListener('click',openSleepTimer);
+ $('lyricsButton').addEventListener('click',toggleLyrics);$('lyricsImportButton').addEventListener('click',()=>$('lyricsImport').click());$('lyricsImport').addEventListener('change',event=>importLyricsFile(event.target.files?.[0]));$('queueButton').addEventListener('click',openQueue);$('sleepTimerButton').addEventListener('click',openSleepTimer);
  $('playerClose').addEventListener('click',()=>window.closePlayer());$('lyricsClose').addEventListener('click',()=>{$('lyricsPanel').hidden=true;$('now').classList.remove('lyrics-open');$('lyricsButton').focus()});
  $('queueClose').addEventListener('click',closeQueue);$('queueHeaderClose').addEventListener('click',closeQueue);$('queueClear').addEventListener('click',clearQueue);
  $('now').addEventListener('cancel',event=>{event.preventDefault();window.closePlayer()});$('queuePanel').addEventListener('cancel',event=>{event.preventDefault();closeQueue()});
