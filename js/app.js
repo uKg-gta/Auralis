@@ -12,10 +12,15 @@ import {initCatalog,loadBrowse} from './features/catalog.js';
 import {initDiscovery,loadDiscovery,hideRecommendation,moreLikeRecommendation,resetTasteProfile} from './features/discovery.js';
 
 let returnScreen='home',currentScreen='home',playerTrigger=null;
+function isMobilePlayerDevice(){
+ const touchPoints=Number(navigator.maxTouchPoints)||0;
+ const screenWidth=Number(window.screen?.width)||0,screenHeight=Number(window.screen?.height)||0;
+ const shortestScreenSide=screenWidth&&screenHeight?Math.min(screenWidth,screenHeight):0;
+ return touchPoints>0||'ontouchstart' in window||window.matchMedia('(max-width: 899px)').matches||(shortestScreenSide>0&&shortestScreenSide<=800);
+}
 function setPlayerOpenState(open){
  const body=document.body;body.classList.toggle('player-open',open);
- const mobile=!!(navigator.maxTouchPoints>0||window.matchMedia('(max-width: 899px)').matches);
- body.classList.toggle('mobile-player-open',open&&mobile);
+ body.classList.toggle('mobile-player-open',open&&isMobilePlayerDevice());
 }
 function titleFor(screen){return ({home:'Listen Now',search:'Search',browse:'Browse',library:'Library',settings:'Settings',profile:'Listening Stats'})[screen]||'Auralis'}
 function show(screenId){
@@ -106,7 +111,7 @@ function setupPreferences(){
 }
 function setupScrollTitle(){let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
 function boot(){
- initPlayer();initActions();initSearch();initCatalog();initDiscovery();setupImportInputs();setupDropImport();setupRowGestures();setupPreferences();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
+ initPlayer();initActions();initSearch();initCatalog();initDiscovery();setupImportInputs();setupDropImport();setupRowGestures();setupPreferences();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);const playerDialog=$('now');playerDialog.addEventListener('toggle',()=>setPlayerOpenState(playerDialog.open));playerDialog.addEventListener('close',()=>setPlayerOpenState(false));playerDialog.addEventListener('cancel',event=>{event.preventDefault();closePlayer()});
  Object.assign(window,{show,closePlayer,showDialog,openImportDialog,openAddMenu,loadDiscovery,hideRecommendation,moreLikeRecommendation,resetTasteProfile,setTheme,setAccent,setLargeText,createCategory,importAudioFiles,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort,setSearchFilter,setSearchScope,doSearch:renderSearch,setSearchQuery,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,playLocal,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction,moveInPlaylist,removeFromPlaylist,moveQueue,moveQueueTo,removeFromQueue,clearQueue,importLibraryBackup});
  document.addEventListener('click',handleClick);document.getElementById('libraryBack').addEventListener('click',()=>{state.librarySection='overview';state.selectedArtistName=null;state.selectedAlbumName=null;renderLibrary();window.scrollTo({top:0,behavior:'smooth'})});
  document.getElementById('artistBack').addEventListener('click',()=>{state.selectedArtistName=null;renderLibraryArtists()});document.getElementById('albumBack').addEventListener('click',()=>{state.selectedAlbumName=null;renderLibraryAlbums()});
