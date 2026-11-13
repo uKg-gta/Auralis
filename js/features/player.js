@@ -50,7 +50,7 @@ export function updateControls(){
  $('repeatButton').classList.toggle('active',state.repeatMode!=='off');$('repeatButton').setAttribute('aria-pressed',String(state.repeatMode!=='off'));$('repeatButton').setAttribute('aria-label','Repeat '+state.repeatMode+'. Change repeat mode');
  ['previousButton','nextButton','seekBar','nowLikeButton','nowMoreButton','lyricsButton','sleepTimerButton'].forEach(id=>{const control=$(id);if(control)control.disabled=!hasTrack});
  const timer=$('sleepTimerButton');if(timer){timer.classList.toggle('active',state.sleepTimer!==null);timer.setAttribute('aria-pressed',String(state.sleepTimer!==null))}
- $('now').classList.toggle('paused',!playing);updateMediaSession()
+ $('now').classList.toggle('paused',!playing);$('mini').classList.toggle('is-playing',playing);updateMediaSession()
 }
 export function syncVolume(){
  const stored=Number(state.prefs.volume),volume=Number.isFinite(stored)?Math.max(0,Math.min(1,stored)):.8,last=Number(state.prefs.lastVolume);
@@ -63,7 +63,7 @@ function toggleMute(){if(state.audio.volume>0){state.prefs.lastVolume=state.audi
 export function renderCurrent(){
  const track=byId(state.currentTrackId);$('mini').hidden=!track;document.body.classList.toggle('has-active-mini',!!track);
  if(!track){updateMediaSession();updateControls();return}
- $('nowTitle').textContent=track.title||track.name||'Unknown track';$('nowArtist').textContent=track.artist||'Unknown artist';$('nowAlbum').textContent=track.album||'';
+ $('nowTitle').textContent=track.title||track.name||'Unknown track';$('nowArtist').textContent=track.artist||'Unknown artist';const sourceLabel=track.source==='stream'?(track.provider==='jamendo'?'Jamendo':'Audius'):'On this device';$('nowAlbum').textContent=[sourceLabel,track.album].filter(Boolean).join(' · ');
  $('miniTitle').textContent=track.title||track.name||'Unknown track';$('miniArtist').textContent=track.artist||'Unknown artist';
  setCover('nowArt',track);setCover('miniCover',track);$('nowArt').setAttribute('aria-label',(track.album||track.title||'Song')+' artwork');
  const liked=!!track.liked;$('nowLikeButton').innerHTML=icon(liked?'heart-filled':'heart');$('nowLikeButton').classList.toggle('liked',liked);$('nowLikeButton').setAttribute('aria-pressed',String(liked));$('nowLikeButton').setAttribute('aria-label',liked?'Remove from Liked Songs':'Add to Liked Songs');
