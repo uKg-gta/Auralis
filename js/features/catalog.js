@@ -64,3 +64,15 @@ export function streamTrackUrl(track){if(!track||track.source!=='stream'||!track
 export async function saveStreamTrack(trackId){const existing=state.tracks.find(track=>track.id===trackId);if(existing)return existing;const track=byId(trackId);if(!track||track.source!=='stream')return null;const saved={...track,added:Date.now(),categories:Array.isArray(track.categories)?track.categories.slice():[],liked:!!track.liked};await put('tracks',saved);state.tracks.push(saved);state.tracks.sort((a,b)=>(a.added||0)-(b.added||0));return saved}
 export function initCatalog(){}
 
+
+// Provider-facing discovery adapter. Consumers receive normalized tracks, not raw Audius payloads.
+export async function getAudiusDiscoveryCandidates(){
+ const groups=await Promise.allSettled([
+  fetchTracks('/tracks/trending',{time:'week'}),
+  fetchTracks('/tracks/trending/underground',{}),
+  fetchTracks('/tracks/latest',{})
+ ]);
+ const raw=[];groups.forEach(result=>{if(result.status==='fulfilled')raw.push(...result.value)});
+ const unique=new Map();rememberTracks(raw).forEach(track=>{if(!unique.has(track.id))unique.set(track.id,track)});
+ return Array.from(unique.values());
+}
