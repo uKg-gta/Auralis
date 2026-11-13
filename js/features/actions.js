@@ -15,11 +15,8 @@ function openDialog(title,content){
 }
 export function showDialog(title,content){openDialog(title,content)}
 export function closeAction(){const dialog=$('actionDialog');if(dialog.open)dialog.close();const trigger=lastDialogTrigger;lastDialogTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
-export function openImportDialog(){
- openDialog('Add your music','<div class="import-guidance"><p>Audio stays in this browser on this device. Export a backup before clearing site data or moving browsers.</p><p><b>Formats:</b> MP3, M4A, AAC, WAV, OGG, FLAC and OPUS. Choose multiple files, select a folder, or drop files into Auralis.</p></div><div class="dialog-options"><button data-import-files>'+icon('music')+' Import audio files</button><button data-import-folder>'+icon('folder')+' Choose a music folder</button><button data-action="open-backup-import">'+icon('download')+' Restore a library backup</button></div>')
-}
 export function openAddMenu(){
- openDialog('Add to your library','<div class="dialog-options"><button data-action="open-import">'+icon('upload')+' Import music</button><button data-action="new-playlist">'+icon('playlist')+' New playlist</button><button data-action="new-tag">'+icon('tag')+' New tag</button><button data-action="open-backup-import">'+icon('download')+' Import backup</button></div>')
+ openDialog('Create','<div class="dialog-options"><button data-action="new-playlist">'+icon('playlist')+' New playlist</button><button data-action="new-tag">'+icon('tag')+' New tag</button></div>')
 }
 export function openCurrentMenu(){if(state.currentTrackId)trackMenu(state.currentTrackId)}
 export function toggleCurrentLike(){if(state.currentTrackId)toggleLike(state.currentTrackId)}
@@ -30,7 +27,7 @@ export function trackMenu(trackId){
  let options='<button data-action="play-next">'+icon('next')+' Play Next</button><button data-action="add-queue">'+icon('queue')+' Add to Queue</button>';
  if(catalogOnly)options+='<button data-action="save-stream">'+icon('plus')+' Add to Library</button>';
  options+='<button data-action="add-playlist">'+icon('playlist')+' Add to Playlist</button><button data-action="toggle-like">'+icon(track.liked?'heart-filled':'heart')+' '+(track.liked?'Remove from Liked Songs':'Like Song')+'</button><button data-action="go-artist">'+icon('artist')+(track.source==='audius'?' Open Artist on Audius':track.source==='jamendo'?' Open Artist on Jamendo':' Go to Artist')+'</button>';
- if(track.source==='local')options+='<button data-action="find-metadata">'+icon('sparkle')+' Find metadata on MusicBrainz</button>';
+ 
  options+='<button data-action="find-elsewhere">'+icon('search')+' Find elsewhere on YouTube</button>';
  if(saved&&track.source!=='youtube'&&track.source!=='jamendo')options+='<button data-action="edit-track">'+icon('edit')+' Edit Details</button><button data-action="edit-lyrics">'+icon('lyrics')+' Add or Edit Lyrics</button><button data-action="categories">'+icon('tag')+' Organize with Tags</button>';
  if(saved)options+='<button class="danger" data-action="remove-track">'+icon('trash')+' Remove from Library</button>';
@@ -136,7 +133,7 @@ async function removeAlbum(){
  }catch(error){toast('Could not remove this album')}
 }
 function handleDialogClick(event){
- const button=event.target.closest('[data-action],[data-pick-playlist],[data-toggle-category],[data-import-files],[data-import-folder],[data-export-library],[data-import-backup],[data-close-action],[data-metadata-pick]');if(!button)return;
+ const button=event.target.closest('[data-action],[data-pick-playlist],[data-toggle-category],[data-export-library],[data-import-backup],[data-close-action],[data-metadata-pick]');if(!button)return;
  if(button.hasAttribute('data-close-action')){closeAction();return}
  if(button.dataset.importFiles!==undefined){closeAction();$('audioImport').click();return}
  if(button.dataset.importFolder!==undefined){closeAction();$('folderImport').click();return}
