@@ -74,6 +74,7 @@
 <main id="mainContent">
 <section id="home" class="screen active" aria-labelledby="homeTitle">
  <div class="page-heading"><h1 id="homeTitle">Listen Now</h1></div>
+ <section id="startupError" class="import-card startup-error" role="alert" aria-live="assertive" hidden><div class="empty-copy"><h2>Auralis couldn’t finish loading</h2><p id="startupErrorMessage">Reload the app to try again. If your music library is updating, close any other Auralis tabs first.</p><button id="startupReload" class="button button-primary" type="button">Reload Auralis</button></div></section>
  <div id="homeLoading" class="skeleton-stack" role="status" aria-label="Loading your library"><div class="skeleton skeleton-hero"></div><div class="skeleton-row"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div></div>
  <section id="homeImportCard" class="import-card" hidden aria-labelledby="homeImportTitle">
   <div class="empty-art"><svg class="icon"><use href="#icon-music"></use></svg></div>
@@ -207,6 +208,19 @@
 <input id="audioImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" multiple hidden>
 <input id="folderImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" webkitdirectory directory multiple hidden>
 <input id="backupImport" type="file" accept=".zip,application/zip" hidden>
+<script>
+(()=>{
+ let startupTimer;
+ const showStartupError=message=>{const loading=document.getElementById('homeLoading'),card=document.getElementById('startupError'),copy=document.getElementById('startupErrorMessage');if(loading)loading.hidden=true;if(card)card.hidden=false;if(copy&&message)copy.textContent=message};
+ window.__auralisShowStartupError=showStartupError;
+ window.__auralisSetReady=()=>{window.__auralisLibraryReady=true;clearTimeout(startupTimer);const card=document.getElementById('startupError');if(card)card.hidden=true};
+ window.__auralisLibraryReady=false;
+ document.getElementById('startupReload').addEventListener('click',()=>window.location.reload());
+ window.addEventListener('error',()=>{if(!window.__auralisLibraryReady)showStartupError('Auralis could not load one of its app files. Reload the page to try the latest version.')});
+ window.addEventListener('unhandledrejection',()=>{if(!window.__auralisLibraryReady)showStartupError('Auralis could not finish opening your library. Close other Auralis tabs, then reload the app.')});
+ startupTimer=setTimeout(()=>{if(!window.__auralisLibraryReady)showStartupError('Your library is taking too long to open. Close any other Auralis tabs, then reload the app.')},12000)
+})();
+</script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@ export function openDatabase(){
   const request=indexedDB.open(DB_NAME,DB_VERSION);
   request.onupgradeneeded=()=>{const database=request.result;if(!database.objectStoreNames.contains('tracks'))database.createObjectStore('tracks',{keyPath:'id'});if(!database.objectStoreNames.contains('playlists'))database.createObjectStore('playlists',{keyPath:'id'});if(!database.objectStoreNames.contains('categories'))database.createObjectStore('categories',{keyPath:'id'});if(!database.objectStoreNames.contains('settings'))database.createObjectStore('settings',{keyPath:'key'});if(!database.objectStoreNames.contains('history'))database.createObjectStore('history',{keyPath:'id',autoIncrement:true})};
   request.onsuccess=()=>{state.db=request.result;state.db.onversionchange=()=>{state.db.close();status('The music library was updated in another tab. Reload Auralis to continue.')};resolve(state.db)};
-  request.onblocked=()=>status('Close other Auralis tabs to finish a safe library upgrade.');request.onerror=()=>reject(request.error||new Error('Could not open the local music library.'))
+  request.onblocked=()=>{const message='Close any other Auralis tabs to finish opening your music library.';status(message);window.__auralisShowStartupError?.(message)};request.onerror=()=>reject(request.error||new Error('Could not open the local music library.'))
  })
 }
 export function request(storeName,mode,action){
@@ -30,4 +30,5 @@ export async function loadLibraryState(){
  const streamHistory=new Map();state.history.forEach(item=>{const track=item.trackSnapshot;if(track?.source==='stream'&&track.providerId&&!state.tracks.some(saved=>saved.id===track.id))streamHistory.set(track.id,track)});state.catalogTracks=Array.from(streamHistory.values());
  const preference=(values[3]||[]).find(item=>item.key==='preferences');if(preference&&preference.value)state.prefs=Object.assign(state.prefs,preference.value);
 }
+
 
