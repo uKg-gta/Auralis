@@ -143,8 +143,7 @@ function handleDialogClick(event){
  if(button.dataset.toggleCategory){toggleTrackCategory(button.dataset.toggleCategory);return}
  if(button.dataset.metadataPick!==undefined){applyMetadataSuggestion(Number(button.dataset.metadataPick));return}
  const action=button.dataset.action;
- if(action==='open-import')openImportDialog();
- else if(action==='open-backup-import'){$('backupImport').click();closeAction()}
+ if(action==='open-backup-import'){$('backupImport').click();closeAction()}
  else if(action==='new-playlist'){closeAction();window.newPlaylist()}
  else if(action==='new-tag'){closeAction();createCategory()}
  else if(action==='toggle-like')toggleLike(state.dialogTrackId).then(closeAction);
