@@ -49,7 +49,7 @@ function renderIdentity(){
 export async function renderProfile(){
  const allSeconds=sumSeconds(state.history),week=filteredHistory('week');
  $('profileTotalTime').textContent=formatDuration(allSeconds);$('profilePlayCount').textContent=String(state.history.length);$('profileWeekTime').textContent=formatDuration(sumSeconds(week));
- renderChart();renderTopLists();renderStreak();renderIdentity();renderDeviceInfo();const monthKey=new Date().toISOString().slice(0,7);if(recapMonth!==monthKey)generateRecap();
+ renderChart();renderTopLists();renderStreak();renderIdentity();renderDeviceInfo();
 }
 async function loadProfile(){
  try{const record=await request('settings','readonly',store=>store.get('profile'));profileData={...DEFAULT_PROFILE,...(record?.value||{})};if(!record?.value?.joinedAt)profileData.joinedAt=Date.now();await put('settings',{key:'profile',value:profileData})}catch(error){toast('Profile details could not be loaded')}
@@ -88,3 +88,5 @@ export function initProfile(){
  $('profileRange').addEventListener('click',event=>{const button=event.target.closest('[data-profile-range]');if(!button)return;range=button.dataset.profileRange;$('profileRange').querySelectorAll('button').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));renderChart()});
  $('profileGenerateRecap').addEventListener('click',generateRecap);$('profileSaveRecap').addEventListener('click',saveRecap);$('profileShareRecap').addEventListener('click',shareRecap);$('profileResetActivity').addEventListener('click',resetProfileActivity);
 }
+
+export function openProfile(){renderProfile();const monthKey=new Date().toISOString().slice(0,7);if(recapMonth!==monthKey)generateRecap()}
