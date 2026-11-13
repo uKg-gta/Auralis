@@ -33,7 +33,8 @@ function buildProfile(){
   else if(event.type==='play_progress')addScore(track,Math.min(3,(Number(event.playedSeconds)||0)/90));
   else if(event.type==='play_completed')addScore(track,3);
   else if(event.type==='track_skipped')addScore(track,-1.5);
-  else if(event.type==='more_like_this')addScore(track,4);\n  else if(event.type==='track_liked')addScore(track,4);
+  else if(event.type==='more_like_this')addScore(track,4);
+  else if(event.type==='track_liked')addScore(track,4);
  });
  profile.hasTaste=Object.values(profile.artists).some(value=>value>1)||Object.values(profile.genres).some(value=>value>1);
  return profile;
