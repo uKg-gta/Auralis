@@ -59,7 +59,7 @@ function compose(){
 }
 function card(track){
  const url=artworkUrl(track),art='<span class="card-art art '+artworkClass(track)+'">'+(url?'<img src="'+esc(url)+'" alt="">':'')+'<span class="card-play">'+icon('play')+'</span></span>';
- return '<article class="discovery-card"><button class="music-card" data-play-track="'+esc(track.id)+'" aria-label="Play '+esc(track.title)+' by '+esc(track.artist)+'">'+art+'<span class="card-title">'+esc(track.title)+'</span><span class="card-subtitle">'+esc(track.artist)+'</span></button><div class="discovery-actions"><button type="button" data-discovery-more="'+esc(track.id)+'" aria-label="More like '+esc(track.title)+'">'+icon('heart')+'<span>More like this</span></button><button type="button" data-discovery-hide="'+esc(track.id)+'" aria-label="Not interested in '+esc(track.title)+'">'+icon('close')+'<span>Not interested</span></button></div></article>';
+ return '<article class="discovery-card"><button class="music-card" data-play-track="'+esc(track.id)+'" aria-label="Play '+esc(track.title)+' by '+esc(track.artist)+'">'+art+'<span class="card-title">'+esc(track.title)+'</span><span class="card-subtitle">'+esc(track.artist)+'</span></button></article>';
 }
 function renderShelf(id,tracks,message){
  const section=$(id),box=section?.querySelector('.card-shelf');if(!section||!box)return;
@@ -119,10 +119,8 @@ export function initDiscovery(){
   sessionSeconds=0;totalSessionSeconds=0;activeTrackId=null;
  });
  document.addEventListener('click',event=>{
-  const retry=event.target.closest('[data-discovery-retry]'),more=event.target.closest('[data-discovery-more]'),hide=event.target.closest('[data-discovery-hide]');
+  const retry=event.target.closest('[data-discovery-retry]');
   if(retry){loadDiscovery(true);return}
-  if(more){moreLikeRecommendation(more.dataset.discoveryMore);return}
-  if(hide){hideRecommendation(hide.dataset.discoveryHide);return}
  });
  const search=$('searchInput');let searchTimer=null;
  search?.addEventListener('input',()=>{clearTimeout(searchTimer);const query=search.value.trim();if(query.length<3)return;searchTimer=setTimeout(()=>{const event={type:'search_performed',query:query.slice(0,80),timestamp:Date.now()};add('listeningSignals',event).then(id=>state.listeningSignals.push({...event,id})).catch(()=>{})},900)});
