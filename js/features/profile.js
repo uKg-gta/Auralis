@@ -10,6 +10,17 @@ function initials(name){return String(name||'').trim().split(/\s+/).slice(0,2).m
 function periodStart(mode){const now=new Date(),start=new Date(now);if(mode==='day'){start.setHours(0,0,0,0);return start}if(mode==='month'){start.setDate(1);start.setHours(0,0,0,0);return start}start.setDate(start.getDate()-6);start.setHours(0,0,0,0);return start}
 function filteredHistory(mode){const start=periodStart(mode).getTime();return state.history.filter(item=>(Number(item.startedAt)||0)>=start)}
 function sumSeconds(items){const activeId=state.sessionRecord?.id;return items.filter(item=>activeId==null||item.id!==activeId).reduce((sum,item)=>sum+duration(item),0)+(state.sessionRecord&&items.some(item=>item.id===activeId)?Number(state.sessionRecord.seconds||0)+Number(state.pendingSeconds||0):0)}
+export function weeklySeconds(){
+ const now=new Date(),days=[];
+ for(let n=6;n>=0;n--){
+  const start=new Date(now);start.setHours(0,0,0,0);start.setDate(start.getDate()-n);
+  const end=new Date(start);end.setDate(end.getDate()+1);
+  let seconds=state.history.filter(item=>(Number(item.startedAt)||0)>=start.getTime()&&(Number(item.startedAt)||0)<end.getTime()).reduce((sum,item)=>sum+duration(item),0);
+  if(state.sessionRecord&&Number(state.sessionRecord.startedAt)>=start.getTime()&&Number(state.sessionRecord.startedAt)<end.getTime())seconds+=Number(state.sessionRecord.seconds||0)+Number(state.pendingSeconds||0);
+  days.push({label:start.toLocaleDateString(undefined,{weekday:'short'}),seconds,height:Math.max(3,Math.round(seconds/Math.max(1,...state.history.map(item=>Number(item.seconds)||0),seconds)*38))});
+ }
+ return {total:days.reduce((sum,day)=>sum+day.seconds,0),days};
+}
 function groupBy(items,keyFn,valueFn){const map=new Map();items.forEach(item=>{const key=keyFn(item)||'Unknown';map.set(key,(map.get(key)||0)+valueFn(item))});return [...map].sort((a,b)=>b[1]-a[1]).slice(0,5)}
 function chartData(mode){
  const now=new Date(),buckets=[];
