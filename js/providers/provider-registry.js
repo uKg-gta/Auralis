@@ -8,9 +8,10 @@ export function registerDiscoveryProvider(provider){
 }
 export function getDiscoveryProvider(id){return providers.get(id)||null}
 export async function discoverFromProviders(ids=['audius']){
- const results=await Promise.allSettled(ids.map(async id=>{
-  const provider=providers.get(id);if(!provider||typeof provider.discover!=='function')return [];
-  const tracks=await provider.discover();return tracks.map(track=>({...track,provider:track.provider||provider.id}));
+ const selected=ids.map(id=>providers.get(id)).filter(provider=>provider&&typeof provider.discover==='function');
+ const results=await Promise.all(selected.map(async provider=>{
+  const tracks=await provider.discover();
+  return tracks.map(track=>({...track,provider:track.provider||provider.id}));
  }));
- return results.flatMap(result=>result.status==='fulfilled'?result.value:[]);
+ return results.flat();
 }
