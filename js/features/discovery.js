@@ -35,6 +35,7 @@ function buildProfile(){
   else if(event.type==='track_skipped')addScore(track,-1.5);
   else if(event.type==='more_like_this')addScore(track,4);
   else if(event.type==='track_liked')addScore(track,4);
+  else if(event.type==='playlist_added')addScore(track,2);
  });
  profile.hasTaste=profile.searchTerms.length>0||Object.values(profile.artists).some(value=>value>1)||Object.values(profile.genres).some(value=>value>1);
  return profile;
