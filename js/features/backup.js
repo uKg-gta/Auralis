@@ -51,7 +51,8 @@ export async function importLibraryBackup(file){
   for(const source of manifest.categories||[]){let target=state.categories.find(item=>item.name.toLowerCase()===String(source.name||'').toLowerCase());if(!target){target={...source,id:state.categories.some(item=>item.id===source.id)?makeId():source.id||makeId()};await put('categories',target);state.categories.push(target)}categoryMap.set(source.id,target.id)}
   for(const source of manifest.tracks||[]){
    const blob=null,sourceType=source.source==='stream'&&source.provider==='audius'?'audius':source.source||'local',providerId=String(source.providerId||''),youtubeCheckedAt=Number(source.youtubeDataCheckedAt)||Number(source.added)||0;
-   if(sourceType==='local')continue;\n   if(sourceType==='youtube'&&(!/^[A-Za-z0-9_-]{11}$/.test(providerId)||!youtubeCheckedAt||youtubeCheckedAt>Date.now()||Date.now()-youtubeCheckedAt>=30*24*60*60*1000))continue;
+   if(sourceType==='local')continue;
+   if(sourceType==='youtube'&&(!/^[A-Za-z0-9_-]{11}$/.test(providerId)||!youtubeCheckedAt||youtubeCheckedAt>Date.now()||Date.now()-youtubeCheckedAt>=30*24*60*60*1000))continue;
    const isRemoteReference=['audius','youtube','jamendo'].includes(sourceType)&&!!providerId;if(!isRemoteReference)continue;
    const duplicate=source.signature&&state.tracks.find(item=>item.signature===source.signature);if(duplicate){trackMap.set(source.id,duplicate.id);continue}
    const duplicateStream=isRemoteReference&&state.tracks.find(item=>item.source===sourceType&&item.providerId===source.providerId);if(duplicateStream){trackMap.set(source.id,duplicateStream.id);continue}
