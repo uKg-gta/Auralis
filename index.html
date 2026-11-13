@@ -62,6 +62,7 @@
   <div id="compactTitle" class="compact-title">Listen Now</div>
   <div class="top-actions">
     <button id="globalAddButton" class="icon-button" aria-label="Add music or create a playlist" aria-haspopup="dialog" onclick="openAddMenu()"><svg class="icon"><use href="#icon-plus"></use></svg></button>
+    <button id="profileButton" class="icon-button" aria-label="Profile" onclick="show('profile')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></button>
     <button id="settingsButton" class="icon-button" aria-label="Settings" onclick="show('settings')"><svg class="icon"><use href="#icon-settings"></use></svg></button>
   </div>
 </header>
@@ -178,7 +179,9 @@
  </div>
 </section>
 <section id="profile" class="screen" aria-labelledby="profileTitle">
- <div class="page-heading"><h1 id="profileTitle">Listening Stats</h1></div>
+ <div class="page-heading"><h1 id="profileTitle">Your Profile</h1></div>
+ <section class="profile-identity" aria-label="Your music profile"><div class="profile-avatar" id="profileAvatar">A</div><div class="profile-identity-copy"><h2 id="profileDisplayName">Your name</h2><p id="profileBioText">Your music, your space.</p></div></section>
+ <form id="profileEditForm" class="profile-edit form-card"><label for="profileNameInput">Display name</label><input id="profileNameInput" class="form-input" maxlength="40" placeholder="What should we call you?"><label for="profileBioInput">A little about your music</label><textarea id="profileBioInput" class="form-input" rows="2" maxlength="160" placeholder="Your music taste in a few words"></textarea><button class="button button-primary" type="submit">Save profile</button></form>
  <div id="profileStats" class="stats-card"><span class="eyebrow">Total listening time</span><strong id="profileListeningTime">0s</strong><p id="profileTrackCount">No tracks played yet</p><div id="profileWeekBars" class="week-bars"></div></div>
  <section id="profileArtists" class="shelf"><div class="section-heading"><h2>Favorite Artists</h2></div><div id="favoriteArtists"></div></section>
  <section id="profileMostPlayed" class="shelf"><div class="section-heading"><h2>Most Played</h2></div><div id="mostPlayed" class="track-list"></div></section>
