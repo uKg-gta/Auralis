@@ -89,6 +89,16 @@
   <section id="homeSourceSection" class="source-section" aria-label="Music source">
    <div class="chip-row" role="group" aria-label="Filter music by source"><button class="chip active" data-home-source="all" aria-pressed="true">All</button><button class="chip" data-home-source="local" aria-pressed="false">Uploads</button><button class="chip" data-home-source="stream" aria-pressed="false">Streamed</button></div>
   </section>
+  <section id="discoveryStatus" class="search-empty" role="status" aria-live="polite">Finding music on Audius…</section>
+  <section id="homeMadeForYouSection" class="shelf discovery-shelf" hidden aria-labelledby="homeMadeForYouTitle">
+   <div class="section-heading"><div><h2 id="homeMadeForYouTitle">Made for You</h2><p id="discoveryMixNote" class="subtle">Starting with Audius picks.</p></div><button class="text-button" type="button" onclick="loadDiscovery(true)">Refresh</button></div><div class="card-shelf"></div>
+  </section>
+  <section id="homeBecauseSection" class="shelf discovery-shelf" hidden aria-labelledby="homeBecauseTitle">
+   <div class="section-heading"><h2 id="homeBecauseTitle">Because You Listen To</h2></div><div class="card-shelf"></div>
+  </section>
+  <section id="homeFreshSection" class="shelf discovery-shelf" hidden aria-labelledby="homeFreshTitle">
+   <div class="section-heading"><h2 id="homeFreshTitle">Outside Your Usual Taste</h2></div><div class="card-shelf"></div>
+  </section>
   <section id="homeHeroSection" class="hero-section" hidden aria-label="Top pick">
     <button id="homeHero" class="hero-card" data-play-track="">
      <span id="homeHeroArt" class="hero-art art a1"></span>
