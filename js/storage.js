@@ -25,11 +25,22 @@ export function remove(name,key){return request(name,'readwrite',store=>store.de
 async function removeLocalOnlyData(){
  await new Promise((resolve,reject)=>{
   const stores=['tracks','playlists','history','listeningSignals'],tx=state.db.transaction(stores,'readwrite'),tracks=tx.objectStore('tracks'),playlists=tx.objectStore('playlists'),history=tx.objectStore('history'),signals=tx.objectStore('listeningSignals');
-  const trackRequest=tracks.getAll(),playlistRequest=playlists.getAll(),historyRequest=history.getAll(),signalRequest=signals.getAll();let remoteIds=new Set();
-  trackRequest.onsuccess=()=>{for(const track of trackRequest.result||[]){const source=track.source==='stream'?(track.provider||'audius'):track.source;if(['audius','youtube','jamendo'].includes(source)){remoteIds.add(track.id);if(track.source==='stream'){track.source='audius';track.provider='audius';tracks.put(track)}}else tracks.delete(track.id)}};
-  playlistRequest.onsuccess=()=>{for(const playlist of playlistRequest.result||[]){const ids=Array.isArray(playlist.trackIds)?playlist.trackIds:[],next=ids.filter(id=>remoteIds.has(id));if(next.length!==ids.length){playlist.trackIds=next;playlists.put(playlist)}}};
-  historyRequest.onsuccess=()=>{for(const item of historyRequest.result||[]){const source=item.trackSnapshot?.source,trackId=String(item.trackId||''),remote=['audius','youtube','jamendo'].includes(source)||(source==='stream'&&item.trackSnapshot?.provider==='audius')||/^(audius|youtube|jamendo):/.test(trackId)||remoteIds.has(trackId);if(!remote)history.delete(item.id)}};
-  signalRequest.onsuccess=()=>{for(const item of signalRequest.result||[]){const source=item.track?.source||item.source,trackId=String(item.trackId||''),remote=item.type==='search_performed'||['audius','youtube','jamendo'].includes(source)||(source==='stream'&&(item.track?.provider==='audius'||item.provider==='audius'))||/^(audius|youtube|jamendo):/.test(trackId)||remoteIds.has(trackId);if(!remote)signals.delete(item.id)}};
+  const playlistRequest=playlists.getAll(),historyRequest=history.getAll(),signalRequest=signals.getAll(),cursorRequest=tracks.openCursor();
+  let remoteIds=new Set(),playlistRows=null,historyRows=null,signalRows=null,tracksDone=false,cleaned=false;
+  const cleanup=()=>{
+   if(cleaned||!tracksDone||!playlistRows||!historyRows||!signalRows)return;cleaned=true;
+   for(const playlist of playlistRows){const ids=Array.isArray(playlist.trackIds)?playlist.trackIds:[],next=ids.filter(id=>remoteIds.has(id));if(next.length!==ids.length){playlist.trackIds=next;playlists.put(playlist)}}
+   for(const item of historyRows){const source=item.trackSnapshot?.source,trackId=String(item.trackId||''),remote=['audius','youtube','jamendo'].includes(source)||(source==='stream'&&item.trackSnapshot?.provider==='audius')||/^(audius|youtube|jamendo):/.test(trackId)||remoteIds.has(trackId);if(!remote)history.delete(item.id)}
+   for(const item of signalRows){const source=item.track?.source||item.source,trackId=String(item.trackId||''),remote=item.type==='search_performed'||['audius','youtube','jamendo'].includes(source)||(source==='stream'&&(item.track?.provider==='audius'||item.provider==='audius'))||/^(audius|youtube|jamendo):/.test(trackId)||remoteIds.has(trackId);if(!remote)signals.delete(item.id)}
+  };
+  cursorRequest.onsuccess=event=>{
+   const cursor=event.target.result;
+   if(cursor){const track=cursor.value,source=track.source==='stream'?(track.provider||'audius'):track.source;if(['audius','youtube','jamendo'].includes(source)){remoteIds.add(track.id);if(track.source==='stream'){track.source='audius';track.provider='audius';cursor.update(track)}}else cursor.delete();cursor.continue()}
+   else{tracksDone=true;cleanup()}
+  };
+  playlistRequest.onsuccess=()=>{playlistRows=playlistRequest.result||[];cleanup()};
+  historyRequest.onsuccess=()=>{historyRows=historyRequest.result||[];cleanup()};
+  signalRequest.onsuccess=()=>{signalRows=signalRequest.result||[];cleanup()};
   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Could not remove on-device audio data'));tx.onabort=()=>reject(tx.error||new Error('Could not remove on-device audio data'));
  });
 }
