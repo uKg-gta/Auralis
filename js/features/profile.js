@@ -19,7 +19,7 @@ export function weeklySeconds(){
 export function renderProfile(){
  renderIdentity();
  const allSeconds=state.history.reduce((sum,item)=>sum+(Number(item.seconds)||0),0)+(state.sessionRecord?Number(state.sessionRecord.seconds||0)+state.pendingSeconds:0),week=weeklySeconds(),hasHistory=state.history.length>0||!!state.sessionRecord;
- $('profileStats').hidden=!hasHistory;$('profileListeningTime').textContent=formatDuration(allSeconds);
+ $('profileStats').hidden=false;$('profileListeningTime').textContent=formatDuration(allSeconds);
  $('profileTrackCount').textContent=state.history.length?state.history.length+' listening '+(state.history.length===1?'session':'sessions')+' recorded':'Your listening story starts here.';
  $('profileWeekBars').innerHTML=week.days.map(day=>'<div class="week-bar"><i style="height:'+day.height+'px"></i>'+esc(day.label)+'</div>').join('');
  const artists={};state.history.forEach(item=>{const name=item.artist||'Unknown artist';artists[name]=(artists[name]||0)+(Number(item.seconds)||0)});
