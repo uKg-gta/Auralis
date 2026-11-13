@@ -3,13 +3,13 @@ import {request,put} from '../storage.js';
 
 const VERSION='1.0';
 const DEFAULT_PROFILE={name:'',bio:'',joinedAt:Date.now()};
-let profileData={...DEFAULT_PROFILE},range='week',recapBlob=null,initialized=false;
+let profileData={...DEFAULT_PROFILE},range='week',recapBlob=null,recapMonth='',initialized=false;
 const getTrack=item=>item.trackSnapshot||byId(item.trackId)||{};
 const duration=item=>Math.max(0,Number(item.seconds)||0);
 function initials(name){return String(name||'').trim().split(/\s+/).slice(0,2).map(part=>Array.from(part)[0]||'').join('').toUpperCase()||'A'}
 function periodStart(mode){const now=new Date(),start=new Date(now);if(mode==='day'){start.setHours(0,0,0,0);return start}if(mode==='month'){start.setDate(1);start.setHours(0,0,0,0);return start}start.setDate(start.getDate()-6);start.setHours(0,0,0,0);return start}
 function filteredHistory(mode){const start=periodStart(mode).getTime();return state.history.filter(item=>(Number(item.startedAt)||0)>=start)}
-function sumSeconds(items){return items.reduce((sum,item)=>sum+duration(item),0)+(state.sessionRecord&&items===state.history?Number(state.sessionRecord.seconds||0)+Number(state.pendingSeconds||0):0)}
+function sumSeconds(items){const activeId=state.sessionRecord?.id;return items.filter(item=>activeId==null||item.id!==activeId).reduce((sum,item)=>sum+duration(item),0)+(state.sessionRecord&&items.some(item=>item.id===activeId)?Number(state.sessionRecord.seconds||0)+Number(state.pendingSeconds||0):0)}
 function groupBy(items,keyFn,valueFn){const map=new Map();items.forEach(item=>{const key=keyFn(item)||'Unknown';map.set(key,(map.get(key)||0)+valueFn(item))});return [...map].sort((a,b)=>b[1]-a[1]).slice(0,5)}
 function chartData(mode){
  const now=new Date(),buckets=[];
@@ -39,17 +39,17 @@ function renderStreak(){
 function formatBytes(bytes){if(bytes<1024)return bytes+' B';const units=['KB','MB','GB','TB'];let value=bytes/1024,index=0;while(value>=1024&&index<units.length-1){value/=1024;index++}return value.toFixed(value<10?1:0)+' '+units[index]}
 async function renderDeviceInfo(){
  $('profileVersion').textContent=VERSION;$('profileJoined').textContent=profileData.joinedAt?new Date(profileData.joinedAt).toLocaleDateString(undefined,{month:'long',year:'numeric'}):'—';
- $('profileBackup').textContent='Use Settings → Storage & Backup to export a backup';
+ try{const backup=await request('settings','readonly',store=>store.get('lastBackupAt'));$('profileBackup').textContent=backup?.value?'Last exported '+new Date(backup.value).toLocaleDateString():'No backup exported on this device'}catch{$('profileBackup').textContent='Backup status unavailable'}
  try{const estimate=await navigator.storage?.estimate?.();$('profileStorage').textContent=estimate&&Number.isFinite(estimate.usage)?formatBytes(estimate.usage)+' used on this device':'Not available in this browser'}catch{$('profileStorage').textContent='Not available'}
 }
 function renderIdentity(){
  $('profileName').textContent=profileData.name||'Your Auralis profile';$('profileBio').textContent=profileData.bio||'Add a little about yourself.';$('profileAvatar').textContent=initials(profileData.name);
- $('profileEditName').value=profileData.name||'';$('profileEditBio').value=profileData.bio||'';$('profileNamePrompt').hidden=!!profileData.name;
+ $('profileEditName').value=profileData.name||'';$('profileEditBio').value=profileData.bio||'';$('profileNamePrompt').hidden=!!profileData.name;$('profileEditForm').hidden=!!profileData.name;
 }
 export async function renderProfile(){
  const allSeconds=sumSeconds(state.history),week=filteredHistory('week');
  $('profileTotalTime').textContent=formatDuration(allSeconds);$('profilePlayCount').textContent=String(state.history.length);$('profileWeekTime').textContent=formatDuration(sumSeconds(week));
- renderChart();renderTopLists();renderStreak();renderIdentity();renderDeviceInfo();
+ renderChart();renderTopLists();renderStreak();renderIdentity();renderDeviceInfo();const monthKey=new Date().toISOString().slice(0,7);if(recapMonth!==monthKey)generateRecap();
 }
 async function loadProfile(){
  try{const record=await request('settings','readonly',store=>store.get('profile'));profileData={...DEFAULT_PROFILE,...(record?.value||{})};if(!record?.value?.joinedAt)profileData.joinedAt=Date.now();await put('settings',{key:'profile',value:profileData})}catch(error){toast('Profile details could not be loaded')}
@@ -69,7 +69,7 @@ async function buildRecap(){
  return new Promise(resolve=>canvas.toBlob(blob=>resolve(blob),'image/png'))
 }
 async function generateRecap(){
- const blob=await buildRecap();if(!blob){toast('Could not create your recap image');return}recapBlob=blob;
+ const blob=await buildRecap();if(!blob){toast('Could not create your recap image');return}recapBlob=blob;recapMonth=new Date().toISOString().slice(0,7);
  const url=URL.createObjectURL(blob);$('profileRecapPreview').src=url;$('profileRecapPreviewWrap').hidden=false;$('profileRecapActions').hidden=false;
 }
 function saveRecap(){if(!recapBlob)return;const url=URL.createObjectURL(recapBlob),link=document.createElement('a');link.href=url;link.download='auralis-monthly-recap.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}
