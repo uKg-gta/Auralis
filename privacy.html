@@ -22,7 +22,7 @@
  <h1>Privacy Policy</h1>
  <p>Auralis is a static, local-first music player and uses YouTube API Services for public video search and playback. This policy explains what stays on your device and what is sent directly to music providers when you use their catalogs or players. You must agree to this policy before enabling YouTube features; see the <a href="./terms.html">Auralis Terms of Use</a>.</p>
  <h2>Data stored on this device</h2>
- <p>Imported audio, embedded artwork, playlists, likes, tags, listening history, preferences, and optional public API credentials are stored in this browser’s IndexedDB. Auralis does not upload your local audio or library to an Auralis server. YouTube and Jamendo library entries save provider IDs, links and your own library organization; provider metadata is held temporarily in page memory. Auralis keeps a last-checked time for saved YouTube references, refreshes them when YouTube is enabled, and removes references that have not been refreshed within 30 days. User-confirmed MusicBrainz metadata becomes part of your local file tags in Auralis. Use Export backup before clearing browser site data. You can remove stored information by deleting Auralis site data in your browser.</p>
+ <p>Playlists, liked online tracks, listening history, preferences, and optional public API credentials are stored in this browser’s IndexedDB. Auralis does not offer local audio importing or store personal audio files. YouTube and Jamendo library entries save provider IDs, links and your own library organization; provider metadata is held temporarily in page memory. Auralis keeps a last-checked time for saved YouTube references, refreshes them when YouTube is enabled, and removes references that have not been refreshed within 30 days. MusicBrainz metadata is used to enrich artist and recording information in the app. Use Export backup before clearing browser site data. You can remove stored information by deleting Auralis site data in your browser.</p>
  <h2>Requests to music services</h2>
  <ul>
   <li><a href="https://audius.co" target="_blank" rel="noopener noreferrer">Audius</a> receives searches and requests for catalog data and streams. Audio is streamed from Audius and is not downloaded into Auralis storage.</li>
@@ -34,7 +34,7 @@
  <p>Before using YouTube search or playback, enable YouTube in Settings and agree to this policy and the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">YouTube Terms of Service</a>. You can turn YouTube off in Settings. Search terms, video IDs and the embedded player are sent directly to YouTube or Google; Auralis does not send local audio or library contents.</p>
  <p>Search terms, video IDs, and provider requests are sent directly from your browser to the relevant provider. The providers’ privacy policies and terms govern their own handling of those requests.</p>
  <h2>Offline use</h2>
- <p>Local files continue to work offline. Auralis’s service worker caches only the app shell; it does not cache provider API responses, Audius or Jamendo audio, or YouTube media.</p>
+ <p>Auralis is online-first. The service worker caches only the app shell; it does not cache provider API responses, Audius or Jamendo audio, or YouTube media. Music playback requires an internet connection.</p>
  <h2>Contact</h2>
  <p>Auralis is a non-commercial prototype. For privacy questions, contact the repository maintainer through the project’s public GitHub repository.</p>
 </body>
