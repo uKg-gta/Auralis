@@ -58,6 +58,7 @@ function compose(){
  return {made,familiar:familiar.slice(0,8),fresh:explore.slice(0,8),profile};
 }
 function card(track){
+ const source=track.source==='stream'?(track.provider||'audius'):'local',badge='<span class="source-badge source-'+esc(source)+'">'+(source==='local'?'Local':source==='youtube'?'YouTube':source==='jamendo'?'Jamendo':'Audius')+'</span>';
  const url=artworkUrl(track),art='<span class="card-art art '+artworkClass(track)+'">'+(url?'<img src="'+esc(url)+'" alt="">':'')+'<span class="card-play">'+icon('play')+'</span></span>';
  return '<article class="discovery-card"><button class="music-card" data-play-track="'+esc(track.id)+'" aria-label="Play '+esc(track.title)+' by '+esc(track.artist)+'">'+art+'<span class="card-title">'+esc(track.title)+'</span><span class="card-subtitle">'+esc(track.artist)+'</span></button></article>';
 }
