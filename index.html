@@ -213,7 +213,7 @@
   <p id="playerStatus" class="player-status" aria-live="polite">Import audio to begin listening</p>
   <div class="player-tools"><button id="lyricsButton" class="tool-button" aria-label="Open lyrics" disabled><svg class="icon"><use href="#icon-lyrics"></use></svg><span>Lyrics</span></button><button id="queueButton" class="tool-button" aria-label="Open queue"><svg class="icon"><use href="#icon-queue"></use></svg><span>Queue</span></button><button id="sleepTimerButton" class="tool-button" aria-label="Set sleep timer" disabled><svg class="icon"><use href="#icon-timer"></use></svg><span>Sleep Timer</span></button></div>
  </div>
- <section id="lyricsPanel" class="lyrics-screen" hidden aria-label="Lyrics"><div class="lyrics-top"><button id="lyricsClose" class="icon-button" aria-label="Close lyrics"><svg class="icon"><use href="#icon-chevron-down"></use></svg></button><div><strong id="lyricsTrackTitle">Lyrics</strong><span id="lyricsTrackArtist"></span></div></div><div id="lyricsText" class="lyrics-lines"></div></section>
+ <section id="lyricsPanel" class="lyrics-screen" hidden aria-label="Lyrics"><div class="lyrics-top"><button id="lyricsClose" class="icon-button" aria-label="Close lyrics"><svg class="icon"><use href="#icon-chevron-down"></use></svg></button><div><strong id="lyricsTrackTitle">Lyrics</strong><span id="lyricsTrackArtist"></span></div></div><div class="lyrics-actions"><button id="lyricsImportButton" class="text-button" type="button">Import .lrc lyrics</button></div><div id="lyricsText" class="lyrics-lines"></div></section>
 </dialog>
 <dialog id="queuePanel" class="action-sheet queue-sheet" aria-labelledby="queueTitle"><div class="sheet-handle-wrap"><button class="sheet-handle" aria-label="Drag down to close queue"></button></div><div class="sheet-head"><div><h2 id="queueTitle">Playing Next</h2><p>Reorder your listening queue</p></div><div class="queue-head-actions"><button id="queueClear" class="text-button" type="button">Clear</button><button id="queueHeaderClose" class="icon-button" type="button" aria-label="Close queue"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-chevron-down"></use></svg></button></div></div><div id="queueList" class="queue-list"></div><button id="queueClose" class="button button-quiet queue-done" type="button">Done</button></dialog>
 <dialog id="actionDialog" class="action-sheet" aria-label="Actions"><div id="dialogContent" class="dialog-inner"></div></dialog>
@@ -222,6 +222,7 @@
 <input id="audioImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" multiple hidden>
 <input id="folderImport" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac,.opus" webkitdirectory directory multiple hidden>
 <input id="backupImport" type="file" accept=".zip,application/zip" hidden>
+<input id="lyricsImport" type="file" accept=".lrc,text/plain" hidden>
 <script>
 (()=>{
  let startupTimer;
