@@ -2,6 +2,7 @@ import {state,$,makeId,esc,toast,status,formatDuration,byId,uniqueRecent,artwork
 import {put} from '../storage.js';
 import {weeklySeconds} from './profile.js';
 import {parseAudioMetadata} from './metadata.js';
+import {renderDiscovery} from './discovery.js';
 
 function displayName(track){return track.title||track.name||'Unknown track'}
 function artistNames(){return Array.from(new Set(state.tracks.map(track=>track.artist||'Unknown artist'))).sort((a,b)=>a.localeCompare(b))}
@@ -15,8 +16,9 @@ export function renderHome(){
  const matchesSource=track=>state.homeSource==='all'||(state.homeSource==='local'?track.source!=='stream':track.source==='stream');
  const recent=uniqueRecent().filter(matchesSource),sourceTracks=state.tracks.filter(matchesSource),uploads=sourceTracks.filter(track=>track.source!=='stream'),streamed=sourceTracks.filter(track=>track.source==='stream'),latest=sortTracks(sourceTracks,'recent');
  const current=state.currentTrackId?byId(state.currentTrackId):null,heroTrack=current&&matchesSource(current)?current:recent[0]||latest[0]||null;
- $('homeLoading').hidden=true;$('homeContent').hidden=!state.tracks.length;$('homeImportCard').hidden=!!state.tracks.length;
+ $('homeLoading').hidden=true;$('homeContent').hidden=false;$('homeImportCard').hidden=!!state.tracks.length;
  $('homeSourceSection').hidden=!state.tracks.length;
+ renderDiscovery();
  const streamedSource=document.querySelector('[data-home-source="stream"]');if(streamedSource)streamedSource.hidden=!state.tracks.some(track=>track.source==='stream');
  document.querySelectorAll('[data-home-source]').forEach(button=>{const active=button.dataset.homeSource===state.homeSource;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
  const hero=$('homeHeroSection');hero.hidden=!heroTrack;
