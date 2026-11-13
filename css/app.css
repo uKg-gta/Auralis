@@ -201,3 +201,13 @@ body.large-text .track-main b,body.large-text .directory-row b{font-size:18px}
 .search-cancel{min-height:44px}
 
 
+
+/* Personalised discovery */
+.discovery-shelf .card-shelf{grid-auto-columns:minmax(154px,43vw)}
+.discovery-card{min-width:0;scroll-snap-align:start}
+.discovery-card .music-card{width:100%;text-align:left}
+.discovery-actions{display:flex;gap:4px;margin-top:7px}
+.discovery-actions button{min-width:0;min-height:36px;display:flex;align-items:center;gap:4px;padding:5px 7px;border-radius:9px;background:var(--surface);color:var(--muted);font-size:11px}
+.discovery-actions button .icon{width:14px;height:14px}
+.discovery-actions button span{white-space:nowrap}
+.discovery-actions button:active{color:var(--accent-ink)}
