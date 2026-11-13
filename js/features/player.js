@@ -1,6 +1,7 @@
 import {state,$,esc,toast,status,formatClock,byId,artworkClass,artworkUrl,icon} from '../core.js';
 import {add,put} from '../storage.js';
 import {streamTrackUrl} from './catalog.js';
+import {recordDiscoverySignal} from './discovery.js';
 let volumeSaveTimer=null;
 let queueTrigger=null;
 function playbackMessage(){return byId(state.currentTrackId)?.source==='stream'?'Streaming from Audius':'Playing from your device'}
@@ -104,6 +105,7 @@ function onTimeUpdate(){
 }
 export async function playTrack(trackId,collection){
  const track=byId(trackId);if(!track){toast('That song is no longer in your library');return}
+ const previous=byId(state.currentTrackId),previousDuration=Number(state.audio.duration)||Number(previous?.duration)||0,previousPosition=Number(state.audio.currentTime)||0;if(previous&&previous.id!==trackId&&!state.audio.paused&&previousPosition>5&&previousDuration>0&&previousPosition/previousDuration<.3)recordDiscoverySignal('track_skipped',previous,{position:Math.round(previousPosition)});
  const priorQueue=Array.isArray(collection)?collection:state.tracks.map(item=>item.id);state.queueIds=priorQueue.filter(item=>!!byId(item));state.queueIndex=state.queueIds.indexOf(trackId);if(state.queueIndex<0){state.queueIds.unshift(trackId);state.queueIndex=0}state.queueBaseIds=state.queueIds.slice();
  if(state.shuffle&&state.queueIds.length>2){const tail=state.queueIds.slice(state.queueIndex+1);for(let i=tail.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[tail[i],tail[j]]=[tail[j],tail[i]]}state.queueIds.splice(state.queueIndex+1,tail.length,...tail)}
  if(state.objectUrl){URL.revokeObjectURL(state.objectUrl);state.objectUrl=null}
