@@ -106,7 +106,7 @@ export async function importAudioFiles(files){
   for(const file of Array.from(files)){
    if(!file.type?.startsWith('audio/')&&!/\.(mp3|m4a|aac|wav|ogg|flac|opus)$/i.test(file.name)){skipped++;continue}
    const signature=file.name+'|'+file.size+'|'+file.lastModified;if(known.has(signature)){skipped++;continue}
-   const metadata=await parseAudioMetadata(file),track={id:makeId(),title:metadata.title,artist:metadata.artist,album:metadata.album||'',genre:metadata.genre||'',name:file.name,type:file.type||metadata.artworkType||'audio/*',artwork:metadata.artwork||null,artworkType:metadata.artworkType||'',blob:file,source:'local',added:Date.now()+addedCount,signature,size:file.size,lastModified:file.lastModified,categories:[],liked:false,lyrics:''};
+   const metadata=await parseAudioMetadata(file),track={id:makeId(),title:metadata.title,artist:metadata.artist,album:metadata.album||'',genre:metadata.genre||'',name:file.name,type:file.type||metadata.artworkType||'audio/*',artwork:metadata.artwork||null,artworkType:metadata.artworkType||'',blob:file,source:'local',added:Date.now()+addedCount,signature,size:file.size,lastModified:file.lastModified,categories:[],liked:false,lyrics:metadata.lyrics||''};
    await put('tracks',track);state.tracks.push(track);known.add(signature);addedCount++
   }
   state.tracks=sortTracks(state.tracks,'recent').reverse();state.refreshAll();status(addedCount+' song(s) added to your library');toast(addedCount?addedCount+' song(s) imported':skipped?'Those files are already in your library':'No supported audio files were selected');
