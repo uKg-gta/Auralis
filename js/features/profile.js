@@ -1,4 +1,4 @@
-import {state,$,formatDuration,byId,trackRow,esc,icon} from '../core.js';
+import {state,$,formatDuration,byId,trackRow,esc,icon,toast} from '../core.js';
 export function weeklySeconds(){const today=new Date();today.setHours(0,0,0,0);const days=[];let total=0;for(let offset=6;offset>=0;offset--){const date=new Date(today);date.setDate(today.getDate()-offset);const next=new Date(date);next.setDate(date.getDate()+1);let seconds=0;state.history.forEach(item=>{if((item.startedAt||0)>=date.getTime()&&(item.startedAt||0)<next.getTime())seconds+=Number(item.seconds)||0});if(offset===0&&state.sessionRecord)seconds+=Number(state.sessionRecord.seconds||0)+state.pendingSeconds;days.push({label:date.toLocaleDateString(undefined,{weekday:'short'}),seconds,height:Math.min(82,Math.max(3,Math.round(seconds/60)))});total+=seconds}return {days,total}}
 function getProfileIdentity(){try{return JSON.parse(localStorage.getItem('auralis-profile-identity-v1')||'{}')}catch{return {}}}
 function saveProfileIdentity(data){try{localStorage.setItem('auralis-profile-identity-v1',JSON.stringify(data))}catch{toast('Could not save profile on this device')}}
