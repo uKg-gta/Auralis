@@ -132,10 +132,9 @@ function showYouTubePlaybackError(track,code){
  if(code===100||code===101||code===150){message.textContent='Not available to play here. Open on YouTube.'}else if(code===153){message.textContent='YouTube could not verify this site. Check the page’s referrer policy and try again, or open the video on YouTube.'}else message.textContent='The YouTube player could not start. Open the video on YouTube or skip.';
  const url=track.sourceUrl||track.providerUrl||('https://www.youtube.com/watch?v='+encodeURIComponent(track.providerId||''));link.href=url;alert.hidden=false;status(message.textContent);updateControls()
 }
-export function playLocal(index){const track=state.tracks[index];if(track)playTrack(track.id)}
-export function play(title,artist){const track=state.tracks.find(item=>item.title===title&&item.artist===artist);if(track)playTrack(track.id);else toast('Import audio to start listening')}
+export function play(title,artist){const track=state.tracks.find(item=>item.title===title&&item.artist===artist);if(track)playTrack(track.id);else toast('Choose a song from Browse or Search to begin')}
 export function toggle(){
- if(!state.currentTrackId){toast('Import music to start listening');window.show('library');return}
+ if(!state.currentTrackId){toast('Choose a song from Browse or Search to begin');window.show('browse');return}
  if(byId(state.currentTrackId)?.source==='youtube'){if(isYouTubePlaying())pauseYouTubePlayback();else playYouTubePlayback();updateControls();return}
  if(state.audio.paused){if(!state.audio.src){playTrack(state.currentTrackId,state.queueIds);return}state.audio.play().then(()=>status(playbackMessage())).catch(()=>status('Playback could not start; try another track'))}
  else{state.audio.pause();flushSession()}
