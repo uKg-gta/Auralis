@@ -1,0 +1,50 @@
+/* Keep the native Now Playing dialog as the only visible app surface on phones. */
+@media (any-pointer: coarse), (hover: none) and (pointer: coarse) {
+  body.player-open { overflow: hidden; }
+  body.player-open .app > .top,
+  body.player-open .app > .nav,
+  body.player-open .app > #mainContent,
+  body.player-open > .mini,
+  body.player-open #mini {
+    display: none !important;
+  }
+  dialog#now.player-sheet[open] {
+    position: fixed !important;
+    z-index: 2147483000 !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+    transform: none !important;
+    animation: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  dialog#now.player-sheet[open]::backdrop {
+    background: var(--bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  dialog#now.player-sheet[open] .player-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: calc(28px + var(--safe-bottom));
+  }
+  dialog#now.player-sheet[open] .bigart img[hidden],
+  dialog#now.player-sheet[open] .bigart img:not([src]),
+  body.player-open .mini img[hidden] {
+    display: none !important;
+  }
+}

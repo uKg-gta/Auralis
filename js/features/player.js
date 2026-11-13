@@ -39,9 +39,13 @@ function installMediaSession(){
  Object.keys(handlers).forEach(action=>{try{session.setActionHandler(action,handlers[action])}catch(error){}})
 }
 function setCover(elementId,track){
- const element=$(elementId);if(!element)return;const image=element.querySelector('img'),url=artworkUrl(track);element.className=elementId==='nowArt'?'bigart art '+artworkClass(track):'minicover art '+artworkClass(track);
+ const element=$(elementId);if(!element)return;let image=element.querySelector('img');const url=artworkUrl(track);
+ element.className=elementId==='nowArt'?'bigart art '+artworkClass(track):'minicover art '+artworkClass(track);
  if(elementId==='nowArt')$('now').style.setProperty('--player-art',url?'url("'+url+'")':'linear-gradient(140deg,#633640,#292431 58%,#111116)');
- if(image){image.hidden=!url;if(url)image.src=url}else if(url){const img=document.createElement('img');img.alt='';img.className='cover-image';img.src=url;element.appendChild(img)}
+ if(!url){if(image){image.hidden=true;image.removeAttribute('src')}return}
+ if(!image){image=document.createElement('img');image.alt='';image.className='cover-image';element.appendChild(image)}
+ image.onerror=()=>{image.hidden=true;image.removeAttribute('src')};
+ image.hidden=false;image.src=url;
 }
 export function updateControls(){
  const hasTrack=!!byId(state.currentTrackId),playing=hasTrack&&!!state.audio.src&&!state.audio.paused,playLabel=playing?'Pause':'Play';
