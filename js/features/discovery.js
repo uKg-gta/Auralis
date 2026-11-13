@@ -1,6 +1,6 @@
 import {state,$,esc,toast,byId,artworkClass,artworkUrl,icon} from '../core.js';
 import {add,put} from '../storage.js';
-import {getAudiusDiscoveryCandidates} from './catalog.js';
+import {discoverFromProviders} from '../providers/provider-registry.js';
 
 const FAMILIAR_SHARE=.60,FEED_SIZE=10;
 let candidates=[],loading=null,activeTrackId=null,lastPosition=0,sessionSeconds=0,totalSessionSeconds=0,lastSignalAt=0;
@@ -73,7 +73,7 @@ export async function loadDiscovery(force=false){
  if(loading&&!force)return loading;
  loading=(async()=>{
   const statusBox=$('discoveryStatus');if(statusBox){statusBox.hidden=false;statusBox.textContent='Finding music on Audius…'}
-  try{candidates=await getAudiusDiscoveryCandidates();renderDiscovery();if(statusBox)statusBox.hidden=true}
+  try{candidates=await discoverFromProviders(['audius']);renderDiscovery();if(statusBox)statusBox.hidden=true}
   catch(error){if(statusBox){statusBox.hidden=false;statusBox.textContent='Could not load recommendations. Check your connection and try again.'}}
   finally{loading=null}
  })();return loading;
