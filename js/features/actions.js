@@ -74,7 +74,7 @@ async function removeTrack(trackId){
 async function createFromDialog(){
  const field=$('dialogPlaylistName'),name=field.value.trim();if(!name){field.focus();return}
  try{await saveStreamTrack(state.dialogTrackId)}catch(error){toast('Could not save this streamed song');return}
- const playlist={id:makeId(),name,trackIds:[state.dialogTrackId],createdAt:Date.now()};
+ const playlist={id:makeId(),name,trackIds:[state.dialogTrackId],createdAt:Date.now()};const addedTrack=byId(state.dialogTrackId);if(addedTrack)recordDiscoverySignal('playlist_added',addedTrack,{playlistId:playlist.id})
  put('playlists',playlist).then(()=>{state.playlists.push(playlist);state.refreshAll();closeAction();toast('Playlist created and song added')}).catch(()=>toast('Could not create playlist'))
 }
 function toggleTrackCategory(categoryId){
@@ -85,7 +85,7 @@ function toggleTrackCategory(categoryId){
 async function choosePlaylist(playlistId){
  const playlist=state.playlists.find(item=>item.id===playlistId);if(!playlist)return;playlist.trackIds=playlist.trackIds||[];
  try{await saveStreamTrack(state.dialogTrackId)}catch(error){toast('Could not save this streamed song');return}
- if(!playlist.trackIds.includes(state.dialogTrackId))playlist.trackIds.push(state.dialogTrackId);
+ if(!playlist.trackIds.includes(state.dialogTrackId)){playlist.trackIds.push(state.dialogTrackId);const addedTrack=byId(state.dialogTrackId);if(addedTrack)recordDiscoverySignal('playlist_added',addedTrack,{playlistId:playlist.id})}
  put('playlists',playlist).then(()=>{state.refreshAll();closeAction();toast('Added to '+playlist.name)}).catch(()=>toast('Could not add song'))
 }
 async function shareTrack(){
