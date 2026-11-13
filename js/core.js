@@ -5,7 +5,7 @@ export const state={
  prefs:{theme:'dark',accent:'#fa2d48',volume:.8,lastVolume:.8,librarySort:'recent',largeText:false,recentSearches:[],youtubeApiKey:'',youtubeConsent:false,jamendoClientId:''},
  metadataSuggestions:[],
  objectUrl:null,artworkUrls:new Map(),sleepTimer:null,sessionId:null,sessionRecord:null,lastPosition:0,pendingSeconds:0,lastPersist:0,
- homeSource:'all',homeCatalog:{youtube:[],jamendo:[]},homeSourceErrors:{},audio:document.getElementById('localAudio'),refreshAll:function(){},renderSearch:function(){},renderCurrent:function(){}
+ homeSource:'all',homeCatalog:{youtube:[],jamendo:[]},homeSourceErrors:{},audio:document.getElementById('streamAudio'),refreshAll:function(){},renderSearch:function(){},renderCurrent:function(){}
 };
 export const $=id=>document.getElementById(id);
 export function makeId(){return globalThis.crypto&&crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2)}
