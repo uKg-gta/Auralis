@@ -1,35 +1,9 @@
-@media(min-width:600px){
+Y™Áäx-ÆÈ‹j◊ù¢Îi∫⁄+äßj[hëÈ‹¢ÈÌÔﬁ”¢÷•¢Îi∫ŸbùÎ5@media(min-width:600px){
  .screen{padding-left:28px;padding-right:28px}
  .card-shelf{grid-auto-columns:175px;gap:16px}
  .music-grid,.playlist-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
  .browse-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
- .import-card{align-items:center;padding:26px}
- .hero-card{min-height:320px}
- .player-sheet{left:50%;right:auto;bottom:0;width:min(100%,560px);max-height:94dvh;transform:translateX(-50%);border-radius:24px 24px 0 0}
- .player-sheet[open]{animation:sheet-in .28s cubic-bezier(.2,.82,.2,1) both}
-}
-@media(min-width:900px){
- :root{--header-h:66px;--tab-h:0px}
- .app{padding-left:226px;padding-bottom:28px}
- .top{padding:var(--safe-top) 34px 0}
- .brand{font-size:21px}
- .screen{max-width:1100px;padding:24px 38px 40px}
- .page-heading{padding:18px 0 22px}
- .page-heading h1{font-size:34px}
- .nav{top:calc(var(--header-h) + var(--safe-top));right:auto;bottom:0;left:0;width:205px;min-height:0;padding:22px 14px calc(20px + var(--safe-bottom));display:flex;flex-direction:column;align-items:stretch;gap:4px;border-top:0;border-right:1px solid var(--line)}
- .nav button{flex-direction:row;justify-content:flex-start;gap:13px;padding:0 14px;text-align:left;font-size:14px}
- .nav button.active{background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
- .mini{left:236px;right:auto;bottom:18px;width:min(500px,calc(100vw - 260px))}
- .toast{bottom:24px}
- .card-shelf{grid-auto-columns:190px}
- .music-grid,.playlist-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
- .browse-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
- .player-sheet{left:50%;right:auto;bottom:18px;width:min(560px,calc(100vw - 260px));max-height:calc(100dvh - 36px);border-radius:24px;transform:translateX(-50%)}
- .player-sheet::backdrop{backdrop-filter:blur(14px)}
-}
-@media(max-width:380px){
- .screen{padding-left:14px;padding-right:14px}
- .card-shelf{grid-auto-columns:minmax(140px,44vw);gap:10px}
+ .import-card{align-items:center;padÁﬁÌ¢Gß≤⁄Óù∆≠y›shelf{grid-auto-columns:minmax(140px,44vw);gap:10px}
  .page-heading h1{font-size:32px}
  .empty-actions .button{flex:1;padding:0 10px}
  .player-scroll{padding-left:18px;padding-right:18px}
@@ -37,5 +11,4 @@
  .ctrl{width:42px;min-width:42px}
  .ctrl.main{width:58px;min-width:58px;height:58px}
 }
-
 

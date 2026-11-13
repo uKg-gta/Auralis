@@ -1,14 +1,13 @@
-# Third-party content
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíëS¢Ö¥¢ëiºÙbë5# Third-party sources and content
 
-The MIT license in this repository applies to the Auralis source code. It does
-not grant rights to music, cover artwork, artist names, or other content served
-by Audius. That content remains subject to creator rights and the terms and
-settings that apply to its use through the Audius API.
+The MIT license in this repository applies only to Auralis source code. It
+does not grant rights to third-party music, videos, artwork, artist names or
+metadata. Availability and use are governed by each provider and the relevant
+rights holders.
 
-Auralis uses the Audius API to discover tracks and asks Audius to stream the
-selected track. It does not bundle or download Audius audio. Track availability
-can vary because artists control whether their music is accessible through the
-API. See the [Audius API documentation](https://docs.audius.co/api/),
-[Audius Terms of Use](https://audius.co/documents/TermsOfUse.pdf), and Audius'
-[artist streaming controls](https://help.audius.co/product/editing-your-release).
+- **Audius:** Cataãm¢G§²ÚîÆ­yÒrainz_API/Rate_Limiting),
+  and [data license](https://musicbrainz.org/doc/About/Data_License).
 
+Auralis plays music through official players and public catalogs. Availability
+and rights are set by the rights holders. Auralis does not download or cache
+Audius, YouTube or Jamendo audio or video.
