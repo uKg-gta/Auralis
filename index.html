@@ -191,7 +191,7 @@
 <dialog id="queuePanel" class="action-sheet queue-sheet" aria-labelledby="queueTitle"><div class="sheet-handle-wrap"><button class="sheet-handle" aria-label="Drag down to close queue"></button></div><div class="sheet-head"><div><h2 id="queueTitle">Playing Next</h2><p>Reorder your listening queue</p></div><div class="queue-head-actions"><button id="queueClear" class="text-button" type="button">Clear</button><button id="queueHeaderClose" class="icon-button" type="button" aria-label="Close queue"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-chevron-down"></use></svg></button></div></div><div id="queueList" class="queue-list"></div><button id="queueClose" class="button button-quiet queue-done" type="button">Done</button></dialog>
 <dialog id="actionDialog" class="action-sheet" aria-labelledby="dialogTitle"><div class="sheet-handle-wrap"><button class="sheet-handle" aria-label="Drag down to close actions"></button></div><div id="dialogContent" class="dialog-inner"></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-<audio id="localAudio" preload="metadata"></audio>
+<audio id="streamAudio" preload="metadata"></audio>
 <input id="backupImport" type="file" accept=".zip,application/zip" hidden>
 <script>
 (()=>{
