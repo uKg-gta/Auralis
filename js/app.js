@@ -15,10 +15,10 @@ let returnScreen='home',currentScreen='home',playerTrigger=null;
 function titleFor(screen){return ({home:'Listen Now',search:'Search',browse:'Browse',library:'Library',settings:'Settings',profile:'Listening Stats'})[screen]||'Auralis'}
 function show(screenId){
  if(screenId==='now'){
-  returnScreen=currentScreen;playerTrigger=document.activeElement;const dialog=$('now');if(!dialog.open)dialog.showModal();return
+  returnScreen=currentScreen;playerTrigger=document.activeElement;const dialog=$('now');if(!dialog.open)dialog.showModal();document.body.classList.add('player-open');return
  }
  if(screenId!=='settings'&&screenId!=='profile')returnScreen=screenId;
- const dialog=$('now');if(dialog.open)dialog.close();
+ const dialog=$('now');if(dialog.open)dialog.close();document.body.classList.remove('player-open');
  currentScreen=screenId;document.querySelectorAll('.screen').forEach(section=>section.classList.toggle('active',section.id===screenId));
  const navMap={home:'navhome',search:'navsearch',browse:'navbrowse',library:'navlibrary'},activeId=navMap[screenId];
  document.querySelectorAll('.nav button').forEach(button=>{const active=button.id===activeId;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
@@ -26,7 +26,7 @@ function show(screenId){
  $('compactTitle').textContent=titleFor(screenId);document.body.classList.remove('is-scrolled');window.scrollTo({top:0,behavior:'auto'});
  if(screenId==='settings')refreshStorageInfo();if(screenId==='profile')renderProfile();if(screenId==='browse')loadBrowse();if(screenId==='home')loadDiscovery()
 }
-function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
+function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();document.body.classList.remove('player-open');show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
 function renderAll(){renderHome();renderLibrary();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
 state.refreshAll=renderAll;state.renderSearch=renderSearch;state.renderCurrent=renderCurrent;
 function handleClick(event){
