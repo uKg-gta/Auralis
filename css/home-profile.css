@@ -4,6 +4,7 @@
 .home-heading h1{margin-top:5px}
 .home-heading .subtle{margin:7px 0 0;font-size:14px}
 .home-content{display:block}
+.home-content[hidden]{display:none}
 .home-content>.shelf{margin-top:27px}
 .home-content>.hero-section{margin:6px 0 25px}
 .home-content .hero-card{min-height:250px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--surface)}
