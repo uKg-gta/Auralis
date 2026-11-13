@@ -45,10 +45,10 @@ function isExcluded(track){
  const prefs=state.discoveryPreferences||{};
  return (prefs.hiddenTrackIds||[]).includes(track.id)||(prefs.excludedArtists||[]).some(value=>value.toLowerCase()===(track.artist||'').toLowerCase())||(prefs.excludedGenres||[]).some(value=>value.toLowerCase()===(track.genre||'').toLowerCase());
 }
-function uniqueEligible(list){const seen=new Set();return list.filter(track=>track&&track.provider==='audius'&&!isExcluded(track)&&!seen.has(track.id)&&seen.add(track.id))}
+function uniqueEligible(list){const seen=new Set();return list.filter(track=>{if(!track||!track.id||isExcluded(track))return false;const provider=track.provider||(track.source==='local'?'local':'audius'),supported=track.source!=='youtube'&&provider!=='youtube'&&(track.source!=='stream'||['audius','jamendo'].includes(provider));if(!supported||seen.has(track.id))return false;seen.add(track.id);return true})}
 function score(profile,track){const text=[track.title,track.artist,track.genre,track.album].join(' ').toLowerCase(),searchBoost=profile.searchTerms.slice(-30).reduce((sum,term)=>sum+(term.length>2&&text.includes(term)?0.8:0),0);return (profile.artists[(track.artist||'').toLowerCase()]||0)*1.25+(profile.genres[(track.genre||'').toLowerCase()]||0)*1.8+searchBoost}
 function compose(){
- const profile=buildProfile(),pool=uniqueEligible([...candidates,...state.catalogTracks]);
+ const profile=buildProfile(),pool=uniqueEligible([...state.tracks,...candidates,...state.catalogTracks]);
  if(!profile.hasTaste)return {made:pool.slice(0,FEED_SIZE),familiar:[],fresh:pool.slice(FEED_SIZE,FEED_SIZE+8),profile};
  const ranked=pool.map(track=>({track,value:score(profile,track)})).sort((a,b)=>b.value-a.value);
  const familiar=ranked.filter(item=>item.value>0).map(item=>item.track),explore=ranked.filter(item=>item.value<=0).map(item=>item.track);
@@ -68,9 +68,9 @@ function renderShelf(id,tracks,message){
 }
 export function renderDiscovery(){
  const result=compose();
- renderShelf('homeMadeForYouSection',result.made,'Audius recommendations will appear here.');
+ renderShelf('homeMadeForYouSection',result.made,'Recommendations from your library and streaming catalogues will appear here.');
  renderShelf('homeBecauseSection',result.familiar,'Listen to a few songs to build your personalised picks.');
- renderShelf('homeFreshSection',result.fresh,'Fresh Audius tracks will appear here.');
+ renderShelf('homeFreshSection',result.fresh,'New tracks will appear here.');
  const note=$('discoveryMixNote');if(note)note.textContent=result.profile.hasTaste?'A balanced mix: 60% familiar sounds and 40% new discoveries.':'Starting with Audius trending, underground and new releases.';
 }
 export async function loadDiscovery(force=false){
