@@ -125,13 +125,13 @@
   <p class="library-hint">Playlists set the order; tags group songs your way.</p>
   <section id="libraryTagsSection" class="shelf" hidden><div class="section-heading"><h2>Tags</h2><button class="text-button" onclick="createCategory()">New tag</button></div><div id="categoryList" class="chip-row"></div></section>
   <section id="recentlyAddedSection" class="shelf" hidden><div class="section-heading"><h2>Recently Added</h2><button class="text-button" data-library-section="recent">See All</button></div><div id="recentlyAddedGrid" class="music-grid"></div></section>
-  <section id="libraryEmpty" class="library-empty" hidden><p>Your library is ready when you are.</p><button class="button button-primary" onclick="openAddMenu()"><svg class="icon"><use href="#icon-plus"></use></svg> Add your music</button></section>
+  <section id="libraryEmpty" class="library-empty" hidden><p>Your saved music will appear here.</p><button class="button button-primary" onclick="show('browse')">Explore music</button></section>
  </div>
  <div id="libraryContents" hidden>
   <div class="collection-toolbar"><button id="libraryBack" class="back-button"><svg class="icon"><use href="#icon-chevron-left"></use></svg><span>Library</span></button><h2 id="librarySectionTitle">Songs</h2><label class="sort-control"><span class="sr-only">Sort library</span><select id="librarySort"><option value="recent">Recently Added</option><option value="az">A–Z</option><option value="artist">Artist</option></select></label></div>
   <section id="librarySongs" class="library-view">
    <div class="filter-bar"><button class="chip active" data-library-filter="all" aria-pressed="true">All Songs</button><button class="chip" data-library-filter="recent" aria-pressed="false">Recently Played</button></div>
- <div class="source-filter" role="group" aria-label="Filter songs by source"><span>Source</span><div class="filter-bar"><button class="chip active" data-library-source="all" aria-pressed="true">All</button><button class="chip" data-library-source="local" aria-pressed="false">Uploads</button><button class="chip" data-library-source="audius" aria-pressed="false">Audius</button><button class="chip" data-library-source="youtube" aria-pressed="false">YouTube</button><button class="chip" data-library-source="jamendo" aria-pressed="false">Jamendo</button></div></div>
+ <div class="source-filter" role="group" aria-label="Filter songs by source"><span>Source</span><div class="filter-bar"><button class="chip active" data-library-source="all" aria-pressed="true">All</button><button class="chip" data-library-source="audius" aria-pressed="false">Audius</button><button class="chip" data-library-source="youtube" aria-pressed="false">YouTube</button><button class="chip" data-library-source="jamendo" aria-pressed="false">Jamendo</button></div></div>
    <div id="songTags" class="chip-row"></div><div id="localTrackList" class="track-list"></div>
   </section>
   <section id="libraryRecent" class="library-view" hidden><div id="recentTrackList" class="track-list"></div></section>
@@ -143,8 +143,8 @@
   <section id="libraryArtists" class="library-view" hidden><div id="artistList"></div><div id="artistDetail" class="detail-view" hidden><div class="detail-heading"><button id="artistBack" class="back-button"><svg class="icon"><use href="#icon-chevron-left"></use></svg><span>Artists</span></button><h3 id="artistDetailTitle"></h3></div><div id="artistTracks" class="track-list"></div><section class="shelf"><div class="section-heading"><h3>MusicBrainz releases</h3><button id="musicBrainzArtistRetry" class="text-button" type="button">Load</button></div><div id="musicBrainzArtistReleases" class="search-empty" role="status">Metadata from MusicBrainz is optional.</div></section></div></section>
   <section id="libraryAlbums" class="library-view" hidden><div id="albumList" class="music-grid"></div><div id="albumDetail" class="detail-view" hidden><div class="detail-heading"><button id="albumBack" class="back-button"><svg class="icon"><use href="#icon-chevron-left"></use></svg><span>Albums</span></button><h3 id="albumDetailTitle"></h3></div><p id="albumDetailArtist" class="subtle"></p><div id="albumTracks" class="track-list"></div></div></section>
   <section id="libraryLiked" class="library-view" hidden><div id="likedTrackList" class="track-list"></div></section>
-  <section id="libraryUploads" class="library-view" hidden><div id="uploadTrackList" class="track-list"></div></section>
-  <section id="libraryStreamed" class="library-view" hidden><div id="streamedTrackList" class="track-list"></div></section>
+  
+  
   <section id="libraryUnorganized" class="library-view" hidden><div id="unorganizedTrackList" class="track-list"></div></section>
  </div>
 </section>
