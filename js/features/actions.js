@@ -4,6 +4,7 @@ import {createCategory} from './library.js';
 import {playNext,addToQueue,playCollection,stopCurrent} from './player.js';
 import {exportLibraryBackup} from './backup.js';
 import {saveStreamTrack} from './catalog.js';
+import {recordDiscoverySignal} from './discovery.js';
 
 let lastDialogTrigger=null;
 function openDialog(title,content){
@@ -47,7 +48,7 @@ export function entityMenu(type,id){
 export async function toggleLike(trackId){
  let track=byId(trackId);if(!track)return;
  if(track.source==='stream'&&!state.tracks.some(item=>item.id===trackId)){try{track=await saveStreamTrack(trackId)}catch(error){toast('Could not save this streamed song');return}}
- if(!track)return;track.liked=!track.liked;
+ if(!track)return;track.liked=!track.liked;if(track.liked)recordDiscoverySignal('track_liked',track);
  try{await put('tracks',track);state.refreshAll();state.renderCurrent();toast(track.liked?'Added to Liked Songs':'Removed from Liked Songs')}catch(error){track.liked=!track.liked;toast('Could not update Liked Songs')}
 }
 function openAddPlaylist(){
