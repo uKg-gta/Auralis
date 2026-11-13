@@ -21,6 +21,7 @@ function readId3(bytes,result){
   if(size<=0||offset+header+size>limit)break;
   const payload=bytes.slice(offset+header,offset+header+size);const key=({TIT2:'title',TT2:'title',TPE1:'artist',TP1:'artist',TALB:'album',TAL:'album',TCON:'genre',TCO:'genre'})[id];
   if(key&&payload.length>1&&!result[key])result[key]=textValue(payload.slice(1),payload[0]);
+  if((id==='USLT'||id==='ULT')&&payload.length>4&&!result.lyrics){const encoding=payload[0],body=payload.slice(4);let end=body.length;if(encoding===1||encoding===2){for(let p=0;p+1<body.length;p+=2)if(body[p]===0&&body[p+1]===0){end=p;break}end=Math.min(body.length,end+2)}else{const p=body.indexOf(0);if(p>=0)end=p+1}result.lyrics=textValue(body.slice(end),encoding)}
   if((id==='APIC'||id==='PIC')&&payload.length>8&&!result.artwork){
    let pos=1,mime='image/jpeg';if(id==='PIC'){const fmt=String.fromCharCode(...payload.slice(pos,pos+3));pos+=3;mime=fmt==='PNG'?'image/png':'image/jpeg'}else{let end=payload.indexOf(0,pos);if(end<0)end=pos;mime=textValue(payload.slice(pos,end))||mime;pos=end+1}
    pos++;const enc=payload[0],terminator=enc===1||enc===2?new Uint8Array([0,0]):new Uint8Array([0]);let descEnd=pos;
@@ -39,7 +40,7 @@ function parseComments(bytes,start,result){
  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let offset=start;
  if(offset+8>bytes.length)return;const vendorLength=view.getUint32(offset,true);offset+=4+vendorLength;if(offset+4>bytes.length)return;
  const count=Math.min(view.getUint32(offset,true),2000);offset+=4;
- for(let i=0;i<count;i++){if(offset+4>bytes.length)break;const length=view.getUint32(offset,true);offset+=4;if(length>bytes.length-offset)break;const entry=textValue(bytes.slice(offset,offset+length));offset+=length;const eq=entry.indexOf('=');if(eq<1)continue;const key=entry.slice(0,eq).toLowerCase(),value=entry.slice(eq+1);if(key==='title'&&!result.title)result.title=value;if(key==='artist'&&!result.artist)result.artist=value;if(key==='album'&&!result.album)result.album=value;if(key==='genre'&&!result.genre)result.genre=value}
+ for(let i=0;i<count;i++){if(offset+4>bytes.length)break;const length=view.getUint32(offset,true);offset+=4;if(length>bytes.length-offset)break;const entry=textValue(bytes.slice(offset,offset+length));offset+=length;const eq=entry.indexOf('=');if(eq<1)continue;const key=entry.slice(0,eq).toLowerCase(),value=entry.slice(eq+1);if(key==='title'&&!result.title)result.title=value;if(key==='artist'&&!result.artist)result.artist=value;if(key==='album'&&!result.album)result.album=value;if(key==='genre'&&!result.genre)result.genre=value;if((key==='lyrics'||key==='unsyncedlyrics')&&!result.lyrics)result.lyrics=value}
 }
 function parseFlac(bytes,result){
  if(String.fromCharCode(...bytes.slice(0,4))!=='fLaC')return;let offset=4,last=false;const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
@@ -81,7 +82,7 @@ function parseMp4(bytes,result){
  for(let offset=4;offset+4<=bytes.length;offset++){if(bytes[offset]!==109||bytes[offset+1]!==111||bytes[offset+2]!==111||bytes[offset+3]!==118)continue;const start=offset-4,size=view.getUint32(start,false);if(size>=8&&start+size<=bytes.length)walk(start,start+size,0)}
 }
 export async function parseAudioMetadata(file){
- const result={title:'',artist:'Unknown artist',album:'',genre:'',artwork:null,artworkType:''};
+ const result={title:'',artist:'Unknown artist',album:'',genre:'',lyrics:'',artwork:null,artworkType:''};
  const size=Math.min(file.size,6*1024*1024),head=new Uint8Array(await file.slice(0,size).arrayBuffer());
  if(head.length>=3&&String.fromCharCode(...head.slice(0,3))==='ID3')readId3(head,result);
  if(!result.title&&!result.artist&&file.size>=128){const tail=new Uint8Array(await file.slice(Math.max(0,file.size-128)).arrayBuffer());parseId3v1(tail,result)}
