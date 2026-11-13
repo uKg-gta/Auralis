@@ -72,7 +72,7 @@ export async function getAudiusDiscoveryCandidates(){
   fetchTracks('/tracks/trending/underground',{}),
   fetchTracks('/tracks/latest',{})
  ]);
- const raw=[];groups.forEach(result=>{if(result.status==='fulfilled')raw.push(...result.value)});
+ const raw=[],successful=groups.filter(result=>result.status==='fulfilled').length;groups.forEach(result=>{if(result.status==='fulfilled')raw.push(...result.value)});if(!successful)throw new Error('Audius discovery is currently unavailable');
  const unique=new Map();rememberTracks(raw).forEach(track=>{if(!unique.has(track.id))unique.set(track.id,track)});
  return Array.from(unique.values());
 }
