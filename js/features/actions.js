@@ -135,8 +135,6 @@ async function removeAlbum(){
 function handleDialogClick(event){
  const button=event.target.closest('[data-action],[data-pick-playlist],[data-toggle-category],[data-export-library],[data-import-backup],[data-close-action],[data-metadata-pick]');if(!button)return;
  if(button.hasAttribute('data-close-action')){closeAction();return}
- if(button.dataset.importFiles!==undefined){closeAction();$('audioImport').click();return}
- if(button.dataset.importFolder!==undefined){closeAction();$('folderImport').click();return}
  if(button.hasAttribute('data-export-library')){exportLibraryBackup();return}
  if(button.hasAttribute('data-import-backup')){closeAction();$('backupImport').click();return}
  if(button.dataset.pickPlaylist){choosePlaylist(button.dataset.pickPlaylist);return}
