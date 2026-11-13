@@ -12,13 +12,18 @@ import {initCatalog,loadBrowse} from './features/catalog.js';
 import {initDiscovery,loadDiscovery,hideRecommendation,moreLikeRecommendation,resetTasteProfile} from './features/discovery.js';
 
 let returnScreen='home',currentScreen='home',playerTrigger=null;
+function setPlayerOpenState(open){
+ const body=document.body;body.classList.toggle('player-open',open);
+ const mobile=!!(navigator.maxTouchPoints>0||window.matchMedia('(max-width: 899px)').matches);
+ body.classList.toggle('mobile-player-open',open&&mobile);
+}
 function titleFor(screen){return ({home:'Listen Now',search:'Search',browse:'Browse',library:'Library',settings:'Settings',profile:'Listening Stats'})[screen]||'Auralis'}
 function show(screenId){
  if(screenId==='now'){
-  returnScreen=currentScreen;playerTrigger=document.activeElement;const dialog=$('now');if(!dialog.open)dialog.showModal();document.body.classList.add('player-open');return
+  returnScreen=currentScreen;playerTrigger=document.activeElement;const dialog=$('now');if(!dialog.open)dialog.showModal();setPlayerOpenState(true);return
  }
  if(screenId!=='settings'&&screenId!=='profile')returnScreen=screenId;
- const dialog=$('now');if(dialog.open)dialog.close();document.body.classList.remove('player-open');
+ const dialog=$('now');if(dialog.open)dialog.close();setPlayerOpenState(false);
  currentScreen=screenId;document.querySelectorAll('.screen').forEach(section=>section.classList.toggle('active',section.id===screenId));
  const navMap={home:'navhome',search:'navsearch',browse:'navbrowse',library:'navlibrary'},activeId=navMap[screenId];
  document.querySelectorAll('.nav button').forEach(button=>{const active=button.id===activeId;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
