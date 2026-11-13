@@ -23,7 +23,7 @@ function trackChanged(track){
  if(track)recordDiscoverySignal('play_started',track);
 }
 function buildProfile(){
- const profile={artists:Object.create(null),genres:Object.create(null),hasTaste:false};
+ const profile={artists:Object.create(null),genres:Object.create(null),searchTerms:[],hasTaste:false};
  const addScore=(track,score)=>{if(!track)return;const artist=(track.artist||'').trim().toLowerCase(),genre=(track.genre||'').trim().toLowerCase();if(artist)profile.artists[artist]=(profile.artists[artist]||0)+score;if(genre)profile.genres[genre]=(profile.genres[genre]||0)+score};
  state.tracks.filter(track=>track.liked).forEach(track=>addScore(track,4));
  state.listeningSignals.forEach(event=>{
@@ -32,7 +32,7 @@ function buildProfile(){
   else if(event.type==='play_progress')addScore(track,Math.min(3,(Number(event.playedSeconds)||0)/90));
   else if(event.type==='play_completed')addScore(track,3);
   else if(event.type==='track_skipped')addScore(track,-1.5);
-  else if(event.type==='more_like_this')addScore(track,4);
+  else if(event.type==='more_like_this')addScore(track,4);\n  else if(event.type==='track_liked')addScore(track,4);
  });
  profile.hasTaste=Object.values(profile.artists).some(value=>value>1)||Object.values(profile.genres).some(value=>value>1);
  return profile;
@@ -42,10 +42,10 @@ function isExcluded(track){
  return (prefs.hiddenTrackIds||[]).includes(track.id)||(prefs.excludedArtists||[]).some(value=>value.toLowerCase()===(track.artist||'').toLowerCase())||(prefs.excludedGenres||[]).some(value=>value.toLowerCase()===(track.genre||'').toLowerCase());
 }
 function uniqueEligible(list){const seen=new Set();return list.filter(track=>track&&track.provider==='audius'&&!isExcluded(track)&&!seen.has(track.id)&&seen.add(track.id))}
-function score(profile,track){return (profile.artists[(track.artist||'').toLowerCase()]||0)*1.25+(profile.genres[(track.genre||'').toLowerCase()]||0)*1.8}
+function score(profile,track){const text=[track.title,track.artist,track.genre,track.album].join(' ').toLowerCase(),searchBoost=profile.searchTerms.slice(-30).reduce((sum,term)=>sum+(term.length>2&&text.includes(term)?0.8:0),0);return (profile.artists[(track.artist||'').toLowerCase()]||0)*1.25+(profile.genres[(track.genre||'').toLowerCase()]||0)*1.8+searchBoost}
 function compose(){
  const profile=buildProfile(),pool=uniqueEligible([...candidates,...state.catalogTracks]);
- if(!profile.hasTaste)return {made:pool.slice(0,FEED_SIZE),familiar:[],fresh:pool.slice(0,8),profile};
+ if(!profile.hasTaste)return {made:pool.slice(0,FEED_SIZE),familiar:[],fresh:pool.slice(FEED_SIZE,FEED_SIZE+8),profile};
  const ranked=pool.map(track=>({track,value:score(profile,track)})).sort((a,b)=>b.value-a.value);
  const familiar=ranked.filter(item=>item.value>0).map(item=>item.track),explore=ranked.filter(item=>item.value<=0).map(item=>item.track);
  const familiarCount=Math.min(Math.round(FEED_SIZE*FAMILIAR_SHARE),familiar.length),exploreCount=Math.min(FEED_SIZE-familiarCount,explore.length);
