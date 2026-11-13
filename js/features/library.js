@@ -52,7 +52,7 @@ function renderTrackList(id,list,empty,options={}){
 }
 function renderSongTags(){const box=$('songTags');box.innerHTML=state.categories.map(category=>'<button class="chip tag-chip '+(state.libraryFilter==='category:'+category.id?'active':'')+'" data-library-filter="category:'+esc(category.id)+'">'+icon('tag')+esc(category.name)+'</button>').join('')}
 export function renderYourMusic(){
- const list=filteredTracks();renderSongTags();renderTrackList('localTrackList',list,state.tracks.length?'No songs in this view yet.':'Import music to see your songs.');
+ const list=filteredTracks();renderSongTags();renderTrackList('localTrackList',list,state.tracks.length?'No songs in this view yet.':'Browse and save online music to build your library.');
  document.querySelectorAll('[data-library-filter]').forEach(button=>{const active=button.dataset.libraryFilter===state.libraryFilter;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
  document.querySelectorAll('[data-library-source]').forEach(button=>{const active=button.dataset.librarySource===state.librarySource;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))})
 }
@@ -83,7 +83,7 @@ export function renderLibrary(){
  const sort=$('librarySort');if(sort)sort.value=state.prefs.librarySort||'recent'
 }
 export function setLibraryFilter(filter){state.libraryFilter=filter||'all';renderYourMusic()}
-export function setLibrarySource(source){state.librarySource=['local','audius','youtube','jamendo'].includes(source)?source:'all';renderYourMusic()}
+export function setLibrarySource(source){state.librarySource=['audius','youtube','jamendo'].includes(source)?source:'all';renderYourMusic()}
 export function setLibrarySection(section){const allowed=['overview','songs','recent','playlists','artists','albums','liked','unorganized'];state.selectedArtistName=null;state.selectedAlbumName=null;state.librarySection=allowed.includes(section)?section:'overview';renderLibrary()}
 export function showLiked(){setLibrarySection('liked');window.show('library')}
 export function showRecent(){setLibrarySection('recent');window.show('library')}
