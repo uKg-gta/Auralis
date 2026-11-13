@@ -25,9 +25,9 @@ export async function refreshStorageInfo(){
  if(!navigator.storage||typeof navigator.storage.estimate!=='function'){output.textContent='Storage estimates are not available here. Your music remains in this browser.';return}
  try{const estimate=await navigator.storage.estimate(),used=estimate.usage,quota=estimate.quota;if(Number.isFinite(used)&&Number.isFinite(quota)&&quota>0){const percent=Math.min(100,Math.round(used/quota*100));output.textContent='About '+formatBytes(used)+' of '+formatBytes(quota)+' browser storage used ('+percent+'%). This estimate includes other site data.'}else output.textContent='Your imported audio, playlists, tags and settings are stored in this browser.'}catch(error){output.textContent='Storage details are unavailable. Export a backup before clearing browser data.'}
 }
-export async function requestPersistentStorage(){
- if(!navigator.storage||typeof navigator.storage.persist!=='function'){toast('Persistent storage is not available in this browser');return}
- try{const granted=await navigator.storage.persist();toast(granted?'Auralis storage is protected from automatic cleanup':'The browser did not grant persistent storage')}catch(error){toast('Could not request persistent storage')}
+export async function requestPersistentStorage(silent=false){
+ if(!navigator.storage||typeof navigator.storage.persist!=='function'){if(!silent)toast('Persistent storage is not available in this browser');return false}
+ try{const granted=await navigator.storage.persist();if(!silent)toast(granted?'Auralis storage is protected from automatic cleanup':'The browser did not grant persistent storage');return granted}catch(error){if(!silent)toast('Could not request persistent storage');return false}
 }
 
 
