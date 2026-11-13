@@ -62,7 +62,6 @@
   <div id="compactTitle" class="compact-title">Listen Now</div>
   <div class="top-actions">
     <button id="globalAddButton" class="icon-button" aria-label="Add music or create a playlist" aria-haspopup="dialog" onclick="openAddMenu()"><svg class="icon"><use href="#icon-plus"></use></svg></button>
-    <button id="profileButton" class="icon-button" aria-label="Profile" onclick="show('profile')"><svg class="icon"><use href="#icon-artist"></use></svg></button>
     <button id="settingsButton" class="icon-button" aria-label="Settings" onclick="show('settings')"><svg class="icon"><use href="#icon-settings"></use></svg></button>
   </div>
 </header>
@@ -179,48 +178,10 @@
  </div>
 </section>
 <section id="profile" class="screen" aria-labelledby="profileTitle">
- <div class="page-heading"><div><h1 id="profileTitle">Profile</h1><p class="subtle">Your personal listening space</p></div></div>
- <section class="profile-identity">
-  <div id="profileAvatar" class="profile-avatar" aria-hidden="true">A</div>
-  <div class="profile-identity-copy"><h2 id="profileName">Your Auralis profile</h2><p id="profileBio">Add a little about yourself.</p></div>
-  <button id="profileEditToggle" class="icon-button" type="button" aria-label="Edit profile"><svg class="icon"><use href="#icon-edit"></use></svg></button>
- </section>
- <form id="profileEditForm" class="form-card profile-edit" hidden>
-  <div id="profileNamePrompt" class="profile-name-prompt"><b>Welcome to Auralis</b><p>Choose a display name to personalise your profile. You can change it anytime.</p></div>
-  <div><label for="profileEditName">Display name</label><input id="profileEditName" class="form-input" maxlength="40" required placeholder="Your name"></div>
-  <div><label for="profileEditBio">Short bio</label><textarea id="profileEditBio" class="form-input" maxlength="160" rows="3" placeholder="A little about you"></textarea></div>
-  <button class="button button-primary" type="submit">Save profile</button>
- </form>
- <section class="shelf profile-stats-section">
-  <div class="section-heading"><h2>Listening statistics</h2></div>
-  <div class="profile-stat-grid">
-   <div class="profile-stat-card"><span class="eyebrow">Listening time</span><strong id="profileTotalTime">0s</strong></div>
-   <div class="profile-stat-card"><span class="eyebrow">Tracks played</span><strong id="profilePlayCount">0</strong></div>
-   <div class="profile-stat-card"><span class="eyebrow">Last 7 days</span><strong id="profileWeekTime">0s</strong></div>
-   <div class="profile-stat-card"><span class="eyebrow">Listening streak</span><strong id="profileStreak">0 days</strong></div>
-  </div>
-  <div class="profile-chart-card"><div class="section-heading"><h3>Listening trends</h3><div id="profileRange" class="segmented"><button type="button" data-profile-range="day" aria-pressed="false">Day</button><button type="button" data-profile-range="week" aria-pressed="true">Week</button><button type="button" data-profile-range="month" aria-pressed="false">Month</button></div></div><div id="profileChart" class="profile-chart" role="img" aria-label="Listening time chart"></div></div>
-  <div class="profile-rank-grid">
-   <div class="profile-chart-card"><h3>Top artists</h3><div id="profileTopArtists" class="profile-ranking-list"></div></div>
-   <div class="profile-chart-card"><h3>Top tracks</h3><div id="profileTopTracks" class="profile-ranking-list"></div></div>
-   <div class="profile-chart-card"><h3>Top genres</h3><div id="profileTopGenres" class="profile-ranking-list"></div></div>
-  </div>
- </section>
- <section class="shelf">
-  <div class="section-heading"><div><h2>Monthly listening recap</h2><p class="subtle">A snapshot of this month's listening</p></div></div>
-  <button id="profileGenerateRecap" class="button button-secondary" type="button">Generate recap</button>
-  <div id="profileRecapPreviewWrap" class="profile-recap-preview" hidden><img id="profileRecapPreview" alt="Monthly Auralis listening recap"><div id="profileRecapActions" class="settings-actions" hidden><button id="profileSaveRecap" class="button button-secondary" type="button">Save image</button><button id="profileShareRecap" class="button button-primary" type="button">Share</button></div></div>
- </section>
- <section class="shelf">
-  <div class="section-heading"><h2>Auralis on this device</h2></div>
-  <div class="settings-group profile-device-info">
-   <div class="settings-row"><span>Date joined</span><b id="profileJoined">—</b></div>
-   <div class="settings-row"><span>App version</span><b id="profileVersion">—</b></div>
-   <div class="settings-row"><span>Library storage</span><b id="profileStorage">—</b></div>
-   <div class="settings-row"><span>Backup status</span><b id="profileBackup">—</b></div>
-  </div>
- </section>
- <section class="shelf profile-reset-section"><div class="section-heading"><h2>Start fresh</h2></div><p class="subtle">Reset listening history, statistics and learned music preferences. Your music, playlists and profile details stay on this device.</p><button id="profileResetActivity" class="button button-secondary" type="button">Reset listening activity</button></section>
+ <div class="page-heading"><h1 id="profileTitle">Listening Stats</h1></div>
+ <div id="profileStats" class="stats-card"><span class="eyebrow">Total listening time</span><strong id="profileListeningTime">0s</strong><p id="profileTrackCount">No tracks played yet</p><div id="profileWeekBars" class="week-bars"></div></div>
+ <section id="profileArtists" class="shelf"><div class="section-heading"><h2>Favorite Artists</h2></div><div id="favoriteArtists"></div></section>
+ <section id="profileMostPlayed" class="shelf"><div class="section-heading"><h2>Most Played</h2></div><div id="mostPlayed" class="track-list"></div></section>
 </section>
 <section id="settings" class="screen" aria-labelledby="settingsTitle">
  <div class="page-heading"><h1 id="settingsTitle">Settings</h1></div>
