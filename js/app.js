@@ -176,7 +176,7 @@ function setupSourceSettings(){
  $('browseYoutubeRetry').addEventListener('click',()=>showBrowseSource('youtube',true));$('browseJamendoRetry').addEventListener('click',()=>showBrowseSource('jamendo',true));
  $('musicBrainzArtistRetry').addEventListener('click',()=>{const name=$('artistDetailTitle').textContent;if(name)loadMusicBrainzArtist(name)})
 }
-function setupScrollTitle(){function setupShelfArrows(){
+function setupShelfArrows(){
  document.querySelectorAll('.home-content .shelf .section-heading').forEach((heading,index)=>{
   const shelf=heading.parentElement.querySelector('.card-shelf');if(!shelf||heading.querySelector('.shelf-arrows'))return;
   if(!shelf.id)shelf.id='shelf-'+index;
@@ -185,7 +185,7 @@ function setupScrollTitle(){function setupShelfArrows(){
   heading.appendChild(arrows)
  })
 }
-let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
+function setupScrollTitle(){let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
 function boot(){
  const stage=name=>{window.__auralisBootStage=name};
  stage('player setup');initPlayer();
