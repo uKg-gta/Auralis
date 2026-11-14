@@ -40,3 +40,4 @@
  .home-content .card-shelf{grid-auto-columns:175px;gap:16px}
  .profile-identity-card{max-width:760px;padding:22px}
 }
+@media(min-width:900px) and (hover:hover) and (pointer:fine){.home-content .card-shelf{grid-auto-columns:190px}}
