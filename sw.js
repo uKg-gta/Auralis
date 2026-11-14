@@ -1,4 +1,4 @@
-const CACHE_NAME='auralis-shell-v25';
+const CACHE_NAME='auralis-shell-v26';
 const APP_SHELL=[
  './','./index.html','./sources.html','./privacy.html','./terms.html','./manifest.json','./assets/icon.svg','./assets/favicon.png','./assets/apple-touch-icon.png','./assets/icon-192.png','./assets/icon-512.png','./assets/icon-maskable-512.png','./js/theme-init.js',
  './css/base.css','./css/buttons.css','./css/app.css','./css/player.css','./css/responsive.css','./css/home-profile.css',
