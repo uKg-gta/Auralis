@@ -40,8 +40,11 @@ function show(screenId,options={}){
 function closePlayer(){
  const dialog=$('now');if(!dialog.open)return;
  if(byId(state.currentTrackId)?.source==='youtube'){status('YouTube video paused because the player was closed. Reopen the player to continue.');toast('YouTube video paused. Reopen Now Playing to continue.')}
- if(history.state?.playerOpen){history.back();return}
- dialog.close();document.body.classList.remove('player-open','mobile-player-open');pauseYouTubePlayback();show(returnScreen==='now'?'home':returnScreen,{push:false});const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))
+ const shouldReturnInHistory=history.state?.playerOpen===true;
+ const destination=returnScreen==='now'?'home':returnScreen;
+ dialog.close();document.body.classList.remove('player-open','mobile-player-open');pauseYouTubePlayback();show(destination,{push:false});
+ const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}));
+ if(shouldReturnInHistory)history.back()
 }
 function renderAll(){
  if(currentScreen==='home'){renderHome();renderDiscovery()}
