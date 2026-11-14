@@ -123,6 +123,7 @@ html[data-theme="light"] .nav{background:rgba(249,249,251,.86)}
 .chip-row .tag-chip{display:inline-flex;align-items:center;gap:6px}
 .music-grid,.playlist-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
 .album-card,.playlist-card{min-width:0;text-align:left}
+.album-open{display:block;width:100%;min-width:0;text-align:left}
 .album-card .card-art,.playlist-card .card-art{width:100%;aspect-ratio:1}
 .album-card .icon-button{position:absolute;right:6px;bottom:6px;z-index:2;background:rgba(0,0,0,.62);color:#fff}
 .playlist-card{position:relative}
