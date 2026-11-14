@@ -22,58 +22,30 @@ export function getAll(name){return request(name,'readonly',store=>store.getAll(
 export function put(name,value){return request(name,'readwrite',store=>store.put(value))}
 export function add(name,value){return request(name,'readwrite',store=>store.add(value))}
 export function remove(name,key){return request(name,'readwrite',store=>store.delete(key))}
-async function removeLocalOnlyData(){
- await new Promise((resolve,reject)=>{
-  const stores=['tracks','playlists','history','listeningSignals'],tx=state.db.transaction(stores,'readwrite'),tracks=tx.objectStore('tracks'),playlists=tx.objectStore('playlists'),history=tx.objectStore('history'),signals=tx.objectStore('listeningSignals');
-  const playlistRequest=playlists.getAll(),historyRequest=history.getAll(),signalRequest=signals.getAll(),cursorRequest=tracks.openCursor();
-  let remoteIds=new Set(),playlistRows=null,historyRows=null,signalRows=null,tracksDone=false,cleaned=false;
-  const cleanup=()=>{
-   if(cleaned||!tracksDone||!playlistRows||!historyRows||!signalRows)return;cleaned=true;
-   for(const playlist of playlistRows){const ids=Array.isArray(playlist.trackIds)?playlist.trackIds:[],next=ids.filter(id=>remoteIds.has(id));if(next.length!==ids.length){playlist.trackIds=next;playlists.put(playlist)}}
-   for(const item of historyRows){const source=item.trackSnapshot?.source,trackId=String(item.trackId||''),remote=['audius','youtube','jamendo'].includes(source)||(source==='stream'&&item.trackSnapshot?.provider==='audius')||/^(audius|youtube|jamendo):/.test(trackId)||remoteIds.has(trackId);if(!remote)history.delete(item.id)}
-   for(const item of signalRows){const source=item.track?.source||item.source,trackId=String(item.trackId||''),remote=item.type==='search_performed'||['audius','youtube','jamendo'].includes(source)||(source==='stream'&&(item.track?.provider==='audius'||item.provider==='audius'))||/^(audius|youtube|jamendo):/.test(trackId)||remoteIds.has(trackId);if(!remote)signals.delete(item.id)}
-  };
-  cursorRequest.onsuccess=event=>{
-   const cursor=event.target.result;
-   if(cursor){const track=cursor.value,source=track.source==='stream'?(track.provider||'audius'):track.source;if(['audius','youtube','jamendo'].includes(source)){remoteIds.add(track.id);if(track.source==='stream'){track.source='audius';track.provider='audius';cursor.update(track)}}else cursor.delete();cursor.continue()}
-   else{tracksDone=true;cleanup()}
-  };
-  playlistRequest.onsuccess=()=>{playlistRows=playlistRequest.result||[];cleanup()};
-  historyRequest.onsuccess=()=>{historyRows=historyRequest.result||[];cleanup()};
-  signalRequest.onsuccess=()=>{signalRows=signalRequest.result||[];cleanup()};
-  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Could not remove on-device audio data'));tx.onabort=()=>reject(tx.error||new Error('Could not remove on-device audio data'));
- });
-}
 export async function loadLibraryState(){
- await openDatabase();await removeLocalOnlyData();const values=await Promise.all([getAll('tracks'),getAll('playlists'),getAll('categories'),getAll('settings'),getAll('history'),getAll('listeningSignals')]);
- const preference=(values[3]||[]).find(item=>item.key==='preferences');if(preference&&preference.value)state.prefs=Object.assign(state.prefs,preference.value);const discovery=(values[3]||[]).find(item=>item.key==='discoveryPreferences');state.discoveryPreferences=Object.assign({hiddenTrackIds:[],excludedArtists:[],excludedGenres:[]},discovery?.value||{});state.listeningSignals=values[5]||[];
- const maxYoutubeAge=30*24*60*60*1000,now=Date.now(),expiredYoutubeIds=new Set(),loadedTracks=[];
+ await openDatabase();const values=await Promise.all([getAll('tracks'),getAll('playlists'),getAll('categories'),getAll('settings'),getAll('history'),getAll('listeningSignals')]);
+ const preference=(values[3]||[]).find(item=>item.key==='preferences');if(preference&&preference.value)state.prefs=Object.assign(state.prefs,preference.value);
+ const discovery=(values[3]||[]).find(item=>item.key==='discoveryPreferences');state.discoveryPreferences=Object.assign({hiddenTrackIds:[],excludedArtists:[],excludedGenres:[]},discovery?.value||{});
+ state.listeningSignals=values[5]||[];const now=Date.now(),maxYoutubeAge=30*24*60*60*1000,loadedTracks=[];
  for(const track of values[0]||[]){
   if(track.source==='stream'&&(!track.provider||track.provider==='audius')){track.source='audius';track.provider='audius';put('tracks',track).catch(()=>{})}
   if(track.source==='youtube'||track.source==='jamendo'){
-   const providerId=String(track.providerId||track.id?.replace(/^(youtube|jamendo):/, '')||'');
-   if(track.source==='youtube'&&!/^[A-Za-z0-9_-]{11}$/.test(providerId)){expiredYoutubeIds.add(track.id);await remove('tracks',track.id).catch(()=>{});continue}
-   const checkedAt=Number(track.youtubeDataCheckedAt)||Number(track.added)||0;
-   if(track.source==='youtube'&&(!checkedAt||checkedAt>now||now-checkedAt>=maxYoutubeAge)){expiredYoutubeIds.add(track.id);await remove('tracks',track.id).catch(()=>{});continue}
+   const providerId=String(track.providerId||track.id?.replace(/^(youtube|jamendo):/,'')||'');
+   if(track.source==='youtube'&&!/^[A-Za-z0-9_-]{11}$/.test(providerId)){loadedTracks.push(track);continue}
+   const checkedAt=Number(track.youtubeDataCheckedAt)||0,metadataFresh=checkedAt>0&&checkedAt<=now&&now-checkedAt<maxYoutubeAge;
    const sourceUrl=track.source==='youtube'?'https://www.youtube.com/watch?v='+encodeURIComponent(providerId):String(track.sourceUrl||track.providerUrl||'https://www.jamendo.com/track/'+encodeURIComponent(providerId));
-   const clean={id:track.id,source:track.source,providerId,sourceUrl,added:Number(track.added)||0,categories:Array.isArray(track.categories)?track.categories:[],liked:!!track.liked,...(track.source==='youtube'?{youtubeDataCheckedAt:checkedAt}:{})};
+   const clean={id:track.id,source:track.source,providerId,sourceUrl,added:Number(track.added)||0,categories:Array.isArray(track.categories)?track.categories:[],liked:!!track.liked,...(track.source==='youtube'&&metadataFresh?{youtubeDataCheckedAt:checkedAt}:{})};
    const allowed=new Set(Object.keys(clean));if(Object.keys(track).some(key=>!allowed.has(key))||Object.keys(clean).some(key=>track[key]!==clean[key]))put('tracks',clean).catch(()=>{});
    loadedTracks.push(clean);continue
   }
   loadedTracks.push(track)
  }
- state.tracks=loadedTracks.sort((a,b)=>(a.added||0)-(b.added||0));
- state.playlists=(values[1]||[]).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
- if(expiredYoutubeIds.size){for(const playlist of state.playlists){const ids=Array.isArray(playlist.trackIds)?playlist.trackIds:[],next=ids.filter(id=>!expiredYoutubeIds.has(id));if(next.length!==ids.length){playlist.trackIds=next;put('playlists',playlist).catch(()=>{})}}}
- state.categories=values[2]||[];const history=[];
- for(const item of values[4]||[]){
-  const source=item.trackSnapshot?.source,trackId=String(item.trackId||''),youtubeHistory=source==='youtube'||trackId.startsWith('youtube:');
-  if(youtubeHistory){await remove('history',item.id).catch(()=>{});continue}
-  const remote=source==='jamendo'||trackId.startsWith('jamendo:');
-  if(!remote){history.push(item);continue}
-  const clean={...item};for(const key of ['title','artist','album','trackSnapshot','provider','providerId','sourceUrl'])delete clean[key];put('history',clean).catch(()=>{});history.push(clean)
- }
- state.history=history.sort((a,b)=>(b.startedAt||0)-(a.startedAt||0));
+ state.tracks=loadedTracks.sort((a,b)=>(a.added||0)-(b.added||0));state.playlists=(values[1]||[]).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));state.categories=values[2]||[];
+ state.history=(values[4]||[]).map(item=>{
+  const source=item.trackSnapshot?.source||item.source,trackId=String(item.trackId||''),needsScrub=['youtube','jamendo'].includes(source)||/^(youtube|jamendo):/.test(trackId);
+  if(!needsScrub)return item;
+  const clean={...item};for(const key of ['title','artist','album','trackSnapshot','provider','providerId','sourceUrl'])delete clean[key];put('history',clean).catch(()=>{});return clean
+ }).sort((a,b)=>(b.startedAt||0)-(a.startedAt||0));
  const streamHistory=new Map();state.history.forEach(item=>{const track=item.trackSnapshot;if(track?.source==='stream'&&track.providerId){track.source='audius';track.provider='audius';item.trackSnapshot=track;put('history',item).catch(()=>{})}if(track?.source==='audius'&&track.providerId&&!state.tracks.some(saved=>saved.id===track.id))streamHistory.set(track.id,track)});state.catalogTracks=Array.from(streamHistory.values());
 }
 

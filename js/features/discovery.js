@@ -64,34 +64,30 @@ function card(track){
 }
 function renderShelf(id,tracks,message){
  const section=$(id),box=section?.querySelector('.card-shelf');if(!section||!box)return;
- section.hidden=false;box.innerHTML=tracks.map(card).join('');
- const empty=section.querySelector('.discovery-status');if(empty){empty.hidden=!!tracks.length;empty.textContent=message}
+ section.hidden=!tracks.length;box.innerHTML=tracks.map(card).join('');
+ const empty=section.querySelector('.discovery-status');if(empty){empty.hidden=true;empty.textContent=message}
 }
 export function renderDiscovery(){
- const result=compose();
- const featured=(state.currentTrackId&&byId(state.currentTrackId))||result.made[0]||result.fresh[0]||null;
- const hero=$('homeHeroSection');
- if(hero&&featured){hero.hidden=false;$('homeHero').dataset.playTrack=featured.id;$('homeHeroTitle').textContent=featured.title||featured.name||'Discover something new';$('homeHeroArtist').textContent=featured.artist||'Auralis pick';const art=$('homeHeroArt'),url=artworkUrl(featured);art.className='hero-art art '+artworkClass(featured);art.innerHTML=url?'<img src="'+esc(url)+'" alt="">':''}
-
+ const result=compose(),current=state.currentTrackId&&byId(state.currentTrackId),featured=current||result.made[0]||result.fresh[0]||null,hero=$('homeHeroSection');
+ if(hero&&featured){hero.hidden=false;$('homeHero').dataset.playTrack=featured.id;$('homeHeroTitle').textContent=featured.title||featured.name||'Discover something new';$('homeHeroArtist').textContent=featured.artist||'Auralis pick';const art=$('homeHeroArt'),url=artworkUrl(featured);art.className='hero-art art '+artworkClass(featured);art.innerHTML=url?'<img src="'+esc(url)+'" alt="">':'';const eyebrow=$('homeHeroEyebrow');if(eyebrow)eyebrow.textContent=current?'NOW PLAYING':'AURALIS PICK'}
  renderShelf('homeMadeForYouSection',result.made,'Recommendations from your library and streaming catalogues will appear here.');
  renderShelf('homeBecauseSection',result.familiar,'Listen to a few songs to build your personalised picks.');
  renderShelf('homeFreshSection',result.fresh,'New tracks will appear here.');
- const note=$('discoveryMixNote');if(note)note.textContent=result.profile.hasTaste?'A balanced mix: 60% familiar sounds and 40% new discoveries.':'Starting with Audius trending, underground and new releases.';
+ const note=$('discoveryMixNote');if(note){note.hidden=!result.made.length;note.textContent=result.profile.hasTaste?'A balanced mix: 60% familiar sounds and 40% new discoveries.':'Starting with Audius trending, underground and new releases.'}
 }
 export async function loadDiscovery(force=false){
  if(loaded&&!force)return;
  if(loading&&!force)return loading;
  loading=(async()=>{
-  const statusBox=$('discoveryStatus');if(statusBox){statusBox.hidden=false;statusBox.textContent='Finding music on Audius…'}
+  const statusBox=$('discoveryStatus'),section=$('homeMadeForYouSection');if(statusBox){statusBox.hidden=false;statusBox.textContent='Finding music on Audius…';statusBox.removeAttribute('role');section.hidden=false}
   let timeoutId;
   try{
    const timeout=new Promise((resolve,reject)=>{timeoutId=setTimeout(()=>reject(new Error('Discovery timed out')),16000)});
-   candidates=await Promise.race([discoverFromProviders(['audius']),timeout]);
-   loaded=true;renderDiscovery();
-   if(statusBox){statusBox.hidden=!!candidates.length;if(!candidates.length)statusBox.textContent='Audius did not return any playable tracks. Try again in a moment.'}
+   candidates=await Promise.race([discoverFromProviders(['audius']),timeout]);loaded=true;renderDiscovery();
+   if(statusBox)statusBox.hidden=true;
   }catch(error){
    loaded=false;
-   if(statusBox){statusBox.hidden=false;statusBox.innerHTML='Audius discovery is taking too long or is unavailable. <button type="button" class="text-button" data-discovery-retry>Try again</button>'}
+   if(statusBox){section.hidden=false;statusBox.hidden=false;statusBox.setAttribute('role','alert');statusBox.innerHTML='Audius discovery is unavailable. Check your connection and try again. <button type="button" class="text-button" data-discovery-retry>Retry</button>'}
   }finally{clearTimeout(timeoutId);loading=null}
  })();return loading;
 }
@@ -105,9 +101,8 @@ export async function moreLikeRecommendation(id){
  await recordDiscoverySignal('more_like_this',track);renderDiscovery();toast('We’ll recommend more like this');
 }
 export async function resetTasteProfile(){
- if(!confirm('Reset listening-based discovery learning? Your listening history and liked songs will be kept, and liked songs will still influence recommendations.'))return;
  state.listeningSignals=[];try{await new Promise((resolve,reject)=>{const tx=state.db.transaction('listeningSignals','readwrite');tx.objectStore('listeningSignals').clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}catch(error){toast('Could not reset the taste profile');return}
- renderDiscovery();toast('Listening-based discovery learning reset. Likes are still used.');
+ renderDiscovery();toast('Listening-based discovery learning reset. Likes are still used.')
 }
 export function initDiscovery(){
  state.audio.addEventListener('play',()=>{const track=byId(state.currentTrackId);if(track&&track.id!==activeTrackId)trackChanged(track)});

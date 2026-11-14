@@ -6,12 +6,13 @@ import {exportLibraryBackup} from './backup.js';
 import {saveSourceTrack} from '../sources/index.js';
 import {searchRecordings,getRecordingDetails} from '../sources/musicbrainz.js';
 import {pauseYouTubePlayback} from '../sources/youtube.js';
+import {hideRecommendation,moreLikeRecommendation,resetTasteProfile} from './discovery.js';
 
 let lastDialogTrigger=null,metadataCandidates=[];
 function openDialog(title,content){
  const dialog=$('actionDialog'),wasOpen=dialog.open;if(byId(state.currentTrackId)?.source==='youtube')pauseYouTubePlayback();if(!wasOpen)lastDialogTrigger=document.activeElement;
  $('dialogContent').innerHTML='<div class="dialog-top"><h2 id="dialogTitle">'+esc(title)+'</h2><button class="icon-button" data-close-action aria-label="Close actions">'+icon('close')+'</button></div>'+content;
- if(!wasOpen)dialog.showModal();setTimeout(()=>dialog.querySelector('button,input,textarea')?.focus(),0)
+ if(!wasOpen)dialog.showModal();setTimeout(()=>{const first=dialog.querySelector('input:not([type=hidden]),textarea,select,[autofocus]')||dialog.querySelector('button:not([data-close-action])')||dialog.querySelector('button');first?.focus()},0)
 }
 export function showDialog(title,content){openDialog(title,content)}
 export function closeAction(){const dialog=$('actionDialog');if(dialog.open)dialog.close();const trigger=lastDialogTrigger;lastDialogTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
@@ -30,6 +31,7 @@ export function trackMenu(trackId){
  
  options+='<button data-action="find-elsewhere">'+icon('search')+' Find elsewhere on YouTube</button>';
  if(saved&&track.source!=='youtube'&&track.source!=='jamendo')options+='<button data-action="edit-track">'+icon('edit')+' Edit Details</button><button data-action="edit-lyrics">'+icon('lyrics')+' Add or Edit Lyrics</button><button data-action="categories">'+icon('tag')+' Organize with Tags</button>';
+ if(['audius','jamendo'].includes(track.source))options+='<button data-action="more-like-recommendation">'+icon('play')+' More like this</button><button data-action="hide-recommendation">'+icon('close')+' Hide recommendation</button>';
  if(saved)options+='<button class="danger" data-action="remove-track">'+icon('trash')+' Remove from Library</button>';
  options+='<button data-action="share-track">'+icon('upload')+' '+(track.source==='youtube'?'Open on YouTube':['audius','jamendo'].includes(track.source)?'Open source':'Share')+'</button>';
  openDialog('Song actions',trackHeader(track)+'<div class="dialog-options">'+options+'</div>')
@@ -58,7 +60,7 @@ function openAddPlaylist(){
 }
 function openCategories(){
  const track=byId(state.dialogTrackId);if(!track)return;const options=state.categories.length?state.categories.map(category=>{const included=(track.categories||[]).includes(category.id);return '<button data-toggle-category="'+esc(category.id)+'">'+icon(included?'check':'tag')+' '+esc(category.name)+(included?' · Added':'')+'</button>'}).join(''):'<div class="search-empty">Create a tag to organize this song.</div>';
- openDialog('Organize with Tags','<div class="dialog-options">'+options+'</div><button class="button button-secondary" style="width:100%;margin-top:10px" onclick="closeAction();createCategory()">'+icon('plus')+' New Tag</button>')
+ openDialog('Organize with Tags','<div class="dialog-options">'+options+'</div><button class="button button-secondary" style="width:100%;margin-top:10px" data-action="new-tag">'+icon('plus')+' New Tag</button>')
 }
 async function saveTrackMetadata(){
  const track=byId(state.dialogTrackId);if(!track)return;track.title=$('editTitle').value.trim()||'Untitled track';track.artist=$('editArtist').value.trim()||'Unknown artist';track.album=$('editAlbum').value.trim();track.genre=$('editGenre').value.trim();
@@ -68,9 +70,15 @@ async function saveLyrics(){
  const track=byId(state.dialogTrackId);if(!track)return;track.lyrics=$('editLyrics').value;
  try{await put('tracks',track);state.renderCurrent();toast('Lyrics saved on this device');closeAction()}catch(error){toast('Could not save lyrics')}
 }
-async function removeTrack(trackId){
- const track=byId(trackId);if(!track)return;const message=['audius','youtube','jamendo'].includes(track.source)?'Remove “'+(track.title||track.name)+'” from your Auralis library? The source stays available from its provider.':'Remove “'+(track.title||track.name)+'” from this device? This removes its imported audio from this browser.';if(!confirm(message))return;
- try{await remove('tracks',trackId);state.tracks=state.tracks.filter(item=>item.id!==trackId);state.playlists.forEach(playlist=>{playlist.trackIds=(playlist.trackIds||[]).filter(item=>item!==trackId)});await Promise.all(state.playlists.map(playlist=>put('playlists',playlist)));releaseArtwork(trackId);stopCurrent(trackId);state.queueIds=state.queueIds.filter(item=>item!==trackId);state.queueBaseIds=state.queueIds.slice();state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.refreshAll();closeAction();toast('Song removed from your library')}catch(error){toast('Could not remove this song')}
+function removeTrack(trackId){
+ const track=byId(trackId);if(!track)return;const message=['audius','youtube','jamendo'].includes(track.source)?'The streamed track will be removed from your Auralis library. You can undo this for a few seconds.':'The track and its imported audio will be removed from this browser. You can undo this for a few seconds.';
+ openDialog('Remove from library',trackHeader(track)+'<p>'+esc(message)+'</p><div class="dialog-footer"><button class="button button-quiet" data-close-action>Cancel</button><button class="button button-destructive" data-action="confirm-remove-track">Remove</button></div>')
+}
+async function confirmRemoveTrack(){
+ const track=byId(state.dialogTrackId);if(!track)return;const trackId=track.id,playlistSnapshots=state.playlists.map(playlist=>({...playlist,trackIds:[...(playlist.trackIds||[])]})),queueSnapshot=state.queueIds.slice(),baseSnapshot=state.queueBaseIds.slice();
+ state.tracks=state.tracks.filter(item=>item.id!==trackId);state.playlists.forEach(playlist=>{playlist.trackIds=(playlist.trackIds||[]).filter(item=>item!==trackId)});state.queueIds=state.queueIds.filter(item=>item!==trackId);state.queueBaseIds=state.queueBaseIds.filter(item=>item!==trackId);state.queueIndex=state.queueIds.indexOf(state.currentTrackId);stopCurrent(trackId);state.refreshAll();closeAction();
+ let undone=false;const timer=setTimeout(async()=>{if(undone)return;try{await remove('tracks',trackId);await Promise.all(state.playlists.map(playlist=>put('playlists',playlist)));releaseArtwork(trackId)}catch(error){state.tracks.push(track);state.playlists=playlistSnapshots;await put('tracks',track).catch(()=>{});state.refreshAll();toast('Could not remove this song')}},6500);
+ toast('Song removed from your library',{label:'Undo',run:async()=>{undone=true;clearTimeout(timer);state.tracks.push(track);state.tracks.sort((a,b)=>(a.added||0)-(b.added||0));state.playlists=playlistSnapshots;state.queueIds=queueSnapshot;state.queueBaseIds=baseSnapshot;state.queueIndex=state.queueIds.indexOf(state.currentTrackId);await put('tracks',track);await Promise.all(playlistSnapshots.map(playlist=>put('playlists',playlist)));state.refreshAll();toast('Song restored')}})
 }
 async function createFromDialog(){
  const field=$('dialogPlaylistName'),name=field.value.trim();if(!name){field.focus();return}
@@ -124,13 +132,13 @@ async function shareEntity(){
 }
 async function removeAlbum(){
  const ids=Array.from(new Set(state.dialogEntity?.ids||[])).filter(id=>byId(id));if(!ids.length)return;
- if(!confirm('Remove album “'+state.dialogAlbum+'” and its '+ids.length+' songs from this device?'))return;
- try{
-  const removed=ids.map(byId).filter(Boolean);await Promise.all(ids.map(id=>remove('tracks',id)));
-  state.tracks=state.tracks.filter(track=>!ids.includes(track.id));removed.forEach(track=>{releaseArtwork(track.id);stopCurrent(track.id)});
-  state.playlists.forEach(playlist=>{playlist.trackIds=(playlist.trackIds||[]).filter(id=>!ids.includes(id))});await Promise.all(state.playlists.map(playlist=>put('playlists',playlist)));
-  state.queueIds=state.queueIds.filter(id=>!ids.includes(id));state.queueBaseIds=state.queueIds.slice();state.queueIndex=state.queueIds.indexOf(state.currentTrackId);state.refreshAll();closeAction();toast('Album removed from your library')
- }catch(error){toast('Could not remove this album')}
+ openDialog('Remove album?','<p>Remove “'+esc(state.dialogAlbum)+'” and its '+ids.length+' songs from your library? You can undo this for a few seconds.</p><div class="dialog-footer"><button class="button button-quiet" data-close-action>Cancel</button><button class="button button-destructive" data-action="confirm-remove-album">Remove album</button></div>')
+}
+async function confirmRemoveAlbum(){
+ const ids=Array.from(new Set(state.dialogEntity?.ids||[])).filter(id=>byId(id));if(!ids.length)return;const removed=ids.map(byId).filter(Boolean),playlistSnapshots=state.playlists.map(playlist=>({...playlist,trackIds:[...(playlist.trackIds||[])]})),queueSnapshot=state.queueIds.slice(),baseSnapshot=state.queueBaseIds.slice();
+ state.tracks=state.tracks.filter(track=>!ids.includes(track.id));state.playlists.forEach(playlist=>playlist.trackIds=(playlist.trackIds||[]).filter(id=>!ids.includes(id)));state.queueIds=state.queueIds.filter(id=>!ids.includes(id));state.queueBaseIds=state.queueBaseIds.filter(id=>!ids.includes(id));state.queueIndex=state.queueIds.indexOf(state.currentTrackId);removed.forEach(track=>stopCurrent(track.id));state.refreshAll();closeAction();
+ let undone=false;const timer=setTimeout(async()=>{if(undone)return;try{await Promise.all(ids.map(id=>remove('tracks',id)));await Promise.all(state.playlists.map(playlist=>put('playlists',playlist)));removed.forEach(track=>releaseArtwork(track.id))}catch(error){state.tracks.push(...removed);state.playlists=playlistSnapshots;await Promise.all(removed.map(track=>put('tracks',track)));state.refreshAll();toast('Could not remove album')}},6500);
+ toast('Album removed',{label:'Undo',run:async()=>{undone=true;clearTimeout(timer);state.tracks.push(...removed);state.tracks.sort((a,b)=>(a.added||0)-(b.added||0));state.playlists=playlistSnapshots;state.queueIds=queueSnapshot;state.queueBaseIds=baseSnapshot;state.queueIndex=state.queueIds.indexOf(state.currentTrackId);await Promise.all(removed.map(track=>put('tracks',track)));await Promise.all(playlistSnapshots.map(playlist=>put('playlists',playlist)));state.refreshAll();toast('Album restored')}})
 }
 function handleDialogClick(event){
  const button=event.target.closest('[data-action],[data-pick-playlist],[data-toggle-category],[data-export-library],[data-import-backup],[data-close-action],[data-metadata-pick]');if(!button)return;
@@ -148,16 +156,21 @@ function handleDialogClick(event){
  else if(action==='save-stream')saveSourceTrack(state.dialogTrackId).then(track=>{if(!track)throw new Error('Track is unavailable');state.refreshAll();closeAction();toast('Added to your library')}).catch(()=>toast('Could not add this track to your library'));
  else if(action==='play-next'){playNext(state.dialogTrackId);closeAction()}
  else if(action==='add-queue'){addToQueue(state.dialogTrackId);closeAction()}
- else if(action==='add-playlist')saveSourceTrack(state.dialogTrackId).then(()=>{state.refreshAll();openAddPlaylist()}).catch(()=>toast('Could not add this track to a playlist'));
+ else if(action==='add-playlist')openAddPlaylist();
  else if(action==='categories')openCategories();
  else if(action==='go-artist'){const track=byId(state.dialogTrackId);closeAction();if(track?.artistUrl&&['audius','youtube','jamendo'].includes(track.source))window.open(track.artistUrl,'_blank','noopener,noreferrer');else if(track?.artist)window.openArtist(track.artist)}
  else if(action==='find-elsewhere')findElsewhere();
  else if(action==='find-metadata')findMetadata();
- else if(action==='edit-track'){const track=byId(state.dialogTrackId);openDialog('Edit Details','<label for="editTitle">Title</label><input id="editTitle" class="dialog-field" maxlength="120" value="'+esc(track.title||track.name)+'"><label for="editArtist">Artist</label><input id="editArtist" class="dialog-field" maxlength="120" value="'+esc(track.artist||'')+'"><label for="editAlbum">Album</label><input id="editAlbum" class="dialog-field" maxlength="120" value="'+esc(track.album||'')+'"><label for="editGenre">Genre</label><input id="editGenre" class="dialog-field" maxlength="80" value="'+esc(track.genre||'')+'"><div class="dialog-footer"><button class="button button-quiet" onclick="closeAction()">Cancel</button><button class="button button-primary" data-action="save-metadata">Save</button></div>')}
+ else if(action==='edit-track'){const track=byId(state.dialogTrackId);openDialog('Edit Details','<label for="editTitle">Title</label><input id="editTitle" class="dialog-field" maxlength="120" value="'+esc(track.title||track.name)+'"><label for="editArtist">Artist</label><input id="editArtist" class="dialog-field" maxlength="120" value="'+esc(track.artist||'')+'"><label for="editAlbum">Album</label><input id="editAlbum" class="dialog-field" maxlength="120" value="'+esc(track.album||'')+'"><label for="editGenre">Genre</label><input id="editGenre" class="dialog-field" maxlength="80" value="'+esc(track.genre||'')+'"><div class="dialog-footer"><button class="button button-quiet" data-close-action>Cancel</button><button class="button button-primary" data-action="save-metadata">Save</button></div>')}
  else if(action==='save-metadata')saveTrackMetadata();
- else if(action==='edit-lyrics'){const track=byId(state.dialogTrackId);openDialog('Lyrics for '+(track.title||'song'),'<textarea id="editLyrics" class="dialog-field" rows="9" placeholder="Add plain text or timestamped LRC lyrics">'+esc(track.lyrics||'')+'</textarea><div class="dialog-footer"><button class="button button-quiet" onclick="closeAction()">Cancel</button><button class="button button-primary" data-action="save-lyrics">Save Lyrics</button></div>')}
+ else if(action==='edit-lyrics'){const track=byId(state.dialogTrackId);openDialog('Lyrics for '+(track.title||'song'),'<textarea id="editLyrics" class="dialog-field" rows="9" placeholder="Add plain text or timestamped LRC lyrics">'+esc(track.lyrics||'')+'</textarea><div class="dialog-footer"><button class="button button-quiet" data-close-action>Cancel</button><button class="button button-primary" data-action="save-lyrics">Save Lyrics</button></div>')}
  else if(action==='save-lyrics')saveLyrics();
  else if(action==='remove-track')removeTrack(state.dialogTrackId);
+ else if(action==='confirm-remove-track')confirmRemoveTrack();
+ else if(action==='confirm-remove-album')confirmRemoveAlbum();
+ else if(action==='hide-recommendation'){hideRecommendation(state.dialogTrackId);closeAction()}
+ else if(action==='more-like-recommendation'){moreLikeRecommendation(state.dialogTrackId);closeAction()}
+ else if(action==='reset-taste'){closeAction();resetTasteProfile()}
  else if(action==='create-dialog-playlist')createFromDialog();
  else if(action==='save-category')createCategory($('newCategoryName').value);
  else if(action==='share-track')shareTrack();
@@ -169,6 +182,7 @@ function handleDialogClick(event){
  else if(action==='go-album-artist'){const track=state.tracks.find(item=>item.album===state.dialogAlbum);closeAction();if(track?.artist)window.openArtist(track.artist)}
  else if(action==='rename-entity'){state.selectedPlaylistId=state.dialogEntity.id;closeAction();window.renameSelectedPlaylist()}
  else if(action==='delete-entity'){state.selectedPlaylistId=state.dialogEntity.id;closeAction();window.deleteSelectedPlaylist()}
+ else if(action==='confirm-delete-playlist')window.confirmDeleteSelectedPlaylist();
  else if(action==='save-rename'){const playlist=state.playlists.find(item=>item.id===state.selectedPlaylistId);if(playlist){playlist.name=$('renamePlaylist').value.trim()||playlist.name;put('playlists',playlist).then(()=>{state.refreshAll();closeAction();toast('Playlist renamed')}).catch(()=>toast('Could not rename playlist'))}}
 }
 export function initActions(){

@@ -36,16 +36,11 @@ export async function hydrateSavedSources(){
 }
 export async function revalidateSavedYoutubeReferences(){
  const now=Date.now(),maxAge=30*24*60*60*1000,refreshAge=29*24*60*60*1000;
- const references=state.tracks.filter(track=>track.source==='youtube'&&track.providerId&&now-(Number(track.youtubeDataCheckedAt)||Number(track.added)||0)>=refreshAge);
+ const references=state.tracks.filter(track=>track.source==='youtube'&&track.providerId&&(!Number(track.youtubeDataCheckedAt)||now-Number(track.youtubeDataCheckedAt)>=refreshAge));
+ const expiredMetadata=new Set([...state.catalogTracks,...(state.homeCatalog.youtube||[])].filter(track=>track.source==='youtube'&&(!Number(track.apiFetchedAt)||now-Number(track.apiFetchedAt)>=maxAge)).map(track=>track.id));
+ state.catalogTracks=state.catalogTracks.filter(track=>!expiredMetadata.has(track.id));state.homeCatalog.youtube=(state.homeCatalog.youtube||[]).filter(track=>!expiredMetadata.has(track.id));
  if(references.length&&youtube.isYouTubeEnabled()&&String(state.prefs.youtubeApiKey||'').trim()&&navigator.onLine){try{await hydrateInBatches(references,youtube.hydrate,'youtube')}catch(error){}}
- const expired=new Set(state.tracks.filter(track=>{const checkedAt=Number(track.youtubeDataCheckedAt||track.added)||0;return track.source==='youtube'&&(!checkedAt||checkedAt>now||now-checkedAt>=maxAge)}).map(track=>track.id));
- for(const track of [...state.catalogTracks,...(state.homeCatalog.youtube||[])]){if(track.source==='youtube'&&now-(Number(track.apiFetchedAt)||0)>=maxAge)expired.add(track.id)}
- if(!expired.size)return false;
- if(expired.has(state.currentTrackId))window.stopCurrent?.(state.currentTrackId);
- await Promise.all(Array.from(expired,id=>remove('tracks',id).catch(()=>{})));
- state.tracks=state.tracks.filter(track=>!expired.has(track.id));state.catalogTracks=state.catalogTracks.filter(track=>!expired.has(track.id));state.homeCatalog.youtube=(state.homeCatalog.youtube||[]).filter(track=>!expired.has(track.id));state.queueIds=state.queueIds.filter(id=>!expired.has(id));state.queueBaseIds=state.queueBaseIds.filter(id=>!expired.has(id));state.queueIndex=state.queueIds.indexOf(state.currentTrackId);
- for(const playlist of state.playlists){const ids=Array.isArray(playlist.trackIds)?playlist.trackIds:[],next=ids.filter(id=>!expired.has(id));if(ids.length!==next.length){playlist.trackIds=next;await put('playlists',playlist).catch(()=>{})}}
- return true
+ return false
 }
 async function hydrateInBatches(references,hydrate,source){for(let offset=0;offset<references.length;offset+=50){const group=references.slice(offset,offset+50),tracks=await hydrate(group.map(track=>track.providerId));if(source==='youtube'){const checkedAt=Date.now();for(const reference of group){reference.youtubeDataCheckedAt=checkedAt;await put('tracks',reference)}}for(const track of tracks)mergeReference(track,references)}}
 function mergeReference(track,references){const saved=references.find(item=>item.providerId===track.providerId);if(!saved)return;track.id=saved.id;track.added=saved.added||0;track.liked=!!saved.liked;track.categories=Array.isArray(saved.categories)?saved.categories:[];state.catalogTracks=state.catalogTracks.filter(item=>item.id!==track.id);state.catalogTracks.push(track)}

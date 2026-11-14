@@ -13,15 +13,15 @@ function renderIdentity(){
 }
 export function weeklySeconds(){
  const today=new Date();today.setHours(0,0,0,0);const days=[];let total=0;
- for(let offset=6;offset>=0;offset--){const date=new Date(today);date.setDate(today.getDate()-offset);const next=new Date(date);next.setDate(date.getDate()+1);let seconds=0;state.history.forEach(item=>{if((item.startedAt||0)>=date.getTime()&&(item.startedAt||0)<next.getTime())seconds+=Number(item.seconds)||0});if(offset===0&&state.sessionRecord)seconds+=Number(state.sessionRecord.seconds||0)+state.pendingSeconds;days.push({label:date.toLocaleDateString(undefined,{weekday:'short'}),seconds,height:Math.min(82,Math.max(3,Math.round(seconds/60)))});total+=seconds}
- return {days,total}
+ for(let offset=6;offset>=0;offset--){const date=new Date(today);date.setDate(today.getDate()-offset);const next=new Date(date);next.setDate(date.getDate()+1);let seconds=0;state.history.forEach(item=>{if((item.startedAt||0)>=date.getTime()&&(item.startedAt||0)<next.getTime())seconds+=Number(item.seconds)||0});if(offset===0&&state.sessionRecord)seconds+=Number(state.sessionRecord.seconds||0)+state.pendingSeconds;days.push({label:date.toLocaleDateString(undefined,{weekday:'short'}),seconds});total+=seconds}
+ const maxSeconds=Math.max(1,...days.map(day=>day.seconds));days.forEach(day=>{day.height=day.seconds?Math.max(4,Math.round(day.seconds/maxSeconds*76)):3});return {days,total}
 }
-export function renderProfile(){
- renderIdentity();
- const allSeconds=state.history.reduce((sum,item)=>sum+(Number(item.seconds)||0),0)+(state.sessionRecord?Number(state.sessionRecord.seconds||0)+state.pendingSeconds:0),week=weeklySeconds(),hasHistory=state.history.length>0||!!state.sessionRecord;
+export function renderProfile(){if($('profileEditPanel').hidden)renderIdentity();renderProfileStats()}
+export function renderProfileStats(){
+ const allSeconds=state.history.reduce((sum,item)=>sum+(Number(item.seconds)||0),0)+(state.sessionRecord?Number(state.sessionRecord.seconds||0)+state.pendingSeconds:0),week=weeklySeconds();
  $('profileStats').hidden=false;$('profileListeningTime').textContent=formatDuration(allSeconds);
  $('profileTrackCount').textContent=state.history.length?state.history.length+' listening '+(state.history.length===1?'session':'sessions')+' recorded':'Your listening story starts here.';
- $('profileWeekBars').innerHTML=week.days.map(day=>'<div class="week-bar"><i style="height:'+day.height+'px"></i>'+esc(day.label)+'</div>').join('');
+ $('profileWeekBars').innerHTML=week.days.map(day=>'<div class="week-bar" title="'+formatDuration(day.seconds)+'"><i style="height:'+day.height+'px"></i>'+esc(day.label)+'</div>').join('');
  const artists={};state.history.forEach(item=>{const name=item.artist||'Unknown artist';artists[name]=(artists[name]||0)+(Number(item.seconds)||0)});
  const top=Object.keys(artists).sort((a,b)=>artists[b]-artists[a]).slice(0,5);$('profileArtists').hidden=!top.length;
  $('favoriteArtists').innerHTML=top.map(name=>'<button class="artist-result" data-open-artist="'+esc(name)+'"><span class="artist-result-icon">'+icon('artist')+'</span><span class="listinfo"><b>'+esc(name)+'</b><small>'+formatDuration(artists[name])+' listened</small></span>'+icon('chevron-right')+'</button>').join('');

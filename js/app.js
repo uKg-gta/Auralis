@@ -1,10 +1,10 @@
 import {state,$,status,toast,uniqueRecent,playlistTrackIds,esc,icon,formatDuration} from './core.js';
 import {loadLibraryState} from './storage.js';
 import {applyPreferences,setTheme,setAccent,setLargeText,refreshStorageInfo,requestPersistentStorage} from './features/settings.js';
-import {renderHome,renderLibrary,renderYourMusic,renderLibraryArtists,renderLibraryAlbums,createCategory,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort} from './features/library.js';
-import {renderPlaylists,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,moveInPlaylist,removeFromPlaylist} from './features/playlists.js';
+import {renderHome,renderHomeStats,renderHomeHistory,renderLibrary,renderYourMusic,renderLibraryArtists,renderLibraryAlbums,createCategory,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist as openArtistView,openAlbum as openAlbumView,setLibrarySort} from './features/library.js';
+import {renderPlaylists,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,confirmDeleteSelectedPlaylist,moveInPlaylist,removeFromPlaylist} from './features/playlists.js';
 import {renderSearch,setSearchFilter,setSearchScope,initSearch,setSearchQuery} from './features/search.js';
-import {renderProfile,initProfile} from './features/profile.js';
+import {renderProfile,renderProfileStats,initProfile} from './features/profile.js';
 import {initDiscovery,loadDiscovery,renderDiscovery} from './features/discovery.js';
 import {initPlayer,syncVolume,renderCurrent,renderQueue,playTrack,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,selectSleepTimer,moveQueue,moveQueueTo,removeFromQueue,clearQueue,stopCurrent} from './features/player.js';
 import {initActions,showDialog,openAddMenu,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction} from './features/actions.js';
@@ -16,25 +16,56 @@ import {artistReleasesByName} from './sources/musicbrainz.js';
 
 let returnScreen='home',currentScreen='home',playerTrigger=null,browseSelectedSource='audius',browseRequest=0,libraryLoaded=false,youtubeMaintenanceBusy=false;
 function titleFor(screen){return ({home:'Listen Now',search:'Search',browse:'Browse',library:'Library',settings:'Settings',profile:'Your Profile'})[screen]||'Auralis'}
-function show(screenId){
+function show(screenId,options={}){
  if(screenId==='now'){
-  const dialog=$('now');if(!dialog.open){returnScreen=currentScreen;playerTrigger=document.activeElement;dialog.showModal()}document.body.classList.add('player-open');return
+  const dialog=$('now');if(!dialog.open){returnScreen=currentScreen;playerTrigger=document.activeElement;dialog.showModal();if(options.push!==false)history.pushState({auralisScreen:currentScreen,playerOpen:true},'','#now-playing')}
+  document.body.classList.add('player-open','mobile-player-open');return
  }
+ const detail=screenId==='library'?(state.selectedPlaylistId?{type:'playlist',id:state.selectedPlaylistId}:state.selectedArtistName?{type:'artist',value:state.selectedArtistName}:state.selectedAlbumName?{type:'album',value:state.selectedAlbumName}:null):null;
+ if(options.push!==false&&screenId!==currentScreen){history.pushState({auralisScreen:screenId,auralisDetail:detail},'','#'+screenId)}
+ else if(options.push!==false&&detail&&JSON.stringify(history.state?.auralisDetail||null)!==JSON.stringify(detail)){history.pushState({auralisScreen:screenId,auralisDetail:detail},'','#library/'+detail.type)}
  if(screenId!=='settings'&&screenId!=='profile')returnScreen=screenId;
- const dialog=$('now');if(dialog.open){pauseYouTubePlayback();dialog.close()}document.body.classList.remove('player-open');
+ const dialog=$('now');if(dialog.open){dialog.close();pauseYouTubePlayback()}
+ document.body.classList.remove('player-open','mobile-player-open');
  currentScreen=screenId;document.querySelectorAll('.screen').forEach(section=>section.classList.toggle('active',section.id===screenId));
  const navMap={home:'navhome',search:'navsearch',browse:'navbrowse',library:'navlibrary'},activeId=navMap[screenId];
  document.querySelectorAll('.nav button').forEach(button=>{const active=button.id===activeId;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});
- $('globalAddButton').hidden=screenId!=='home'&&screenId!=='library';
- $('compactTitle').textContent=titleFor(screenId);document.body.classList.remove('is-scrolled');window.scrollTo({top:0,behavior:'auto'});
+ $('globalAddButton').hidden=screenId!=='home'&&screenId!=='library';$('compactTitle').textContent=titleFor(screenId);document.body.classList.remove('is-scrolled');window.scrollTo({top:0,behavior:'auto'});
+ if(screenId==='home'){renderHome();renderDiscovery()}
+ if(screenId==='search')renderSearch();
+ if(screenId==='library'){renderLibrary();renderPlaylists()}
+ if(screenId==='profile')renderProfile();
  if(screenId==='settings')refreshStorageInfo();if(screenId==='browse')showBrowseSource(browseSelectedSource)
 }
-function closePlayer(){const dialog=$('now');if(dialog.open)dialog.close();show(returnScreen==='now'?'home':returnScreen);const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
-function renderAll(){renderHome();renderDiscovery();renderLibrary();renderPlaylists();renderProfile();renderSearch();renderCurrent();renderQueue()}
-state.refreshAll=renderAll;state.renderSearch=renderSearch;state.renderCurrent=renderCurrent;
+function closePlayer(){
+ const dialog=$('now');if(!dialog.open)return;
+ if(byId(state.currentTrackId)?.source==='youtube'){status('YouTube video paused because the player was closed. Reopen the player to continue.');toast('YouTube video paused. Reopen Now Playing to continue.')}
+ if(history.state?.playerOpen){history.back();return}
+ dialog.close();document.body.classList.remove('player-open','mobile-player-open');pauseYouTubePlayback();show(returnScreen==='now'?'home':returnScreen,{push:false});const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))
+}
+function renderAll(){
+ if(currentScreen==='home'){renderHome();renderDiscovery()}
+ else if(currentScreen==='search')renderSearch();
+ else if(currentScreen==='library'){renderLibrary();renderPlaylists()}
+ else if(currentScreen==='profile')renderProfile();
+ renderCurrent()
+}
+state.refreshAll=renderAll;state.refreshHistoryViews=()=>{renderHomeHistory();renderProfileStats()};state.refreshHistoryProgress=()=>{renderHomeStats();renderProfileStats()};state.renderSearch=renderSearch;state.renderCurrent=renderCurrent;
 function handleClick(event){
- const target=event.target.closest('[data-search-filter],[data-search-scope],[data-library-filter],[data-library-source],[data-library-section],[data-play-track],[data-track-menu],[data-toggle-like],[data-open-playlist],[data-play-playlist],[data-smart],[data-play-collection],[data-move-playlist],[data-remove-playlist],[data-queue-play],[data-queue-move],[data-queue-remove],[data-timer],[data-open-artist],[data-open-album],[data-album-menu],[data-playlist-menu],[data-home-source],[data-open-library],[data-open-browse-source],[data-browse-source],[data-browse-play-all],[data-browse-retry],[data-open-youtube-settings]');
+ const target=event.target.closest('[data-discovery-retry],[data-shelf-scroll],[data-search-filter],[data-show-screen],[data-open-add-menu],[data-create-category],[data-create-playlist],[data-close-playlist-detail],[data-play-selected-playlist],[data-rename-selected-playlist],[data-delete-selected-playlist],[data-set-theme],[data-set-accent],[data-search-scope],[data-library-filter],[data-library-source],[data-library-section],[data-play-track],[data-track-menu],[data-toggle-like],[data-open-playlist],[data-play-playlist],[data-smart],[data-play-collection],[data-move-playlist],[data-remove-playlist],[data-queue-play],[data-queue-move],[data-queue-remove],[data-timer],[data-open-artist],[data-open-album],[data-album-menu],[data-playlist-menu],[data-home-source],[data-open-library],[data-open-browse-source],[data-browse-source],[data-browse-play-all],[data-browse-retry],[data-open-youtube-settings]');
  if(!target)return;
+ if(target.dataset.showScreen){event.preventDefault();show(target.dataset.showScreen);return}
+ if(target.hasAttribute('data-open-add-menu')){openAddMenu();return}
+ if(target.hasAttribute('data-create-category')){createCategory();return}
+ if(target.hasAttribute('data-create-playlist')){createPlaylist();return}
+ if(target.hasAttribute('data-close-playlist-detail')){if(history.state?.auralisDetail)history.back();else closePlaylistDetail();return}
+ if(target.hasAttribute('data-play-selected-playlist')){playSelectedPlaylist();return}
+ if(target.hasAttribute('data-rename-selected-playlist')){renameSelectedPlaylist();return}
+ if(target.hasAttribute('data-delete-selected-playlist')){deleteSelectedPlaylist();return}
+ if(target.dataset.setTheme){setTheme(target.dataset.setTheme);return}
+ if(target.dataset.setAccent){setAccent(target.dataset.setAccent);return}
+ if(target.dataset.shelfScroll){const shelf=document.getElementById(target.dataset.shelfTarget);shelf?.scrollBy({left:Number(target.dataset.shelfScroll)*Math.max(240,shelf.clientWidth*.8),behavior:'smooth'});return}
+ if(target.hasAttribute('data-discovery-retry')){loadDiscovery(true);return}
  if(target.dataset.searchScope){setSearchScope(target.dataset.searchScope);return}
  if(target.dataset.searchFilter){setSearchFilter(target.dataset.searchFilter);return}
  if(target.dataset.librarySection){setLibrarySection(target.dataset.librarySection);show('library');if(!target.dataset.libraryFilter)return}
@@ -56,14 +87,29 @@ function handleClick(event){
  if(target.dataset.queueMove){moveQueue(target.dataset.queueMove,Number(target.dataset.dir));return}
  if(target.dataset.queueRemove){removeFromQueue(target.dataset.queueRemove);return}
  if(target.dataset.timer!=null){selectSleepTimer(Number(target.dataset.timer));return}
- if(target.dataset.openArtist){openArtist(target.dataset.openArtist);loadMusicBrainzArtist(target.dataset.openArtist);return}
- if(target.dataset.openAlbum){openAlbum(target.dataset.openAlbum);return}
+ if(target.dataset.openArtist){openArtistRoute(target.dataset.openArtist);loadMusicBrainzArtist(target.dataset.openArtist);return}
+ if(target.dataset.openAlbum){openAlbumRoute(target.dataset.openAlbum);return}
  if(target.dataset.albumMenu){entityMenu('album',target.dataset.albumMenu);return}
  if(target.dataset.playlistMenu){entityMenu('playlist',target.dataset.playlistMenu);return}
  if(target.dataset.homeSource){state.homeSource=target.dataset.homeSource;renderHome();return}
  if(target.dataset.openLibrary){const source=target.dataset.openLibrary==='uploads'?'local':target.dataset.openLibrary==='streamed'?'audius':'all';setLibrarySource(source);setLibraryFilter('all');setLibrarySection(source==='all'?'recent':'songs');show('library');return}
  if(target.dataset.browseSource){showBrowseSource(target.dataset.browseSource);return}
  if(target.dataset.openBrowseSource){show('browse');showBrowseSource(target.dataset.openBrowseSource);return}
+}
+function pushLibraryDetail(type,value){
+ const detail={type,value};history.pushState({auralisScreen:'library',auralisDetail:detail},'','#library/'+type);show('library',{push:false})
+}
+function openArtistRoute(name){openArtistView(name);pushLibraryDetail('artist',name)}
+function openAlbumRoute(name){openAlbumView(name);pushLibraryDetail('album',name)}
+function handlePopState(event){
+ const target=event.state?.auralisScreen||'home';
+ if($('now').open&&!event.state?.playerOpen){$('now').close();pauseYouTubePlayback();document.body.classList.remove('player-open','mobile-player-open');const trigger=playerTrigger;playerTrigger=null;if(trigger?.isConnected)requestAnimationFrame(()=>trigger.focus({preventScroll:true}))}
+ if(target==='library'){
+  const detail=event.state?.auralisDetail;
+  state.selectedPlaylistId=detail?.type==='playlist'?detail.id:null;state.selectedArtistName=detail?.type==='artist'?detail.value:null;state.selectedAlbumName=detail?.type==='album'?detail.value:null;
+  if(!detail)state.librarySection='overview';renderLibrary();renderPlaylists()
+ }
+ show(target,{push:false})
 }
 function setupBackupInput(){$('backupImport')?.addEventListener('change',event=>window.importLibraryBackup(event.target.files?.[0]))}
 function setupRowGestures(){
@@ -90,7 +136,9 @@ function setupSheetDrag(dialog,close){
  handle.addEventListener('pointercancel',()=>{startY=null;dialog.style.translate=''})
 }
 function setupPreferences(){
+ $('resetTasteButton')?.addEventListener('click',()=>showDialog('Reset discovery learning?','<p>This clears listening-based discovery signals. Your listening history and liked songs stay in your library.</p><div class="dialog-footer"><button class="button button-quiet" data-close-action>Cancel</button><button class="button button-destructive" data-action="reset-taste">Reset learning</button></div>'));
  $('largeText').addEventListener('change',event=>setLargeText(event.target.checked));
+ $('customAccent').addEventListener('change',event=>setAccent(event.target.value));
  $('defaultLibrarySort').addEventListener('change',event=>setLibrarySort(event.target.value));
  $('librarySort').addEventListener('change',event=>setLibrarySort(event.target.value));
  $('persistentStorageButton').addEventListener('click',requestPersistentStorage);
@@ -128,7 +176,16 @@ function setupSourceSettings(){
  $('browseYoutubeRetry').addEventListener('click',()=>showBrowseSource('youtube',true));$('browseJamendoRetry').addEventListener('click',()=>showBrowseSource('jamendo',true));
  $('musicBrainzArtistRetry').addEventListener('click',()=>{const name=$('artistDetailTitle').textContent;if(name)loadMusicBrainzArtist(name)})
 }
-function setupScrollTitle(){let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
+function setupScrollTitle(){function setupShelfArrows(){
+ document.querySelectorAll('.home-content .shelf .section-heading').forEach((heading,index)=>{
+  const shelf=heading.parentElement.querySelector('.card-shelf');if(!shelf||heading.querySelector('.shelf-arrows'))return;
+  if(!shelf.id)shelf.id='shelf-'+index;
+  const arrows=document.createElement('span');arrows.className='shelf-arrows';
+  arrows.innerHTML='<button class="shelf-arrow" type="button" data-shelf-scroll="-1" data-shelf-target="'+shelf.id+'" aria-label="Scroll shelf left">'+icon('chevron-left')+'</button><button class="shelf-arrow" type="button" data-shelf-scroll="1" data-shelf-target="'+shelf.id+'" aria-label="Scroll shelf right">'+icon('chevron-right')+'</button>';
+  heading.appendChild(arrows)
+ })
+}
+let queued=false;window.addEventListener('scroll',()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{document.body.classList.toggle('is-scrolled',window.scrollY>90);queued=false})},{passive:true})}
 function boot(){
  const stage=name=>{window.__auralisBootStage=name};
  stage('player setup');initPlayer();
@@ -137,12 +194,11 @@ function boot(){
  stage('catalog setup');initCatalog();
  stage('profile setup');initProfile();
  stage('discovery setup');initDiscovery();
- stage('interface setup');setupBackupInput();setupRowGestures();setupPreferences();setupSourceSettings();setupYoutubeDataMaintenance();setupScrollTitle();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
- Object.assign(window,{show,closePlayer,showDialog,openAddMenu,setTheme,setAccent,setLargeText,createCategory,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist,openAlbum,setLibrarySort,setSearchFilter,setSearchScope,doSearch:renderSearch,setSearchQuery,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction,moveInPlaylist,removeFromPlaylist,moveQueue,moveQueueTo,removeFromQueue,clearQueue,stopCurrent,importLibraryBackup});
- const playerDialog=$('now');playerDialog.addEventListener('close',()=>{document.body.classList.remove('player-open');pauseYouTubePlayback()});playerDialog.addEventListener('toggle',()=>document.body.classList.toggle('player-open',playerDialog.open));
+ stage('interface setup');setupBackupInput();setupRowGestures();setupPreferences();setupSourceSettings();setupYoutubeDataMaintenance();setupScrollTitle();setupShelfArrows();setupSheetDrag($('now'),closePlayer);setupSheetDrag($('queuePanel'),closeQueue);setupSheetDrag($('actionDialog'),closeAction);
+ Object.assign(window,{show,closePlayer,showDialog,openAddMenu,setTheme,setAccent,setLargeText,createCategory,showLiked,showRecent,showArtists,setLibraryFilter,setLibrarySource,setLibrarySection,openArtist:openArtistRoute,openAlbum:openAlbumRoute,confirmDeleteSelectedPlaylist,setLibrarySort,setSearchFilter,setSearchScope,doSearch:renderSearch,setSearchQuery,createPlaylist,newPlaylist,openPlaylist,closePlaylistDetail,playSelectedPlaylist,renameSelectedPlaylist,deleteSelectedPlaylist,play,toggle,previousTrack,nextTrack,toggleShuffle,toggleRepeat,playCollection,playNext,addToQueue,openQueue,closeQueue,openSleepTimer,toggleLyrics,openCurrentMenu,toggleCurrentLike,trackMenu,toggleLike,entityMenu,closeAction,moveInPlaylist,removeFromPlaylist,moveQueue,moveQueueTo,removeFromQueue,clearQueue,stopCurrent,importLibraryBackup});
+ const playerDialog=$('now');playerDialog.addEventListener('close',()=>{document.body.classList.remove('player-open','mobile-player-open');pauseYouTubePlayback()});playerDialog.addEventListener('toggle',()=>{document.body.classList.toggle('player-open',playerDialog.open);document.body.classList.toggle('mobile-player-open',playerDialog.open&&matchMedia('(hover:none) and (pointer:coarse)').matches)});
  $('actionDialog').addEventListener('cancel',event=>{event.preventDefault();closeAction()});$('actionDialog').addEventListener('click',event=>{if(event.target===$('actionDialog'))closeAction()});
- document.addEventListener('click',handleClick);document.addEventListener('error',event=>{if(event.target instanceof HTMLImageElement){event.target.hidden=true;event.target.removeAttribute('src');event.target.closest('.art')?.classList.add('art-load-failed')}},true);document.getElementById('libraryBack').addEventListener('click',()=>{state.librarySection='overview';state.selectedArtistName=null;state.selectedAlbumName=null;renderLibrary();window.scrollTo({top:0,behavior:'smooth'})});
- document.getElementById('artistBack').addEventListener('click',()=>{state.selectedArtistName=null;renderLibraryArtists()});document.getElementById('albumBack').addEventListener('click',()=>{state.selectedAlbumName=null;renderLibraryAlbums()});
+ history.replaceState({auralisScreen:'home'},'',location.href);window.addEventListener('popstate',handlePopState);document.addEventListener('click',handleClick);document.addEventListener('error',event=>{if(event.target instanceof HTMLImageElement){event.target.hidden=true;event.target.removeAttribute('src');event.target.closest('.art')?.classList.add('art-load-failed')}},true);document.getElementById('artistBack').addEventListener('click',()=>{if(history.state?.auralisDetail)history.back();else{state.selectedArtistName=null;renderLibraryArtists()}});document.getElementById('albumBack').addEventListener('click',()=>{if(history.state?.auralisDetail)history.back();else{state.selectedAlbumName=null;renderLibraryAlbums()}});document.getElementById('libraryBack').addEventListener('click',()=>{if(history.state?.auralisDetail)history.back();else{state.librarySection='overview';state.selectedArtistName=null;state.selectedAlbumName=null;state.selectedPlaylistId=null;renderLibrary();window.scrollTo({top:0,behavior:'smooth'})}});
  loadLibraryState().then(()=>{libraryLoaded=true;applyPreferences();syncVolume();renderAll();window.__auralisSetReady?.();loadDiscovery().catch(()=>{});hydrateSavedSources().then(async()=>{await revalidateSavedYoutubeReferences();state.refreshAll()}).catch(()=>{});loadHomeSourceShelves().catch(()=>{})}).catch(error=>{status(error.message);try{renderAll()}catch(renderError){window.__auralisShowStartupError?.('Auralis could not render your library. Reload the app and try again.')}window.__auralisSetReady?.();toast(error.message)})
 }
 boot();

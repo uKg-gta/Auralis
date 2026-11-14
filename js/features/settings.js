@@ -7,10 +7,15 @@ export function contrastRatio(first,second){const values=[luminance(first),lumin
 function mix(hex,target,amount){const source=rgb(hex).map(value=>value*255),destination=rgb(target).map(value=>value*255);return '#'+source.map((value,index)=>Math.round(value+(destination[index]-value)*amount).toString(16).padStart(2,'0')).join('')}
 function accessibleAccent(hex,background){const direction=contrastRatio('#000000',background)>=contrastRatio('#ffffff',background)?'#000000':'#ffffff';let candidate=hex;for(let step=0;step<=100;step++){if(contrastRatio(candidate,background)>=4.5)return candidate;candidate=mix(hex,direction,(step+1)/100)}return direction}
 function accentForeground(hex){return contrastRatio(hex,'#000000')>=contrastRatio(hex,'#ffffff')?'#000000':'#ffffff'}
+const VISUAL_PREFS_KEY='auralis-visual-preferences-v1';
+function mirrorVisualPreferences(){
+ try{localStorage.setItem(VISUAL_PREFS_KEY,JSON.stringify({theme:state.prefs.theme==='light'?'light':'dark',accent:/^#[0-9a-f]{6}$/i.test(state.prefs.accent||'')?state.prefs.accent:'#fa2d48',largeText:!!state.prefs.largeText}))}catch(_){}
+ const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=state.prefs.theme==='light'?'#ffffff':'#000000'
+}
 export function applyPreferences(){
  const theme=state.prefs.theme==='light'?'light':'dark',accent=/^#[0-9a-f]{6}$/i.test(state.prefs.accent||'')?state.prefs.accent:'#fa2d48',background=theme==='light'?'#f2f2f7':'#1c1c1e';
  document.documentElement.dataset.theme=theme;document.documentElement.style.setProperty('--accent',accent);document.documentElement.style.setProperty('--accent-ink',accessibleAccent(accent,background));document.documentElement.style.setProperty('--accent-on',accentForeground(accent));
- document.body.classList.toggle('large-text',!!state.prefs.largeText);
+ document.body.classList.toggle('large-text',!!state.prefs.largeText);document.documentElement.classList.toggle('large-text',!!state.prefs.largeText);mirrorVisualPreferences();
  document.querySelectorAll('[data-theme]').forEach(button=>{const active=button.dataset.theme===theme;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
  document.querySelectorAll('[data-accent]').forEach(button=>{const active=button.dataset.accent===accent;button.style.setProperty('--swatch',button.dataset.accent);button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
  if($('customAccent'))$('customAccent').value=accent;if($('largeText'))$('largeText').checked=!!state.prefs.largeText;if($('defaultLibrarySort'))$('defaultLibrarySort').value=state.prefs.librarySort||'recent'

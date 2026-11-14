@@ -5,7 +5,8 @@ lyrics and listening history in the browser, and can discover music from
 Audius, YouTube and Jamendo. MusicBrainz provides optional metadata lookup.
 This is a non-commercial prototype with no ads, subscriptions or payments.
 See [Sources & Licenses](sources.html), the [Privacy Policy](privacy.html),
-and [Terms of Use](terms.html).
+and [Terms of Use](terms.html). The MIT license covers Auralis source code only;
+providers keep their own rights and terms for catalog music and player content.
 
 ## Run locally
 
@@ -29,10 +30,10 @@ Then open `http://localhost:8000`. Node users can also run `npx serve .`.
   official privacy-enhanced embedded player with its standard controls and
   branding. Playback starts only after the player is visible and pauses when
   it is closed, hidden, or scrolled out of view. Search metadata stays in
-  memory. Auralis stores only a saved video ID, canonical link, user library
-  organization and last-checked time; saved references are refreshed within
-  30 days or removed. It never downloads, extracts, caches or backs up YouTube
-  audio or video.
+  memory. Auralis stores only the video ID, canonical link, and user-created
+  library organization. It refreshes metadata when available, and a failed
+  refresh does not delete the saved reference. It never downloads, extracts,
+  caches, or backs up YouTube audio or video.
 - **Jamendo:** Search and streaming use Jamendo API v3. The free non-commercial
   plan currently lists up to 35,000 API requests per month; check Jamendo's
   [developer portal](https://developer.jamendo.com/v3.0) for current limits.

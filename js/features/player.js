@@ -2,7 +2,7 @@ import {state,$,esc,toast,status,formatClock,byId,artworkClass,artworkUrl,icon} 
 import {add,put} from '../storage.js';
 import {playableTrack} from '../sources/index.js';
 import {loadYouTubePlayer,pauseYouTubePlayback,stopYouTubePlayback,playYouTubePlayback,isYouTubePlaying,isYouTubePlayerVisible,updateYouTubeVisibility,getYouTubeTime} from '../sources/youtube.js';
-let volumeSaveTimer=null;
+let volumeSaveTimer=null,isSeeking=false;
 let queueTrigger=null;
 function playbackMessage(){const source=byId(state.currentTrackId)?.source;return source==='youtube'?'Playing in the visible YouTube player':source==='jamendo'?'Streaming from Jamendo':source==='audius'?'Streaming from Audius':'Playing from your device'}
 function mediaSession(){return typeof navigator!=='undefined'&&navigator.mediaSession?navigator.mediaSession:null}
@@ -46,19 +46,24 @@ export function updateControls(){
  const current=byId(state.currentTrackId),hasTrack=!!current,playing=hasTrack&&(current.source==='youtube'?isYouTubePlaying():!!state.audio.src&&!state.audio.paused),playLabel=playing?'Pause':'Play';
  $('mp').innerHTML=icon(playing?'pause':'play');$('mp').setAttribute('aria-label',playLabel);$('nowPlayButton').innerHTML=icon(playing?'pause':'play');$('nowPlayButton').setAttribute('aria-label',playLabel);
  $('shuffleButton').classList.toggle('active',state.shuffle);$('shuffleButton').setAttribute('aria-pressed',String(state.shuffle));$('shuffleButton').setAttribute('aria-label','Shuffle '+(state.shuffle?'on':'off'));
- $('repeatButton').classList.toggle('active',state.repeatMode!=='off');$('repeatButton').setAttribute('aria-pressed',String(state.repeatMode!=='off'));$('repeatButton').setAttribute('aria-label','Repeat '+state.repeatMode+'. Change repeat mode');
- ['previousButton','nextButton','seekBar','nowLikeButton','nowMoreButton','lyricsButton','sleepTimerButton'].forEach(id=>{const control=$(id);if(control)control.disabled=!hasTrack});
+ $('repeatButton').classList.toggle('active',state.repeatMode!=='off');$('repeatButton').setAttribute('aria-pressed',String(state.repeatMode!=='off'));$('repeatButton').setAttribute('aria-label','Repeat '+state.repeatMode+'. Change repeat mode');$('repeatButton').innerHTML=icon('repeat')+(state.repeatMode==='one'?'<span class="repeat-one-badge" aria-hidden="true">1</span>':'');
+ ['previousButton','nextButton','seekBar','nowLikeButton','nowMoreButton','sleepTimerButton'].forEach(id=>{const control=$(id);if(control)control.disabled=!hasTrack});
+ const lyrics=$('lyricsButton');if(lyrics)lyrics.disabled=!hasTrack||!String(current?.lyrics||'').trim();
  const timer=$('sleepTimerButton');if(timer){timer.classList.toggle('active',state.sleepTimer!==null);timer.setAttribute('aria-pressed',String(state.sleepTimer!==null))}
  $('now').classList.toggle('paused',!playing);updateMediaSession()
 }
+function deviceControlsVolume(){return /iPhone|iPad|iPod/i.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1)}
 export function syncVolume(){
- const stored=Number(state.prefs.volume),volume=Number.isFinite(stored)?Math.max(0,Math.min(1,stored)):.8,last=Number(state.prefs.lastVolume);
- state.prefs.volume=volume;state.prefs.lastVolume=Number.isFinite(last)&&last>0?Math.min(1,last):.8;state.audio.volume=volume;$('volumeSlider').value=String(Math.round(volume*100));
- const mute=$('muteButton'),muted=volume===0;mute.innerHTML=icon(muted?'mute':'volume');mute.setAttribute('aria-pressed',String(muted));mute.setAttribute('aria-label',muted?'Unmute playback':'Mute playback');$('volumeValue').textContent=Math.round(volume*100)+'%'
+ const stored=Number(state.prefs.volume),volume=Number.isFinite(stored)?Math.max(0,Math.min(1,stored)):.8,last=Number(state.prefs.lastVolume),systemVolume=deviceControlsVolume();
+ state.prefs.volume=volume;state.prefs.lastVolume=Number.isFinite(last)&&last>0?Math.min(1,last):.8;
+ if(!systemVolume)state.audio.volume=volume;
+ const slider=$('volumeSlider'),mute=$('muteButton'),hint=$('volumeDeviceHint');
+ slider.disabled=systemVolume;mute.disabled=systemVolume;$('volumeControl').classList.toggle('system-volume',systemVolume);if(hint)hint.hidden=!systemVolume;
+ slider.value=String(Math.round(volume*100));const muted=volume===0;mute.innerHTML=icon(muted?'mute':'volume');mute.setAttribute('aria-pressed',String(muted));mute.setAttribute('aria-label',systemVolume?'Use device buttons to change volume':muted?'Unmute playback':'Mute playback');$('volumeValue').textContent=systemVolume?'Device':Math.round(volume*100)+'%'
 }
 function persistVolume(immediate=false){clearTimeout(volumeSaveTimer);const save=()=>put('settings',{key:'preferences',value:state.prefs}).catch(()=>toast('Could not save playback volume'));if(immediate)save();else volumeSaveTimer=setTimeout(save,250)}
-function setVolume(value){const volume=Math.max(0,Math.min(1,Number(value)/100));state.audio.volume=volume;state.prefs.volume=volume;if(volume>0)state.prefs.lastVolume=volume;syncVolume()}
-function toggleMute(){if(state.audio.volume>0){state.prefs.lastVolume=state.audio.volume;setVolume(0)}else setVolume(state.prefs.lastVolume*100);persistVolume(true)}
+function setVolume(value){if(deviceControlsVolume())return;const volume=Math.max(0,Math.min(1,Number(value)/100));state.audio.volume=volume;state.prefs.volume=volume;if(volume>0)state.prefs.lastVolume=volume;syncVolume()}
+function toggleMute(){if(deviceControlsVolume()){toast('Use your device buttons to change volume');return}if(state.audio.volume>0){state.prefs.lastVolume=state.audio.volume;setVolume(0)}else setVolume(state.prefs.lastVolume*100);persistVolume(true)}
 export function renderCurrent(){
  const track=byId(state.currentTrackId);$('mini').hidden=!track;document.body.classList.toggle('has-active-mini',!!track);
  if(!track){updateMediaSession();updateControls();return}
@@ -73,7 +78,7 @@ export function renderCurrent(){
 }
 function renderQueueItem(trackId,index,current){
  const track=byId(trackId);if(!track)return '';const url=artworkUrl(track),cover='<span class="qthumb art '+artworkClass(track)+'">'+(url?'<img src="'+esc(url)+'" alt="">':'')+'</span>';
- return '<div class="queue-item '+(current?'current':'')+'" data-queue-row="'+esc(trackId)+'"><button class="queue-main" data-queue-play="'+esc(trackId)+'" aria-label="Play '+esc(track.title||'song')+'">'+cover+'<span class="qinfo"><b>'+esc(track.title||track.name||'Unknown song')+'</b><span>'+esc(track.artist||'Unknown artist')+'</span></span></button><button class="queue-drag-handle" data-queue-drag="'+esc(trackId)+'" draggable="true" aria-label="Drag to reorder '+esc(track.title||'song')+'">'+icon('grip')+'</button><button data-queue-move="'+esc(trackId)+'" data-dir="-1" aria-label="Move '+esc(track.title||'song')+' up"'+(current||index===0?' disabled':'')+'>'+icon('arrow-up')+'</button><button data-queue-move="'+esc(trackId)+'" data-dir="1" aria-label="Move '+esc(track.title||'song')+' down"'+(current||index===state.queueIds.length-1?' disabled':'')+'>'+icon('arrow-down')+'</button><button data-queue-remove="'+esc(trackId)+'" aria-label="Remove '+esc(track.title||'song')+' from queue"'+(current?' disabled':'')+'>'+icon('close')+'</button></div>'
+ return '<div class="queue-item '+(current?'current':'')+'" data-queue-row="'+esc(trackId)+'"><button class="queue-main" data-queue-play="'+esc(trackId)+'" aria-label="Play '+esc(track.title||'song')+'">'+cover+'<span class="qinfo"><b>'+esc(track.title||track.name||'Unknown song')+'</b><span>'+esc(track.artist||'Unknown artist')+'</span></span></button><button class="queue-drag-handle" data-queue-drag="'+esc(trackId)+'" draggable="true" aria-label="Drag to reorder '+esc(track.title||'song')+'">'+icon('grip')+'</button><details class="queue-row-menu"><summary class="queue-menu-trigger" aria-label="More actions for '+esc(track.title||'song')+'">'+icon('more')+'</summary><div class="queue-menu-popover"><button type="button" data-queue-move="'+esc(trackId)+'" data-dir="-1"'+(current||index===0?' disabled':'')+'>Move up</button><button type="button" data-queue-move="'+esc(trackId)+'" data-dir="1"'+(current||index===state.queueIds.length-1?' disabled':'')+'>Move down</button><button type="button" data-queue-remove="'+esc(trackId)+'"'+(current?' disabled':'')+'>Remove from queue</button></div></details></div>'
 }
 export function renderQueue(){
  const currentIndex=state.queueIds.indexOf(state.currentTrackId),current=byId(state.currentTrackId);let html='';
@@ -83,12 +88,12 @@ export function renderQueue(){
  $('queueList').innerHTML=html||'<div class="queue-empty">Your queue is empty. Choose a song to start listening.</div>';state.queueIndex=currentIndex
 }
 function startSession(track){
- flushSession();state.sessionId=null;state.pendingSeconds=0;if(track.source!=='local'&&track.source!=='audius'){state.sessionRecord=null;return}const snapshot=historyTrackSnapshot(track);if(snapshot&&!state.catalogTracks.some(item=>item.id===snapshot.id))state.catalogTracks.push(snapshot);state.sessionRecord={trackId:track.id,title:track.title||track.name,artist:track.artist||'Unknown artist',startedAt:Date.now(),seconds:0,...(snapshot?{trackSnapshot:snapshot}:{})};state.lastPersist=Date.now();
- add('history',state.sessionRecord).then(key=>{state.sessionId=key;state.sessionRecord.id=key;state.history.unshift(state.sessionRecord);state.refreshAll()}).catch(()=>{})
+ flushSession();state.sessionId=null;state.pendingSeconds=0;if(track.source==='youtube'){state.sessionRecord=null;return}const snapshot=historyTrackSnapshot(track);if(snapshot&&!state.catalogTracks.some(item=>item.id===snapshot.id))state.catalogTracks.push(snapshot);state.sessionRecord={trackId:track.id,source:track.source,title:track.title||track.name,artist:track.artist||'Unknown artist',startedAt:Date.now(),seconds:0,...(snapshot?{trackSnapshot:snapshot}:{})};state.lastPersist=Date.now();
+ add('history',state.sessionRecord).then(key=>{state.sessionId=key;state.sessionRecord.id=key;state.history.unshift(state.sessionRecord);state.refreshHistoryViews()}).catch(()=>{})
 }
 export function flushSession(){
  if(!state.sessionRecord||state.sessionId==null)return;state.sessionRecord.seconds=(Number(state.sessionRecord.seconds)||0)+state.pendingSeconds;state.pendingSeconds=0;state.lastPersist=Date.now();const snapshot=Object.assign({},state.sessionRecord);
- put('history',snapshot).then(()=>{const index=state.history.findIndex(item=>item.id===snapshot.id);if(index>=0)state.history[index]=snapshot;state.refreshAll()}).catch(()=>{})
+ put('history',snapshot).then(()=>{const index=state.history.findIndex(item=>item.id===snapshot.id);if(index>=0)state.history[index]=snapshot;state.refreshHistoryProgress()}).catch(()=>{})
 }
 function updateLyrics(){
  const lines=$('lyricsText').querySelectorAll('[data-lyric-time]');if(!lines.length)return;const time=state.audio.currentTime;let active=-1;
@@ -103,11 +108,18 @@ function renderLyrics(){
  box.innerHTML=timed.length?timed.map(line=>'<div class="lyric-line" '+(line.time===null?'':'data-lyric-time="'+line.time+'"')+'>'+esc(line.text)+'</div>').join(''):'<div class="lyrics-empty">No lyrics saved for this song.</div>';updateLyrics()
 }
 function onTimeUpdate(){
- const audio=state.audio,duration=audio.duration||0;$('seekBar').value=duration?Math.round(audio.currentTime/duration*1000):0;$('elapsedTime').textContent=formatClock(audio.currentTime);$('remainingTime').textContent='−'+formatClock(Math.max(0,duration-audio.currentTime));
+ const audio=state.audio,duration=audio.duration||0,seek=$('seekBar');
+ if(!isSeeking){seek.value=duration?Math.round(audio.currentTime/duration*1000):0;$('elapsedTime').textContent=formatClock(audio.currentTime);$('remainingTime').textContent='−'+formatClock(Math.max(0,duration-audio.currentTime))}
  if(!audio.paused&&state.sessionId!=null){const position=audio.currentTime,delta=Math.max(0,Math.min(5,position-state.lastPosition));if(delta>0)state.pendingSeconds+=delta;state.lastPosition=position;if(state.pendingSeconds>=8||Date.now()-state.lastPersist>12000)flushSession()}
  updateMediaPosition();updateLyrics()
 }
-export async function playTrack(trackId,collection){
+function showPlaybackError(track,message){
+ const box=$('playerStatus');if(!box)return;const id=String(track?.id||state.currentTrackId||'');
+ box.classList.add('error');box.innerHTML='<span>'+esc(message)+'</span><span class="playback-error-actions"><button type="button" data-playback-retry>Retry</button><button type="button" data-playback-skip>Skip track</button></span>';
+ box.querySelector('[data-playback-retry]')?.addEventListener('click',()=>playTrack(id,state.queueIds));
+ box.querySelector('[data-playback-skip]')?.addEventListener('click',()=>nextTrack())
+}
+export async function playTrack(trackId,collection,options={}){
  const track=byId(trackId);if(!track){toast('That song is no longer in your library');return}
  if(track.source==='youtube'&&state.prefs.youtubeConsent!==true){toast('Enable YouTube in Settings before searching or playing videos');window.show('settings');return}
  if(track.source==='youtube'&&track.madeForKids===true){const id=String(track.providerId||'');if(/^[A-Za-z0-9_-]{11}$/.test(id))window.open('https://www.youtube.com/watch?v='+encodeURIComponent(id),'_blank','noopener,noreferrer');toast('This video is marked Made for Kids. Open it directly on YouTube.');return}
@@ -119,12 +131,12 @@ export async function playTrack(trackId,collection){
  if(track.source==='youtube'&&playable?.kind==='youtube'){
   state.currentTrackId=trackId;renderCurrent();window.show('now');startSession(track);state.lastPosition=0;renderQueue();
   const panel=$('youtubePanel'),host=$('youtubePlayerHost');panel.hidden=false;$('youtubePlayerError').hidden=true;host.replaceChildren();const mount=document.createElement('div');mount.className='youtube-iframe-mount';host.appendChild(mount);
-  try{await loadYouTubePlayer(playable.videoId,mount,{autoplay:true,onReady:()=>{status('YouTube video ready · playback stays on screen');requestAnimationFrame(()=>panel.scrollIntoView({block:'center',behavior:'auto'}))},onStateChange:playerState=>{if(playerState===0){updateControls();if($('now').open&&document.visibilityState==='visible'&&isYouTubePlayerVisible())nextTrack()}else{updateControls();if(playerState===1)status('Playing in the visible YouTube player')}},onError:code=>showYouTubePlaybackError(track,code)})}catch(error){showYouTubePlaybackError(track,0)}
+  try{await loadYouTubePlayer(playable.videoId,mount,{autoplay:true,onReady:()=>{status('YouTube video ready · playback stays on screen');requestAnimationFrame(()=>panel.scrollIntoView({block:'center',behavior:'auto'}))},onStateChange:playerState=>{if(playerState===0){updateControls();if($('now').open&&document.visibilityState==='visible'&&isYouTubePlayerVisible())nextTrack({manual:false})}else{updateControls();if(playerState===1)status('Playing in the visible YouTube player')}},onError:code=>showYouTubePlaybackError(track,code)})}catch(error){showYouTubePlaybackError(track,0)}
   try{if(!localStorage.getItem('auralis-youtube-notice-seen')){toast('YouTube plays only while the video is visible.');localStorage.setItem('auralis-youtube-notice-seen','1')}}catch(error){}
   updateControls();return
  }
- if(!source){toast(track.source==='audius'||track.source==='jamendo'?'This stream is no longer available':'The audio file is missing from this device');return}
- state.audio.src=source;state.currentTrackId=trackId;renderCurrent();window.show('now');startSession(track);state.lastPosition=0;renderQueue();
+ if(!source){showPlaybackError(track,'This '+(track.source==='audius'?'Audius':track.source==='jamendo'?'Jamendo':'audio')+' item is unavailable on this device.');return}
+ state.audio.src=source;state.currentTrackId=trackId;renderCurrent();if(options.openPlayer===true)window.show('now');startSession(track);state.lastPosition=0;renderQueue();
  try{await state.audio.play();status(playbackMessage())}catch(error){status(track.source==='audius'||track.source==='jamendo'?'Press play to start this stream':'Press play to start this song')}updateControls()
 }
 function showYouTubePlaybackError(track,code){
@@ -145,8 +157,8 @@ export function previousTrack(){
  if(state.queueIndex>0)state.queueIndex--;else if(state.repeatMode==='all'&&state.queueIds.length)state.queueIndex=state.queueIds.length-1;else{state.audio.currentTime=0;return}
  playTrack(state.queueIds[state.queueIndex],state.queueIds)
 }
-export function nextTrack(){
- if(state.repeatMode==='one'&&state.currentTrackId){if(byId(state.currentTrackId)?.source==='youtube'){playYouTubePlayback();return}state.audio.currentTime=0;state.audio.play().catch(()=>{});return}
+export function nextTrack({manual=true}={}){
+ if(!manual&&state.repeatMode==='one'&&state.currentTrackId){const track=byId(state.currentTrackId);if(track?.source==='youtube'){playTrack(state.currentTrackId,state.queueIds,{openPlayer:true});return}state.audio.currentTime=0;state.audio.play().catch(()=>{});return}
  if(!state.queueIds.length){state.queueIds=state.tracks.map(track=>track.id);state.queueIndex=state.queueIds.indexOf(state.currentTrackId)}
  if(state.shuffle&&state.queueIds.length>1){let next=state.queueIndex+1;if(next>=state.queueIds.length){if(state.repeatMode==='all')next=0;else{state.audio.pause();status('End of queue');return}}state.queueIndex=next}
  else if(state.queueIndex<state.queueIds.length-1)state.queueIndex++;
@@ -187,15 +199,18 @@ export function selectSleepTimer(minutes){
  clearTimeout(state.sleepTimer);state.sleepTimer=null;window.closeAction();if(!minutes){updateControls();toast('Sleep timer cancelled');return}
  state.sleepTimer=setTimeout(()=>{state.sleepTimer=null;if(byId(state.currentTrackId)?.source==='youtube')pauseYouTubePlayback();else state.audio.pause();flushSession();status('Sleep timer stopped playback');updateControls();toast('Sleep timer finished')},minutes*60000);updateControls();toast('Playback will stop in '+minutes+' minutes')
 }
-export function toggleLyrics(){const panel=$('lyricsPanel');panel.hidden=!panel.hidden;$('now').classList.toggle('lyrics-open',!panel.hidden);if(!panel.hidden){renderLyrics();$('lyricsClose').focus()}}
+export function toggleLyrics(){const track=byId(state.currentTrackId);if(!String(track?.lyrics||'').trim()){toast('No lyrics are saved for this track');return}const panel=$('lyricsPanel');panel.hidden=!panel.hidden;$('now').classList.toggle('lyrics-open',!panel.hidden);if(!panel.hidden){renderLyrics();$('lyricsClose').focus()}}
 export function stopCurrent(trackId){
  if(state.currentTrackId!==trackId)return;pauseYouTubePlayback();stopYouTubePlayback();state.audio.pause();flushSession();state.audio.removeAttribute('src');state.audio.load();if(state.objectUrl)URL.revokeObjectURL(state.objectUrl);state.objectUrl=null;state.currentTrackId=null;state.sessionId=null;state.sessionRecord=null;state.queueIds=state.queueIds.filter(id=>id!==trackId);state.queueIndex=-1;renderCurrent();renderQueue()
 }
 export function initPlayer(){
  syncVolume();installMediaSession();updateMediaSession();
  $('volumeSlider').addEventListener('input',event=>{setVolume(event.target.value);persistVolume()});$('volumeSlider').addEventListener('change',()=>persistVolume(true));$('muteButton').addEventListener('click',toggleMute);
- state.audio.addEventListener('play',()=>{state.lastPosition=state.audio.currentTime;updateControls();status(playbackMessage())});state.audio.addEventListener('pause',()=>{flushSession();updateControls()});state.audio.addEventListener('timeupdate',onTimeUpdate);state.audio.addEventListener('loadedmetadata',updateMediaPosition);state.audio.addEventListener('ended',()=>{flushSession();nextTrack()});state.audio.addEventListener('error',()=>{const source=byId(state.currentTrackId)?.source;status(source==='audius'||source==='jamendo'?'This '+(source==='jamendo'?'Jamendo':'Audius')+' stream is unavailable. Try another track.':'This audio format could not be played by your browser')});
- $('seekBar').addEventListener('input',event=>{if(state.audio.duration)state.audio.currentTime=(Number(event.target.value)/1000)*state.audio.duration});
+ state.audio.addEventListener('play',()=>{state.lastPosition=state.audio.currentTime;updateControls();status(playbackMessage())});state.audio.addEventListener('pause',()=>{flushSession();updateControls()});state.audio.addEventListener('timeupdate',onTimeUpdate);state.audio.addEventListener('loadedmetadata',updateMediaPosition);state.audio.addEventListener('ended',()=>{flushSession();nextTrack({manual:false})});state.audio.addEventListener('error',()=>{const track=byId(state.currentTrackId);if(!track||state.audio.error?.code===1)return;const source=track.source;showPlaybackError(track,source==='audius'||source==='jamendo'?'This '+(source==='jamendo'?'Jamendo':'Audius')+' stream is unavailable.':'This audio format could not be played by your browser')});
+ $('seekBar').addEventListener('pointerdown',()=>{isSeeking=true});
+ $('seekBar').addEventListener('input',event=>{isSeeking=true;const duration=state.audio.duration||0;if(!duration)return;const time=(Number(event.target.value)/1000)*duration;$('elapsedTime').textContent=formatClock(time);$('remainingTime').textContent='−'+formatClock(Math.max(0,duration-time));event.target.setAttribute('aria-valuetext',formatClock(time)+' elapsed')});
+ $('seekBar').addEventListener('change',event=>{const duration=state.audio.duration;if(duration)state.audio.currentTime=(Number(event.target.value)/1000)*duration;isSeeking=false;onTimeUpdate()});
+ $('seekBar').addEventListener('pointercancel',()=>{isSeeking=false;onTimeUpdate()});
  $('miniOpen').addEventListener('click',()=>window.show('now'));$('mp').addEventListener('click',toggle);$('miniNext').addEventListener('click',nextTrack);
  $('nowPlayButton').addEventListener('click',toggle);$('previousButton').addEventListener('click',previousTrack);$('nextButton').addEventListener('click',nextTrack);$('shuffleButton').addEventListener('click',toggleShuffle);$('repeatButton').addEventListener('click',toggleRepeat);
  $('nowLikeButton').addEventListener('click',()=>{if(state.currentTrackId)window.toggleLike(state.currentTrackId)});$('nowMoreButton').addEventListener('click',()=>{if(state.currentTrackId)window.trackMenu(state.currentTrackId)});

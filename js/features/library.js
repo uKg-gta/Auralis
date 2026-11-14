@@ -11,21 +11,31 @@ function makeCard(track,subtitle){
  return '<button class="music-card" data-play-track="'+esc(track.id)+'" aria-label="Play '+esc(displayName(track))+' by '+esc(track.artist||'Unknown artist')+'">'+art+'<span class="card-title">'+esc(displayName(track))+'</span><span class="card-subtitle">'+esc(subtitle||track.artist||'Unknown artist')+'</span>'+badges+'</button>'
 }
 function renderShelfTracks(id,tracks,limit=12,subtitle){$(id).innerHTML=tracks.slice(0,limit).map(track=>makeCard(track,subtitle)).join('')}
+export function renderHomeStats(){
+ const week=weeklySeconds(),hasListening=state.history.length>0||!!state.sessionRecord;
+ $('homeStatsSection').hidden=!hasListening;$('homeListeningTime').textContent=formatDuration(week.total);
+ $('homeWeekBars').innerHTML=week.days.map(day=>'<span class="week-bar" title="'+formatDuration(day.seconds)+'"><i style="height:'+day.height+'px"></i>'+esc(day.label)+'</span>').join('');
+}
+export function renderHomeHistory(){
+ const recent=uniqueRecent().filter(track=>track.source!=='local'),current=state.currentTrackId?byId(state.currentTrackId):null;
+ const heroTrack=current&&current.source!=='local'?current:recent[0]||null,hero=$('homeHeroSection'),eyebrow=$('homeHeroEyebrow');
+ if(hero){hero.hidden=!heroTrack;if(heroTrack){$('homeHero').dataset.playTrack=heroTrack.id;$('homeHeroTitle').textContent=displayName(heroTrack);$('homeHeroArtist').textContent=heroTrack.artist||'Unknown artist';const art=$('homeHeroArt'),url=artworkUrl(heroTrack);art.className='hero-art art '+artworkClass(heroTrack);art.innerHTML=url?'<img src="'+esc(url)+'" alt="">':'';if(eyebrow)eyebrow.textContent=current&&current.id===heroTrack.id?'NOW PLAYING':recent.length?'PICK UP WHERE YOU LEFT OFF':'YOUR MUSIC'}}
+ const jump=recent.slice(0,4),later=recent.slice(4,12);
+ $('homeJumpSection').hidden=!jump.length;renderShelfTracks('homeJumpCards',jump,4);
+ $('homeRecentSection').hidden=!later.length;renderShelfTracks('homeRecent',later,8);
+ renderHomeStats();
+}
 export function renderHome(){
  const remote=state.tracks.filter(track=>['audius','youtube','jamendo'].includes(track.source)||(track.source==='stream'&&track.provider==='audius'));
  const recent=uniqueRecent().filter(track=>track.source!=='local'),latest=sortTracks(remote,'recent');
- const current=state.currentTrackId?byId(state.currentTrackId):null,heroTrack=current&&current.source!=='local'?current:recent[0]||latest[0]||null;
  $('homeLoading').hidden=true;$('homeContent').hidden=false;
  const greeting=$('homeGreeting');if(greeting){const hour=new Date().getHours();greeting.textContent=hour<12?'Good morning. Find a soundtrack for today.':hour<18?'Good afternoon. What are you in the mood for?':'Good evening. Set the mood with music.'}
- const hero=$('homeHeroSection');hero.hidden=!heroTrack;
- if(heroTrack){$('homeHero').dataset.playTrack=heroTrack.id;$('homeHeroTitle').textContent=displayName(heroTrack);$('homeHeroArtist').textContent=heroTrack.artist||'Unknown artist';const art=$('homeHeroArt'),url=artworkUrl(heroTrack);art.className='hero-art art '+artworkClass(heroTrack);art.innerHTML=url?'<img src="'+esc(url)+'" alt="">':''}
- const jump=recent.slice(0,8);$('homeJumpSection').hidden=!jump.length;renderShelfTracks('homeJumpCards',jump,8);
- const later=recent.slice(1,9);$('homeRecentSection').hidden=!later.length;renderShelfTracks('homeRecent',later,8);
+ const heroTrack=(state.currentTrackId&&byId(state.currentTrackId))||recent[0]||latest[0]||null;$('homeHeroSection').hidden=!heroTrack;
+ renderHomeHistory();
  const youtubeTracks=state.homeCatalog.youtube||[],jamendoTracks=state.homeCatalog.jamendo||[];
  const youtubeSection=$('homeYoutubeSection'),jamendoSection=$('homeJamendoSection');
  if(youtubeSection){youtubeSection.hidden=!youtubeTracks.length&&!state.homeSourceErrors.youtube;$('homeYoutubeStatus').hidden=!!youtubeTracks.length||!state.homeSourceErrors.youtube;$('homeYoutubeStatus').textContent=state.homeSourceErrors.youtube||'';renderShelfTracks('homeYoutube',youtubeTracks,8,'YouTube · official music videos')}
  if(jamendoSection){jamendoSection.hidden=!jamendoTracks.length&&!state.homeSourceErrors.jamendo;$('homeJamendoStatus').hidden=!!jamendoTracks.length||!state.homeSourceErrors.jamendo;$('homeJamendoStatus').textContent=state.homeSourceErrors.jamendo||'';renderShelfTracks('homeJamendo',jamendoTracks,8,'Creative Commons · Jamendo')}
- const week=weeklySeconds(),hasListening=state.history.length>0||!!state.sessionRecord;$('homeStatsSection').hidden=!hasListening;$('homeListeningTime').textContent=formatDuration(week.total);$('homeWeekBars').innerHTML=week.days.map(day=>'<span class="week-bar"><i style="height:'+day.height+'px"></i>'+esc(day.label)+'</span>').join('');
 }
 function renderOverview(){
  const artists=artistNames(),albums=albumNames();
@@ -82,7 +92,7 @@ export function renderLibrary(){
  const sort=$('librarySort');if(sort)sort.value=state.prefs.librarySort||'recent'
 }
 export function setLibraryFilter(filter){state.libraryFilter=filter||'all';renderYourMusic()}
-export function setLibrarySource(source){state.librarySource=['audius','youtube','jamendo'].includes(source)?source:'all';renderYourMusic()}
+export function setLibrarySource(source){state.librarySource=['local','audius','youtube','jamendo'].includes(source)?source:'all';renderYourMusic()}
 export function setLibrarySection(section){const allowed=['overview','songs','recent','playlists','artists','albums','liked','unorganized'];state.selectedArtistName=null;state.selectedAlbumName=null;state.librarySection=allowed.includes(section)?section:'overview';renderLibrary()}
 export function showLiked(){setLibrarySection('liked');window.show('library')}
 export function showRecent(){setLibrarySection('recent');window.show('library')}
@@ -91,7 +101,7 @@ export function openArtist(name){state.selectedArtistName=name;state.selectedAlb
 export function openAlbum(name){state.selectedAlbumName=name;state.selectedArtistName=null;state.librarySection='albums';renderLibrary();$('albumDetail').scrollIntoView({behavior:'smooth',block:'start'})}
 export async function setLibrarySort(mode){const allowed=['recent','az','artist'];state.prefs.librarySort=allowed.includes(mode)?mode:'recent';try{await put('settings',{key:'preferences',value:state.prefs});renderLibrary()}catch(error){toast('Could not save sort preference')}}
 export async function createCategory(name){
- if(typeof name!=='string'){window.showDialog('New tag','<label class="library-count" for="newCategoryName">Tag name</label><input id="newCategoryName" class="dialog-field" maxlength="40" placeholder="For example, Evening listening"><p class="library-hint">Tags group songs without setting their playback order.</p><div class="dialog-footer"><button class="button button-quiet" onclick="closeAction()">Cancel</button><button class="button button-primary" data-action="save-category">Create tag</button></div>');$('newCategoryName').focus();return}
+ if(typeof name!=='string'){window.showDialog('New tag','<label class="library-count" for="newCategoryName">Tag name</label><input id="newCategoryName" class="dialog-field" maxlength="40" placeholder="For example, Evening listening"><p class="library-hint">Tags group songs without setting their playback order.</p><div class="dialog-footer"><button class="button button-quiet" data-close-action>Cancel</button><button class="button button-primary" data-action="save-category">Create tag</button></div>');$('newCategoryName').focus();return}
  const value=name.trim();if(!value){$('newCategoryName')?.focus();toast('Enter a tag name');return}
  const category={id:makeId(),name:value.slice(0,40),createdAt:Date.now()};
  try{await put('categories',category);state.categories.push(category);state.refreshAll();toast('Tag created');window.closeAction()}catch(error){toast('Could not save this tag')}
