@@ -207,6 +207,20 @@ body.mobile-player-open .app,
 body.mobile-player-open #mini {
   display: none !important;
 }
+/* Keep the mobile player surface opaque so the underlying screen never bleeds through. */
+body.mobile-player-open dialog#now.player-sheet[open] {
+  background: var(--surface) !important;
+}
+body.mobile-player-open dialog#now.player-sheet[open] .player-top {
+  position: relative;
+  z-index: 3;
+}
+body.mobile-player-open dialog#now.player-sheet[open] #playerClose {
+  position: relative;
+  z-index: 4;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
 body.mobile-player-open dialog#now.player-sheet[open] {
   position: fixed !important;
   z-index: 2147483647 !important;
