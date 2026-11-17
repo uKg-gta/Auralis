@@ -137,7 +137,6 @@ html[data-theme="light"] .player-sheet{background:rgba(255,255,255,.97)}
 /* Mobile Now Playing is a full-screen destination, not a partially expanded sheet. */
 @media (any-pointer: coarse), (hover: none) and (pointer: coarse) {
   html:has(dialog#now[open]) { overflow: hidden; }
-  dialog#now.player-sheet,
   dialog#now.player-sheet[open] {
     position: fixed !important;
     inset: 0 !important;
@@ -160,6 +159,7 @@ html[data-theme="light"] .player-sheet{background:rgba(255,255,255,.97)}
     transform: none !important;
     animation: none !important;
   }
+  dialog#now.player-sheet:not([open]) { display: none !important; }
   dialog#now.player-sheet::before { position: fixed; inset: -32px; }
   dialog#now.player-sheet .player-top {
     flex: 0 0 auto;
