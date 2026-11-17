@@ -139,7 +139,7 @@ function setupSheetDrag(dialog,close){
  handle.addEventListener('pointercancel',()=>{startY=null;dialog.style.translate=''});
  if(dialog.id!=='now')return;
  const scroll=dialog.querySelector('.player-scroll');if(!scroll)return;let touchStart=null,touchDismiss=false;
- scroll.addEventListener('touchstart',event=>{if(event.touches.length!==1){touchStart=null;touchDismiss=false;return}touchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};touchDismiss=false},{passive:true});
+ scroll.addEventListener('touchstart',event=>{if(event.touches.length!==1||event.target.closest('button,input,select,textarea,a,[role="slider"]')){touchStart=null;touchDismiss=false;return}touchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};touchDismiss=false},{passive:true});
  scroll.addEventListener('touchmove',event=>{if(!touchStart||event.touches.length!==1)return;const touch=event.touches[0],dx=touch.clientX-touchStart.x,dy=touch.clientY-touchStart.y;if(dy>12&&Math.abs(dy)>Math.abs(dx)&&scroll.scrollTop<=0){touchDismiss=true;if(event.cancelable)event.preventDefault()}else if(dy<0||scroll.scrollTop>0){touchDismiss=false}},{passive:false});
  scroll.addEventListener('touchend',event=>{if(!touchStart)return;const touch=event.changedTouches[0],dy=touch?touch.clientY-touchStart.y:0;const dismiss=touchDismiss&&dy>90;touchStart=null;touchDismiss=false;if(dismiss)close()},{passive:true});
  scroll.addEventListener('touchcancel',()=>{touchStart=null;touchDismiss=false},{passive:true});
