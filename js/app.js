@@ -136,7 +136,13 @@ function setupSheetDrag(dialog,close){
  handle.addEventListener('pointerdown',event=>{startY=event.clientY;handle.setPointerCapture?.(event.pointerId)});
  handle.addEventListener('pointerup',event=>{if(startY===null)return;const delta=event.clientY-startY;startY=null;dialog.style.translate='';if(delta>90)close();else dialog.style.translate='0 0'});
  handle.addEventListener('pointermove',event=>{if(startY===null)return;const delta=Math.max(0,event.clientY-startY);if(delta>5)dialog.style.translate='0 '+delta+'px'});
- handle.addEventListener('pointercancel',()=>{startY=null;dialog.style.translate=''})
+ handle.addEventListener('pointercancel',()=>{startY=null;dialog.style.translate=''});
+ if(dialog.id!=='now')return;
+ const scroll=dialog.querySelector('.player-scroll');if(!scroll)return;let touchStart=null,touchDismiss=false;
+ scroll.addEventListener('touchstart',event=>{if(event.touches.length!==1){touchStart=null;touchDismiss=false;return}touchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};touchDismiss=false},{passive:true});
+ scroll.addEventListener('touchmove',event=>{if(!touchStart||event.touches.length!==1)return;const touch=event.touches[0],dx=touch.clientX-touchStart.x,dy=touch.clientY-touchStart.y;if(dy>12&&Math.abs(dy)>Math.abs(dx)&&scroll.scrollTop<=0){touchDismiss=true;if(event.cancelable)event.preventDefault()}else if(dy<0||scroll.scrollTop>0){touchDismiss=false}},{passive:false});
+ scroll.addEventListener('touchend',event=>{if(!touchStart)return;const touch=event.changedTouches[0],dy=touch?touch.clientY-touchStart.y:0;const dismiss=touchDismiss&&dy>90;touchStart=null;touchDismiss=false;if(dismiss)close()},{passive:true});
+ scroll.addEventListener('touchcancel',()=>{touchStart=null;touchDismiss=false},{passive:true});
 }
 function setupPreferences(){
  $('resetTasteButton')?.addEventListener('click',()=>showDialog('Reset discovery learning?','<p>This clears listening-based discovery signals. Your listening history and liked songs stay in your library.</p><div class="dialog-footer"><button class="button button-quiet" data-close-action>Cancel</button><button class="button button-destructive" data-action="reset-taste">Reset learning</button></div>'));
