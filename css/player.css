@@ -254,6 +254,12 @@ body.mobile-player-open dialog#now.player-sheet[open] .player-top {
   min-height: calc(56px + var(--safe-top));
   padding-top: var(--safe-top);
 }
+
+body.mobile-player-open dialog#now.player-sheet[open] .player-top,
+body.mobile-player-open dialog#now.player-sheet[open] #playerClose {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
 body.mobile-player-open dialog#now.player-sheet[open] .player-scroll {
   flex: 1 1 auto;
   min-height: 0;
